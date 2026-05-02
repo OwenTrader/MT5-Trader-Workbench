@@ -5,9 +5,10 @@ import type { ChildProcess } from 'node:child_process'
 import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { httpGetMock, execFileSyncMock } = vi.hoisted(() => ({
+const { httpGetMock, execFileSyncMock, spawnMock } = vi.hoisted(() => ({
   httpGetMock: vi.fn(),
-  execFileSyncMock: vi.fn()
+  execFileSyncMock: vi.fn(),
+  spawnMock: vi.fn()
 }))
 
 vi.mock('electron', () => ({
@@ -27,11 +28,12 @@ vi.mock('node:child_process', async () => {
   const actual = await vi.importActual<typeof import('node:child_process')>('node:child_process')
   return {
     ...actual,
+    spawn: spawnMock,
     execFileSync: execFileSyncMock
   }
 })
 
-import { isBackendHealthy, stopPythonService, waitForBackendHealth } from './python-service'
+import { isBackendHealthy, startPythonService, stopPythonService, waitForBackendHealth } from './python-service'
 import { getPackagedBackendExecutablePath } from './packaging-paths'
 
 type MockRequest = EventEmitter & {
@@ -41,6 +43,15 @@ type MockRequest = EventEmitter & {
 type MockResponse = EventEmitter & {
   statusCode?: number
   resume: () => void
+}
+
+type MockChildProcess = EventEmitter & ChildProcess & {
+  kill: ReturnType<typeof vi.fn>
+  pid: number
+  killed: boolean
+  exitCode: number | null
+  stdout: EventEmitter
+  stderr: EventEmitter
 }
 
 function createRequest(
@@ -76,10 +87,28 @@ function mockHealthFailure(): void {
   })
 }
 
+function createChildProcess(pid = 1234): MockChildProcess {
+  const childProcess = new EventEmitter() as MockChildProcess
+  childProcess.pid = pid
+  childProcess.killed = false
+  childProcess.exitCode = null
+  childProcess.stdout = new EventEmitter()
+  childProcess.stderr = new EventEmitter()
+  ;(childProcess.stdout as EventEmitter & { setEncoding: (encoding: string) => void }).setEncoding = vi.fn()
+  ;(childProcess.stderr as EventEmitter & { setEncoding: (encoding: string) => void }).setEncoding = vi.fn()
+  childProcess.kill = vi.fn(() => {
+    childProcess.killed = true
+    return true
+  })
+  return childProcess
+}
+
 describe('python-service startup health checks', () => {
   beforeEach(() => {
     httpGetMock.mockReset()
     execFileSyncMock.mockReset()
+    spawnMock.mockReset()
+    vi.restoreAllMocks()
   })
 
   it('treats a 200 health response as healthy', async () => {
@@ -115,9 +144,56 @@ describe('python-service startup health checks', () => {
     )
   })
 
-  it('kills the backend port when requested during shutdown', () => {
-    stopPythonService({ killPort: true })
+  it('kills the backend port when requested during shutdown', async () => {
+    await stopPythonService({ killPort: true, reason: 'test-port-cleanup' })
 
     expect(execFileSyncMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('waits for graceful backend child shutdown before resolving', async () => {
+    const childProcess = createChildProcess(4321)
+    spawnMock.mockReturnValue(childProcess)
+
+    startPythonService()
+
+    const stopPromise = stopPythonService({ reason: 'graceful-test' })
+
+    expect(childProcess.kill).toHaveBeenCalledTimes(1)
+    expect(execFileSyncMock).not.toHaveBeenCalled()
+
+    childProcess.exitCode = 0
+    childProcess.emit('close', 0, null)
+
+    await expect(stopPromise).resolves.toBeUndefined()
+    expect(execFileSyncMock).not.toHaveBeenCalled()
+  })
+
+  it('force-kills the backend process tree when graceful shutdown stalls', async () => {
+    vi.useFakeTimers()
+    const childProcess = createChildProcess(5678)
+    spawnMock.mockReturnValue(childProcess)
+
+    startPythonService()
+
+    const stopPromise = stopPythonService({ killPort: true, reason: 'force-kill-test' })
+
+    await vi.advanceTimersByTimeAsync(3000)
+    childProcess.exitCode = 1
+    childProcess.emit('close', 1, null)
+    await stopPromise
+
+    expect(execFileSyncMock).toHaveBeenCalledTimes(2)
+    expect(execFileSyncMock).toHaveBeenNthCalledWith(1, 'taskkill.exe', ['/PID', '5678', '/T', '/F'], { stdio: 'ignore' })
+    expect(execFileSyncMock).toHaveBeenNthCalledWith(
+      2,
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-Command',
+        'Get-NetTCPConnection -LocalPort 8765 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }'
+      ],
+      { stdio: 'ignore' }
+    )
+    vi.useRealTimers()
   })
 })

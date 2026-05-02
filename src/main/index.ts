@@ -15,6 +15,7 @@ import {
 } from './python-service'
 import { toggleOverlay, getOverlayWindow } from './overlay-window'
 import { AWAKENING_DOCS } from './awakening-data'
+import { createShutdownController } from './shutdown-coordinator'
 
 const isSingleInstance = app.requestSingleInstanceLock()
 
@@ -31,8 +32,21 @@ if (!isSingleInstance) {
 
   let mainWindow: BrowserWindow | null = null
   let tray: Tray | null = null
-  let isQuitting = false
   let currentLanguage: MainLocale = 'zh-CN'
+
+  function logShutdown(message: string): void {
+    console.log(`[shutdown] ${message}`)
+  }
+
+  const shutdownController = createShutdownController({
+    cleanup: async (reason) => {
+      await stopPythonService({ killPort: true, reason })
+    },
+    resumeQuit: () => {
+      app.quit()
+    },
+    log: logShutdown
+  })
 
   function getPackagedDefaultSettingsPath(): string {
     return join(process.resourcesPath, 'storage', 'settings.json')
@@ -188,8 +202,8 @@ if (!isSingleInstance) {
       },
       { type: 'separator' },
       { label: tMain(currentLanguage, 'tray.quit'), click: () => {
-        isQuitting = true
-        stopPythonService({ killPort: true })
+        shutdownController.markQuitRequested('tray-menu')
+        void shutdownController.beginCleanup('tray-menu')
         app.quit()
       }}
     ])
@@ -322,7 +336,7 @@ if (!isSingleInstance) {
 
     try {
       if (is.dev) {
-        stopPythonService({ killPort: true })
+        void stopPythonService({ killPort: true, reason: 'dev-prestart-cleanup' })
         killBackendOnPort()
       }
 
@@ -366,9 +380,12 @@ if (!isSingleInstance) {
     })
 
     mainWindow.on('close', (event) => {
-      if (!isQuitting) {
+      if (!shutdownController.isQuitRequested()) {
+        logShutdown('main-window:close intercepted -> hide')
         event.preventDefault()
         mainWindow?.hide()
+      } else {
+        logShutdown('main-window:close allowed -> quitting')
       }
       return false
     })
@@ -382,19 +399,18 @@ if (!isSingleInstance) {
   })
 
   app.on('window-all-closed', () => {
-    stopPythonService({ killPort: true })
+    logShutdown('window-all-closed')
     if (process.platform !== 'darwin') {
       app.quit()
     }
   })
 
-  app.on('before-quit', () => {
-    isQuitting = true
-    stopPythonService({ killPort: true })
+  app.on('before-quit', (event) => {
+    shutdownController.handleBeforeQuit(event, 'before-quit')
   })
 
   app.on('will-quit', () => {
-    stopPythonService({ killPort: true })
+    logShutdown('will-quit')
     if (tray) {
       try {
         tray.destroy()

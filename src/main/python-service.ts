@@ -30,7 +30,10 @@ export type BackendStartupDiagnostics = {
 
 type StopPythonServiceOptions = {
   killPort?: boolean
+  reason?: string
 }
+
+const BACKEND_SHUTDOWN_TIMEOUT_MS = 3000
 
 function getPackagedDefaultSettingsPath(): string {
   return path.join(process.resourcesPath, 'storage', 'settings.json')
@@ -65,8 +68,13 @@ function getBackendDefaultSettingsPath(): string {
 }
 
 let pythonProcess: ChildProcess | null = null
+let stopPythonServicePromise: Promise<void> | null = null
 let backendLogBuffer: string[] = []
 let backendStartupDiagnostics: BackendStartupDiagnostics = createBackendStartupDiagnostics()
+
+function logShutdown(message: string): void {
+  console.log(`[shutdown] ${message}`)
+}
 
 function createBackendStartupDiagnostics(): BackendStartupDiagnostics {
   const workingDirectory = getBackendWorkingDirectory()
@@ -244,20 +252,113 @@ export function startPythonService(): ChildProcess {
       setBackendStartupError(message)
     }
     console.log(message)
+    stopPythonServicePromise = null
   })
 
   return pythonProcess
 }
 
-export function stopPythonService({ killPort = false }: StopPythonServiceOptions = {}) {
-  if (pythonProcess) {
-    pythonProcess.kill()
-    pythonProcess = null
+function waitForProcessClose(childProcess: ChildProcess, timeoutMs: number): Promise<boolean> {
+  if (childProcess.exitCode !== null) {
+    return Promise.resolve(true)
   }
 
-  if (killPort) {
-    killBackendOnPort()
+  return new Promise((resolve) => {
+    let settled = false
+    let timer: NodeJS.Timeout | null = setTimeout(() => {
+      timer = null
+      if (settled) {
+        return
+      }
+
+      settled = true
+      childProcess.off('close', onClose)
+      resolve(false)
+    }, timeoutMs)
+
+    const onClose = () => {
+      if (settled) {
+        return
+      }
+
+      settled = true
+      if (timer) {
+        clearTimeout(timer)
+        timer = null
+      }
+      resolve(true)
+    }
+
+    childProcess.once('close', onClose)
+  })
+}
+
+function forceKillProcessTree(pid: number): void {
+  try {
+    if (process.platform === 'win32') {
+      execFileSync('taskkill.exe', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' })
+      return
+    }
+
+    process.kill(pid, 'SIGKILL')
+  } catch {
   }
+}
+
+async function stopOwnedPythonChild(reason: string): Promise<void> {
+  const childProcess = pythonProcess
+  if (!childProcess) {
+    logShutdown(`backend:no-owned-child (${reason})`)
+    return
+  }
+
+  const pid = childProcess.pid
+  logShutdown(`backend:terminate-requested (${reason}) pid=${pid ?? 'unknown'}`)
+
+  try {
+    childProcess.kill()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    logShutdown(`backend:terminate-error (${reason}) ${message}`)
+  }
+
+  const closedGracefully = await waitForProcessClose(childProcess, BACKEND_SHUTDOWN_TIMEOUT_MS)
+  if (closedGracefully) {
+    logShutdown(`backend:terminated-gracefully (${reason}) pid=${pid ?? 'unknown'}`)
+    if (pythonProcess === childProcess) {
+      pythonProcess = null
+    }
+    return
+  }
+
+  logShutdown(`backend:force-kill (${reason}) pid=${pid ?? 'unknown'}`)
+  if (pid) {
+    forceKillProcessTree(pid)
+    await waitForProcessClose(childProcess, 1000)
+  }
+
+  if (pythonProcess === childProcess) {
+    pythonProcess = null
+  }
+}
+
+export async function stopPythonService({ killPort = false, reason = 'unknown' }: StopPythonServiceOptions = {}): Promise<void> {
+  if (!stopPythonServicePromise) {
+    stopPythonServicePromise = (async () => {
+      await stopOwnedPythonChild(reason)
+
+      if (killPort) {
+        logShutdown(`backend:kill-port (${reason}) port=${BACKEND_PORT}`)
+        killBackendOnPort()
+      }
+    })().finally(() => {
+      stopPythonServicePromise = null
+    })
+  } else {
+    logShutdown(`backend:stop-reuse (${reason})`)
+  }
+
+  await stopPythonServicePromise
 }
 
 export function markBackendStartupFailure(error: unknown): void {

@@ -61,17 +61,15 @@
     "vitest": "^1.5.0"
   },
   "build": {
-    "appId": "com.tradingtool.elec",
+    "appId": "com.tradingtool",
     "productName": "MT5 Trader Workbench",
-    "copyright": "Copyright (c) 2026 Antigravity",
+    "copyright": "Author telegram owen600",
     "artifactName": "${productName} Setup ${buildVersion}.${ext}",
     "directories": {
       "output": "dist",
       "buildResources": "resources"
     },
-    "win": {
-      "icon": "resources/app-icon.ico"
-    },
+    
     "files": [
       "out/**/*"
     ],
