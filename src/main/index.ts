@@ -189,7 +189,7 @@ if (!isSingleInstance) {
       { type: 'separator' },
       { label: tMain(currentLanguage, 'tray.quit'), click: () => {
         isQuitting = true
-        stopPythonService()
+        stopPythonService({ killPort: true })
         app.quit()
       }}
     ])
@@ -322,17 +322,22 @@ if (!isSingleInstance) {
 
     try {
       if (is.dev) {
-        stopPythonService()
+        stopPythonService({ killPort: true })
         killBackendOnPort()
       }
 
       const backendAlreadyRunning = await isBackendHealthy()
-      const backendProcess = backendAlreadyRunning ? null : startPythonService()
-
       if (backendAlreadyRunning) {
-        markBackendHealthyReuse()
-        console.log('Backend already healthy on port 8765, reusing existing service')
+        if (app.isPackaged) {
+          // Packaged sessions should own the backend process so shutdown can reliably clean it up.
+          killBackendOnPort()
+        } else {
+          markBackendHealthyReuse()
+          console.log('Backend already healthy on port 8765, reusing existing service')
+        }
       }
+
+      const backendProcess = !backendAlreadyRunning || app.isPackaged ? startPythonService() : null
 
       await waitForBackendHealth({ childProcess: backendProcess })
     } catch (err) {
@@ -377,7 +382,7 @@ if (!isSingleInstance) {
   })
 
   app.on('window-all-closed', () => {
-    stopPythonService()
+    stopPythonService({ killPort: true })
     if (process.platform !== 'darwin') {
       app.quit()
     }
@@ -385,11 +390,11 @@ if (!isSingleInstance) {
 
   app.on('before-quit', () => {
     isQuitting = true
-    stopPythonService()
+    stopPythonService({ killPort: true })
   })
 
   app.on('will-quit', () => {
-    stopPythonService()
+    stopPythonService({ killPort: true })
     if (tray) {
       try {
         tray.destroy()

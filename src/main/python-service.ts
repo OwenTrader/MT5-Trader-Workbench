@@ -28,6 +28,10 @@ export type BackendStartupDiagnostics = {
   recentLogs: string[]
 }
 
+type StopPythonServiceOptions = {
+  killPort?: boolean
+}
+
 function getPackagedDefaultSettingsPath(): string {
   return path.join(process.resourcesPath, 'storage', 'settings.json')
 }
@@ -245,10 +249,14 @@ export function startPythonService(): ChildProcess {
   return pythonProcess
 }
 
-export function stopPythonService() {
+export function stopPythonService({ killPort = false }: StopPythonServiceOptions = {}) {
   if (pythonProcess) {
     pythonProcess.kill()
     pythonProcess = null
+  }
+
+  if (killPort) {
+    killBackendOnPort()
   }
 }
 

@@ -5,8 +5,9 @@ import type { ChildProcess } from 'node:child_process'
 import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { httpGetMock } = vi.hoisted(() => ({
-  httpGetMock: vi.fn()
+const { httpGetMock, execFileSyncMock } = vi.hoisted(() => ({
+  httpGetMock: vi.fn(),
+  execFileSyncMock: vi.fn()
 }))
 
 vi.mock('electron', () => ({
@@ -22,7 +23,15 @@ vi.mock('node:http', () => ({
   }
 }))
 
-import { isBackendHealthy, waitForBackendHealth } from './python-service'
+vi.mock('node:child_process', async () => {
+  const actual = await vi.importActual<typeof import('node:child_process')>('node:child_process')
+  return {
+    ...actual,
+    execFileSync: execFileSyncMock
+  }
+})
+
+import { isBackendHealthy, stopPythonService, waitForBackendHealth } from './python-service'
 import { getPackagedBackendExecutablePath } from './packaging-paths'
 
 type MockRequest = EventEmitter & {
@@ -70,6 +79,7 @@ function mockHealthFailure(): void {
 describe('python-service startup health checks', () => {
   beforeEach(() => {
     httpGetMock.mockReset()
+    execFileSyncMock.mockReset()
   })
 
   it('treats a 200 health response as healthy', async () => {
@@ -103,5 +113,11 @@ describe('python-service startup health checks', () => {
     expect(getPackagedBackendExecutablePath('C:/app/resources')).toBe(
       path.join('C:/app/resources', 'mt5_service', 'mt5_service.exe')
     )
+  })
+
+  it('kills the backend port when requested during shutdown', () => {
+    stopPythonService({ killPort: true })
+
+    expect(execFileSyncMock).toHaveBeenCalledTimes(1)
   })
 })

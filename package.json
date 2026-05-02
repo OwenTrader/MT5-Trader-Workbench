@@ -49,7 +49,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
     "electron": "^30.0.0",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^24.9.1",
     "electron-vite": "^2.1.0",
     "jimp": "^0.22.12",
     "jsdom": "^24.0.0",
@@ -63,13 +63,14 @@
   "build": {
     "appId": "com.tradingtool.elec",
     "productName": "MT5 Trader Workbench",
+    "copyright": "Copyright (c) 2026 Antigravity",
     "artifactName": "${productName} Setup ${buildVersion}.${ext}",
     "directories": {
       "output": "dist",
       "buildResources": "resources"
     },
     "win": {
-      "icon": "resources/app-icon.png"
+      "icon": "resources/app-icon.ico"
     },
     "files": [
       "out/**/*"
