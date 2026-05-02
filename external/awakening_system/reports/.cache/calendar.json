@@ -1,0 +1,200 @@
+[
+  {
+    "time": "04-27 07:00",
+    "name": "[美] 特朗普讲话",
+    "impact": "medium",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-28 20:15",
+    "name": "[美] ADP Weekly Employment Change",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-28 21:00",
+    "name": "[美] FHFA 房价指数月率",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-28 21:00",
+    "name": "[美] S&P/CS 20 城房价指数年率",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-28 22:00",
+    "name": "[美] 谘商会消费者信心",
+    "impact": "medium",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-28 22:00",
+    "name": "[美] Richmond Manufacturing Index",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 04:30",
+    "name": "[美] API Weekly Statistical Bulletin",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:28",
+    "name": "[美] 营建许可",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:28",
+    "name": "[美] 新屋开工",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:30",
+    "name": "[美] 营建许可",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:30",
+    "name": "[美] 核心耐用品订单月率",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:30",
+    "name": "[美] 耐用品订单月率",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:30",
+    "name": "[美] Goods Trade Balance",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:30",
+    "name": "[美] 新屋开工",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 20:30",
+    "name": "[美] Prelim Wholesale Inventories m/m",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-29 22:30",
+    "name": "[美] EIA 原油库存",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 02:00",
+    "name": "[美] 美联储利率决议",
+    "impact": "high",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 02:00",
+    "name": "[美] FOMC 声明",
+    "impact": "high",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 02:30",
+    "name": "[美] FOMC 新闻发布会",
+    "impact": "high",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 20:30",
+    "name": "[美] GDP 初值季率",
+    "impact": "high",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 20:30",
+    "name": "[美] 核心 PCE 物价指数月率",
+    "impact": "high",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 20:30",
+    "name": "[美] 雇佣成本指数季率",
+    "impact": "high",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 20:30",
+    "name": "[美] GDP 价格指数初值",
+    "impact": "medium",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 20:30",
+    "name": "[美] 初请失业金人数",
+    "impact": "medium",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 20:30",
+    "name": "[美] 个人收入月率",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 20:30",
+    "name": "[美] 个人支出月率",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 21:45",
+    "name": "[美] 芝加哥 PMI",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 22:00",
+    "name": "[美] CB Leading Index m/m",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "04-30 22:30",
+    "name": "[美] 天然气库存",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "05-01 21:45",
+    "name": "[美] Markit 制造业 PMI 终值",
+    "impact": "low",
+    "_ccy": "USD"
+  },
+  {
+    "time": "05-01 22:00",
+    "name": "[美] ISM 制造业 PMI",
+    "impact": "medium",
+    "_ccy": "USD"
+  },
+  {
+    "time": "05-01 22:00",
+    "name": "[美] ISM 制造业物价",
+    "impact": "medium",
+    "_ccy": "USD"
+  },
+  {
+    "time": "05-01 22:15",
+    "name": "[美] Wards Total Vehicle Sales",
+    "impact": "low",
+    "_ccy": "USD"
+  }
+]

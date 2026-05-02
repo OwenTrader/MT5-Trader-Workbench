@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+MetaTrader5
+pytest
+httpx
+pandas
+numpy
+pyinstaller

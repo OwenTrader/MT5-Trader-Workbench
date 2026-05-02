@@ -1,0 +1,10 @@
+{
+  "name": "Test Strategy",
+  "alerts": [
+    {
+      "symbol": "EURUSD",
+      "target_price": 1.1,
+      "direction": "above"
+    }
+  ]
+}

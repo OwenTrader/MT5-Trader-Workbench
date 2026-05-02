@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAU/USD · GOLDDESK 机构日内波段 · 2026-04-28 17:35</title>
+<style>
+:root{
+  /* 暗金机构调 v2：底色仍深沉，但前景全面提亮，长时间阅读更清晰 */
+  --bg0:#0c0c14;--bg1:#10101a;--bg2:#15151f;--bg3:#1a1a26;--bg4:#22222e;
+  --gold:#e0b770;--gold-dim:#b89554;--gold-glow:rgba(224,183,112,0.16);
+  --bull:#5dd4a8;--bull-dim:#3aa57d;--bull-bg:rgba(93,212,168,0.09);
+  --bear:#f08597;--bear-dim:#bd5a6e;--bear-bg:rgba(240,133,151,0.09);
+  --warn:#f0b675;--warn-bg:rgba(240,182,117,0.09);
+  --info:#7fd0e8;--info-bg:rgba(127,208,232,0.08);
+  --neutral:#9aa3b6;--text:#e8ecf4;--text-dim:#bfc6d6;--text-mute:#7a8294;
+  --border:rgba(255,255,255,0.08);--border-gold:rgba(224,183,112,0.28);
+  --mono:'JetBrains Mono','IBM Plex Mono','Consolas',monospace;
+  --display:'Segoe UI','Microsoft YaHei',sans-serif;
+  --body:'Microsoft YaHei','Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg0);color:var(--text);font-family:var(--body);font-size:13px;
+     line-height:1.6;max-width:1600px;margin:0 auto;padding:70px 20px 40px}
+body::before{content:'';position:fixed;inset:0;
+     background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+     pointer-events:none;z-index:0;opacity:0.4}
+.topbar{position:fixed;top:0;left:0;right:0;background:rgba(12,12,20,0.92);
+     backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);
+     z-index:100;display:flex;align-items:center;padding:0 24px;height:52px}
+.topbar-logo{font-family:var(--display);font-size:16px;font-weight:800;color:var(--gold);
+     letter-spacing:2px;margin-right:32px;white-space:nowrap}
+.topbar-logo span{color:var(--text-dim);font-weight:400}
+.topbar-nav{display:flex;gap:2px;flex:1;flex-wrap:wrap}
+.topbar-nav a{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--text-dim);
+     text-decoration:none;padding:4px 8px;border-radius:4px;letter-spacing:0.4px;
+     transition:all 0.15s;text-transform:uppercase;white-space:nowrap}
+.topbar-nav a:hover{color:var(--gold);background:var(--gold-glow)}
+.topbar-ts{font-family:var(--mono);font-size:11px;color:var(--text-dim);white-space:nowrap;margin-left:12px}
+.topbar-ts .live{color:var(--bull);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+     padding:20px 22px;margin-bottom:12px;scroll-margin-top:60px}
+.card.highlight{border-color:var(--border-gold);background:linear-gradient(135deg,var(--bg2) 0%,rgba(224,183,112,0.04) 100%)}
+.sec-label{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:3px;
+     text-transform:uppercase;color:var(--text);padding:18px 0 8px;
+     display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border-gold)}
+.sec-label.gold{color:var(--gold)}
+.card-title{font-family:var(--display);font-size:14px;font-weight:700;color:var(--gold);
+     letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;
+     display:flex;align-items:center;gap:10px}
+.card-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--gold);border-radius:2px}
+.hero-grid{display:grid;grid-template-columns:2fr 1.2fr 1.2fr 1fr;gap:1px;
+     background:var(--border-gold);border-radius:10px;overflow:hidden;
+     border:1px solid var(--border-gold);margin-bottom:12px}
+.hero-cell{background:var(--bg1);padding:18px 22px}
+.hero-label{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--text-mute);
+     text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.hero-price{font-family:var(--mono);font-size:38px;font-weight:600;color:var(--gold);
+     line-height:1;letter-spacing:-1px;margin-bottom:6px}
+.hero-change{font-family:var(--mono);font-size:13px}
+.hero-value{font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.2;margin-bottom:4px}
+.hero-sub{font-size:11px;color:var(--text-dim);line-height:1.5}
+.bias-gauge{display:flex;align-items:center;gap:10px;margin-top:10px}
+.gauge-track{flex:1;height:6px;background:linear-gradient(90deg,var(--bear) 0%,#555 50%,var(--bull) 100%);
+     border-radius:3px;position:relative}
+.gauge-needle{position:absolute;top:-4px;width:14px;height:14px;background:var(--gold);
+     border-radius:50%;box-shadow:0 0 4px var(--gold-glow);transform:translateX(-50%);transition:left 0.5s ease}
+.gauge-label{font-family:var(--mono);font-size:10px;color:var(--text-mute)}
+.pill{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:4px;
+     font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.5px}
+.pill.bull{background:var(--bull-bg);color:var(--bull);border:1px solid rgba(93,212,168,0.32)}
+.pill.bear{background:var(--bear-bg);color:var(--bear);border:1px solid rgba(240,133,151,0.32)}
+.pill.neutral{background:rgba(154,163,182,0.10);color:var(--neutral);border:1px solid rgba(154,163,182,0.24)}
+.pill.gold{background:var(--gold-glow);color:var(--gold);border:1px solid var(--border-gold)}
+.pill.warn{background:var(--warn-bg);color:var(--warn);border:1px solid rgba(240,182,117,0.32)}
+.pill.sm{padding:1px 6px;font-size:9px}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--text-mute);
+     text-transform:uppercase;letter-spacing:1px;padding:6px 10px;text-align:left;
+     border-bottom:1px solid var(--border)}
+td{padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-dim)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.035)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+@media(max-width:1200px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.kpi{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px}
+.kpi .l{font-family:var(--mono);font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.kpi .v{font-family:var(--mono);font-size:18px;font-weight:600;line-height:1}
+.kpi .s{font-size:10px;color:var(--text-mute);margin-top:3px}
+.macro-item{display:flex;flex-direction:column;background:var(--bg3);border:1px solid var(--border);
+     border-radius:6px;padding:12px 14px}
+.macro-item .name{font-family:var(--mono);font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.macro-item .val{font-family:var(--mono);font-size:16px;font-weight:600;margin-bottom:3px}
+.macro-item .desc{font-size:10px;color:var(--text-mute);line-height:1.4}
+.macro-item .impact{font-size:10px;margin-top:5px;padding:2px 6px;border-radius:3px;display:inline-block;font-family:var(--mono);align-self:flex-start}
+.impact-bull{background:var(--bull-bg);color:var(--bull)}
+.impact-bear{background:var(--bear-bg);color:var(--bear)}
+.impact-neutral{background:rgba(154,163,182,0.12);color:var(--neutral)}
+.cal-item{display:flex;gap:12px;align-items:flex-start;padding:8px 12px;border-radius:5px;
+     margin-bottom:4px;border-left:3px solid var(--border);background:var(--bg3)}
+.cal-item.high{border-left-color:var(--bear)}
+.cal-item.medium{border-left-color:var(--warn)}
+.cal-item.low{border-left-color:var(--neutral)}
+.cal-time{font-family:var(--mono);font-size:10px;color:var(--text-mute);white-space:nowrap;min-width:90px}
+.cal-name{font-size:12px;color:var(--text);flex:1}
+.cal-impact{font-family:var(--mono);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.consensus-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:8px 0;gap:1px}
+.cb-bull{background:var(--bull)}.cb-bear{background:var(--bear)}.cb-neu{background:var(--neutral)}
+.session-bar{display:flex;gap:4px;margin:8px 0}
+.session-seg{flex:1;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+     font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.5px}
+.session-asia{background:rgba(93,212,168,0.12);color:var(--bull);border:1px solid rgba(93,212,168,0.24)}
+.session-eu{background:rgba(224,183,112,0.12);color:var(--gold);border:1px solid var(--border-gold)}
+.session-us{background:rgba(240,133,151,0.12);color:var(--bear);border:1px solid rgba(240,133,151,0.24)}
+.session-active{box-shadow:0 0 0 1px currentColor inset}
+.smc-map{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:16px;font-family:var(--mono);font-size:11px}
+.price-ladder{display:flex;flex-direction:column;gap:2px;position:relative}
+.ladder-row{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:4px}
+.ladder-row.current{background:rgba(224,183,112,0.12);border:1px solid var(--border-gold)}
+.ladder-row.above,.ladder-row.below{opacity:0.92}
+.ladder-price{min-width:90px;font-weight:600}
+.ladder-dist{min-width:55px;font-size:10px;color:var(--text-mute)}
+.ladder-tag{flex:1;font-size:10px}
+.ladder-strength{display:flex;gap:2px}
+.str-dot{width:5px;height:5px;border-radius:50%;background:var(--border)}
+.str-dot.on{background:var(--gold)}
+.badge{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;display:inline-block}
+.badge-OB-B{background:var(--bull-bg);color:var(--bull)}
+.badge-OB-S{background:var(--bear-bg);color:var(--bear)}
+.badge-FVG-B{background:var(--info-bg);color:var(--info)}
+.badge-FVG-S{background:var(--warn-bg);color:var(--warn)}
+.badge-LIQ{background:var(--gold-glow);color:var(--gold)}
+.badge-KEY{background:rgba(154,163,182,0.12);color:var(--neutral)}
+.plan-box{border-radius:8px;padding:16px 18px;border-width:2px;border-style:solid}
+.plan-box.primary-bull{border-color:var(--bull-dim);background:linear-gradient(135deg,#0e1814,#11201a)}
+.plan-box.primary-bear{border-color:var(--bear-dim);background:linear-gradient(135deg,#181014,#22141a)}
+.plan-box.suppressed{border-color:var(--text-mute);background:var(--bg3);border-style:dashed;opacity:0.6}
+.plan-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.plan-title{font-family:var(--display);font-size:15px;font-weight:700}
+.plan-rr{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--gold)}
+.plan-rr .rr-label{font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;display:block;text-align:right}
+.plan-table td:first-child{width:80px;color:var(--text-mute)}
+.plan-table td:last-child{font-family:var(--mono);font-weight:500}
+.confidence-row{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.conf-stars{color:var(--gold);font-size:14px}
+.conf-text{font-size:11px;color:var(--text-dim)}
+.scenario{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:8px}
+.scenario-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;justify-content:space-between}
+.scenario-trigger{font-family:var(--mono);font-size:12px;font-weight:600}
+.scenario-prob{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:10px}
+.prob-hi{background:rgba(93,212,168,0.14);color:var(--bull)}
+.prob-mid{background:rgba(240,182,117,0.14);color:var(--warn)}
+.prob-lo{background:rgba(154,163,182,0.12);color:var(--neutral)}
+.prob-bar{height:4px;border-radius:2px;margin-bottom:10px}
+.prob-bar.bull-bar{background:linear-gradient(90deg,var(--bull-dim),var(--bull))}
+.prob-bar.bear-bar{background:linear-gradient(90deg,var(--bear-dim),var(--bear))}
+.prob-bar.warn-bar{background:linear-gradient(90deg,#7a4d28,var(--warn))}
+.prob-bar.gold-bar{background:linear-gradient(90deg,var(--gold-dim),var(--gold))}
+.inv-box{background:rgba(240,133,151,0.06);border:1px solid rgba(240,133,151,0.22);border-radius:6px;padding:12px 14px;margin-top:12px}
+.tf-block{background:var(--bg3);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.tf-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+     border-bottom:1px solid var(--border);background:var(--bg4)}
+.tf-name{font-family:var(--display);font-size:12px;font-weight:700;color:var(--text)}
+.tf-body{padding:10px 12px}
+.tf-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px}
+.tf-row:last-child{border-bottom:none}
+.tf-row .k{color:var(--text-mute)}
+.tf-row .v{font-family:var(--mono);font-weight:500}
+.tf-chart{padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.tf-chart img{width:100%;border-radius:4px;display:block}
+.rule-row{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)}
+.rule-row:last-child{border-bottom:none}
+.rule-num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--gold);min-width:20px;margin-top:1px}
+.rule-text{font-size:12px;color:var(--text-dim);line-height:1.6}
+.rule-text strong{color:var(--text)}
+.calc-box{background:var(--bg1);border:1px solid var(--border-gold);border-radius:6px;padding:14px 16px}
+.footer{text-align:center;font-family:var(--mono);font-size:10px;color:var(--text-mute);padding:30px 0 10px;letter-spacing:1px}
+.footer span{color:var(--gold-dim)}
+.mono{font-family:var(--mono)}
+.bull{color:var(--bull)}.bear{color:var(--bear)}.gold{color:var(--gold)}.warn{color:var(--warn)}
+.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}
+.sm{font-size:10px}.xs{font-size:9px}.fw6{font-weight:600}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
+.hr{height:1px;background:var(--border);margin:16px 0}
+.card{animation:fadeUp 0.4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── 导读语：每节开篇一句话，告诉读者「为什么读这一节」 ── */
+.sec-intro{font-size:11.5px;color:var(--text-dim);font-style:italic;line-height:1.7;
+     margin:-4px 0 14px;padding:9px 13px;background:rgba(224,183,112,0.05);
+     border-left:2px solid var(--gold-dim);border-radius:0 4px 4px 0}
+.sec-intro strong{color:var(--text);font-style:normal;font-weight:600}
+
+/* ── II · TL;DR ── */
+.tldr-grid{display:grid;grid-template-columns:1.1fr 1.5fr 1.3fr;gap:14px}
+@media(max-width:900px){.tldr-grid{grid-template-columns:1fr}}
+.tldr-cell{background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--gold-dim);
+     border-radius:6px;padding:14px 16px}
+.tldr-cell.bull{border-left-color:var(--bull)}
+.tldr-cell.bear{border-left-color:var(--bear)}
+.tldr-cell.warn{border-left-color:var(--warn)}
+.tldr-k{font-family:var(--mono);font-size:9px;color:var(--text-mute);letter-spacing:2px;
+     text-transform:uppercase;margin-bottom:10px}
+.tldr-v{font-family:var(--display);font-size:18px;font-weight:600;line-height:1.35;margin-bottom:8px;color:var(--text)}
+.tldr-v.bull{color:var(--bull)}.tldr-v.bear{color:var(--bear)}.tldr-v.warn{color:var(--warn)}.tldr-v.gold{color:var(--gold)}
+.tldr-d{font-size:11.5px;color:var(--text-mute);line-height:1.7}
+.tldr-d strong{color:var(--text-dim)}
+
+/* ── V · 波动与节奏 ── */
+.vol-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;
+     padding-bottom:6px;border-bottom:1px solid var(--border)}
+.vol-k{font-family:var(--mono);font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1.2px}
+.edr-track{height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;margin-bottom:12px;
+     border:1px solid var(--border)}
+.edr-fill{height:100%;border-radius:5px;transition:width 0.5s ease}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.kpi-mini{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:8px 10px}
+.kpi-mini .l{font-family:var(--mono);font-size:8.5px;color:var(--text-mute);letter-spacing:1px;
+     text-transform:uppercase;margin-bottom:4px}
+.kpi-mini .v{font-family:var(--mono);font-size:14px;font-weight:600;line-height:1;color:var(--text)}
+.cadence-note{font-size:11.5px;color:var(--text-dim);line-height:1.75;padding:10px 12px;
+     background:rgba(224,183,112,0.05);border-left:2px solid var(--gold);border-radius:0 4px 4px 0}
+.atr-tab{width:100%}
+.atr-tab td{padding:7px 8px;font-size:11.5px;border-bottom:1px solid var(--border)}
+.atr-tab tr:last-child td{border-bottom:none}
+.atr-tab td:first-child{color:var(--text-mute);width:90px;font-family:var(--mono);font-size:10px;letter-spacing:0.5px}
+.kz-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.kz-seg{padding:9px 8px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);text-align:center}
+.kz-seg.kz-asia{border-color:rgba(93,212,168,0.28)}
+.kz-seg.kz-london{border-color:var(--border-gold)}
+.kz-seg.kz-ny{border-color:rgba(240,133,151,0.28)}
+.kz-seg.kz-post{border-color:rgba(154,163,182,0.18)}
+.kz-name{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.5px;color:var(--text-dim)}
+.kz-hint{font-size:9.5px;color:var(--text-mute);margin-top:4px;line-height:1.3}
+.kz-seg.kz-active{background:rgba(224,183,112,0.14);border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-glow) inset}
+.kz-seg.kz-active .kz-name{color:var(--gold)}
+.kz-seg.kz-active .kz-hint{color:var(--text-dim)}
+
+/* ── X · 风控三段勾选 ── */
+.ck-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.ck-card.ck-pre{border-top:3px solid var(--bull-dim)}
+.ck-card.ck-in{border-top:3px solid var(--gold-dim)}
+.ck-card.ck-post{border-top:3px solid var(--bear-dim)}
+.ck-title{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:1.5px;
+     text-transform:uppercase;color:var(--text);margin-bottom:10px;padding-bottom:6px;
+     border-bottom:1px solid var(--border)}
+.ck-title.bull{color:var(--bull)}.ck-title.gold{color:var(--gold)}.ck-title.bear{color:var(--bear)}
+.ck-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:11.5px;
+     color:var(--text-dim);line-height:1.55;cursor:pointer}
+.ck-row:hover{color:var(--text)}
+.ck-row input{margin-top:3px;accent-color:var(--gold);cursor:pointer;width:13px;height:13px;flex-shrink:0}
+.ck-row input:checked + span{color:var(--text-mute);text-decoration:line-through}
+.calc-box .calc-h{font-family:var(--mono);font-size:10px;color:var(--gold-dim);letter-spacing:1px;
+     text-transform:uppercase;margin-bottom:8px}
+.calc-box .calc-f{font-family:var(--mono);font-size:13px;color:var(--text);margin-bottom:6px}
+.calc-box .calc-eg{font-family:var(--mono);font-size:11px;color:var(--text-mute)}
+.rlimit{width:100%}
+.rlimit td{padding:6px 8px;font-size:11.5px;border-bottom:1px solid var(--border)}
+.rlimit tr:last-child td{border-bottom:none}
+.rlimit td:first-child{color:var(--text-mute);width:90px}
+
+/* ── 99 · 审计页脚 ── */
+.audit-tab{width:100%}
+.audit-tab td{padding:8px 12px;font-size:11.5px;border-bottom:1px solid var(--border);vertical-align:top}
+.audit-tab td.k{color:var(--text-mute);font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;
+     text-transform:uppercase;width:110px;font-weight:600}
+.audit-tab tr:last-child td{border-bottom:none}
+.disclaimer{margin-top:14px;padding:12px 14px;background:rgba(240,133,151,0.05);
+     border-left:3px solid var(--bear-dim);border-radius:0 4px 4px 0;
+     font-size:11.5px;color:var(--text-dim);line-height:1.75}
+.disclaimer strong{color:var(--bear)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">GOLD<span>DESK</span></div>
+  <nav class="topbar-nav">
+    <a href="#cmd">I 指挥</a>
+    <a href="#tldr">II 摘要</a>
+    <a href="#macro">III 宏观</a>
+    <a href="#bias">IV 偏置</a>
+    <a href="#vol">V 节奏</a>
+    <a href="#smc">VI SMC</a>
+    <a href="#plan">VII 策略</a>
+    <a href="#scenario">VIII 场景</a>
+    <a href="#tf-detail">IX 周期</a>
+    <a href="#risk">X 风控</a>
+    <a href="#audit">99 审计</a>
+  </nav>
+  <div class="topbar-ts"><span class="live">●</span>&nbsp;2026-04-28 17:35&nbsp;|&nbsp;MT5:XAUUSD</div>
+</div>
+
+<div class="hero-grid" id="cmd">
+  <div class="hero-cell">
+    <div class="hero-label">XAU/USD · 当前价</div>
+    <div class="hero-price">$4,613.11</div>
+    <div class="hero-change"><span class="bear">▼ -93.64&nbsp;(-1.99%)&nbsp;24H</span></div>
+    <div class="bias-gauge" style="margin-top:14px">
+      <span class="gauge-label mute">BEAR</span>
+      <div class="gauge-track">
+        <div class="gauge-needle" style="left:1.2%"></div>
+      </div>
+      <span class="gauge-label mute">BULL</span>
+    </div>
+    <div class="sm mute" style="margin-top:6px;font-family:var(--mono)">综合偏向得分 -9.8/10 · 高确信做空</div>
+  </div>
+  <div class="hero-cell">
+    <div class="hero-label">多周期共振</div>
+    <div class="consensus-bar" style="margin-top:6px"><div class="cb-neu" style="flex:2" title="日线:中"></div><div class="cb-bear" style="flex:3" title="H4:空"></div><div class="cb-bear" style="flex:2" title="H1:空"></div><div class="cb-bear" style="flex:1" title="M15:空"></div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="pill neutral sm">日线 ■</span><span class="pill bear sm">H4 ▼</span><span class="pill bear sm">H1 ▼</span><span class="pill bear sm">M15 ▼</span></div>
+    <div class="hero-sub" style="margin-top:10px">✓ 共振方向一致 · 可全仓做空，顺势加仓</div>
+  </div>
+  <div class="hero-cell">
+    <div class="hero-label">核心指令</div>
+    <div class="hero-value" style="font-size:20px;margin-top:4px;color:var(--bear)">✓ M15 顺势做空</div>
+    <div class="hero-sub" style="margin-top:8px">大趋势看空，M15 出现空头结构/BOS↓，可日内波段做空</div>
+  </div>
+  <div class="hero-cell">
+    <div class="hero-label">今日盘感</div>
+    
+        <div class="session-bar" style="margin-top:8px"><div class="session-seg session-asia">亚盘</div><div class="session-seg session-eu session-active">欧盘</div><div class="session-seg session-us">美盘</div></div>
+        <div class="hero-sub" style="margin-top:8px">
+          24H 振幅 <span class="mono gold">103.9 pt</span><br>
+          M15 ATR <span class="mono">10.0</span> &nbsp;|&nbsp; 日内位 <span class="mono warn">2%</span><br>
+          <span class="sm dim">欧盘启动</span>
+        </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="tldr">II &nbsp;·&nbsp; 执行摘要 · TL;DR</div>
+<div class="card highlight">
+  <div class="sec-intro"><strong>一页结论先行。</strong>在向下展开论据前，先确认偏向、催化与今日是否动手；
+  下方 III 宏观、IV 偏置矩阵、V 节奏 是这三行的论据，VII 策略、VIII 场景 是这三行的执行路径。</div>
+  <div class="tldr-grid">
+    <div class="tldr-cell bear">
+      <div class="tldr-k">BIAS · 偏向</div>
+      <div class="tldr-v bear">▼▼ 强偏空 STRONG SHORT</div>
+      <div class="tldr-d">共振得分 <span class="mono fw6">-9.8/10</span><br>REGIME · 高确信定向 · 顺势加仓窗口</div>
+    </div>
+    <div class="tldr-cell">
+      <div class="tldr-k">CATALYST · 催化</div>
+      <div class="tldr-v" style="font-size:14px;line-height:1.55">H4 / H1 结构权重决定方向，关注关键位反应</div>
+      <div class="tldr-d">联动事件请见 <strong>III 宏观</strong> 面板；价格触发位见 <strong>VI SMC</strong>。</div>
+    </div>
+    <div class="tldr-cell bear">
+      <div class="tldr-k">ACTION · 操作</div>
+      <div class="tldr-v bear">✓ M15 顺势做空</div>
+      <div class="tldr-d">大趋势看空，M15 出现空头结构/BOS↓，可日内波段做空</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="macro">III &nbsp;·&nbsp; 宏观环境锚点 · Macro Anchors</div>
+<div class="card highlight">
+  <div class="sec-intro"><strong>价格只是结果，宏观才是因。</strong>美元、利率、避险、政策预期，是决定金价中线方向的四根锚；
+  日内交易必须知道宏观风往哪吹，否则只是在和算法对赌。</div>
+  <div class="card-title">宏观驱动矩阵 · 黄金核心影响因子</div>
+  <div class="g4 mb12">
+        <div class="macro-item">
+          <div class="name">美元指数 DXY</div>
+          <div class="val bull">99.20 ▼ -0.35%</div>
+          <div class="desc">美元指数（请手动更新）</div>
+          <div class="impact impact-bull">📈 利多黄金</div>
+        </div>
+        <div class="macro-item">
+          <div class="name">美债10Y 实际收益率</div>
+          <div class="val bear">+1.85% </div>
+          <div class="desc">10年期 TIPS 实际收益率</div>
+          <div class="impact impact-bear">📉 利空黄金</div>
+        </div>
+        <div class="macro-item">
+          <div class="name">避险情绪 VIX</div>
+          <div class="val dim">— </div>
+          <div class="desc">市场恐慌指数（CBOE VIX）</div>
+          <div class="impact impact-neutral">■ 中性</div>
+        </div>
+        <div class="macro-item">
+          <div class="name">美联储政策预期</div>
+          <div class="val bull">降息预期 </div>
+          <div class="desc">CME FedWatch 6月降息概率 (请更新)</div>
+          <div class="impact impact-bull">📈 利多黄金</div>
+        </div></div>
+  <div style="background:var(--bg1);border-radius:6px;padding:14px 16px;border:1px solid var(--border-gold)">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--gold-dim);letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">宏观综合结论</div>
+    <div style="font-size:13px;color:var(--text-dim);line-height:1.85"><strong style='color:var(--gold)'>宏观面板为可编辑占位</strong>。实盘前请在 <code>institutional_render.py</code> 顶部 <code>MACRO_CONFIG</code> 更新：DXY、实际利率、VIX、美联储政策预期、本周日历。黄金对宏观面（美元/利率/避险）高度敏感，纯技术分析无法替代基本面校准。</div>
+  </div>
+  <div style="margin-top:14px">
+    <div class="sub-label mb8" style="font-family:var(--mono);font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1.5px">⚡ 本周重大经济日历</div>
+    
+        <div class="cal-item medium">
+          <div class="cal-time">04-27 07:00</div>
+          <div class="cal-name">[美] 特朗普讲话</div>
+          <div class="cal-impact" style="background:var(--warn-bg);color:var(--warn)">中</div>
+        </div>
+        <div class="cal-item medium">
+          <div class="cal-time">04-28 22:00</div>
+          <div class="cal-name">[美] 谘商会消费者信心</div>
+          <div class="cal-impact" style="background:var(--warn-bg);color:var(--warn)">中</div>
+        </div>
+        <div class="cal-item high">
+          <div class="cal-time">04-30 02:00</div>
+          <div class="cal-name">[美] 美联储利率决议</div>
+          <div class="cal-impact" style="background:var(--bear-bg);color:var(--bear)">高</div>
+        </div>
+        <div class="cal-item high">
+          <div class="cal-time">04-30 02:00</div>
+          <div class="cal-name">[美] FOMC 声明</div>
+          <div class="cal-impact" style="background:var(--bear-bg);color:var(--bear)">高</div>
+        </div>
+        <div class="cal-item high">
+          <div class="cal-time">04-30 02:30</div>
+          <div class="cal-name">[美] FOMC 新闻发布会</div>
+          <div class="cal-impact" style="background:var(--bear-bg);color:var(--bear)">高</div>
+        </div>
+        <div class="cal-item high">
+          <div class="cal-time">04-30 20:30</div>
+          <div class="cal-name">[美] GDP 初值季率</div>
+          <div class="cal-impact" style="background:var(--bear-bg);color:var(--bear)">高</div>
+        </div>
+        <div class="cal-item high">
+          <div class="cal-time">04-30 20:30</div>
+          <div class="cal-name">[美] 核心 PCE 物价指数月率</div>
+          <div class="cal-impact" style="background:var(--bear-bg);color:var(--bear)">高</div>
+        </div>
+        <div class="cal-item high">
+          <div class="cal-time">04-30 20:30</div>
+          <div class="cal-name">[美] 雇佣成本指数季率</div>
+          <div class="cal-impact" style="background:var(--bear-bg);color:var(--bear)">高</div>
+        </div>
+        <div class="cal-item medium">
+          <div class="cal-time">04-30 20:30</div>
+          <div class="cal-name">[美] GDP 价格指数初值</div>
+          <div class="cal-impact" style="background:var(--warn-bg);color:var(--warn)">中</div>
+        </div>
+        <div class="cal-item medium">
+          <div class="cal-time">04-30 20:30</div>
+          <div class="cal-name">[美] 初请失业金人数</div>
+          <div class="cal-impact" style="background:var(--warn-bg);color:var(--warn)">中</div>
+        </div>
+        <div class="cal-item medium">
+          <div class="cal-time">05-01 22:00</div>
+          <div class="cal-name">[美] ISM 制造业 PMI</div>
+          <div class="cal-impact" style="background:var(--warn-bg);color:var(--warn)">中</div>
+        </div>
+        <div class="cal-item medium">
+          <div class="cal-time">05-01 22:00</div>
+          <div class="cal-name">[美] ISM 制造业物价</div>
+          <div class="cal-impact" style="background:var(--warn-bg);color:var(--warn)">中</div>
+        </div>
+    <div style="font-size:10px;color:var(--text-mute);margin-top:6px;padding:6px 10px;background:rgba(240,133,151,0.06);border-radius:4px;border-left:2px solid var(--bear)">
+      ⚠ 重大数据前后 <strong style="color:var(--bear)">30分钟内禁止开仓</strong>，持仓在数据前需决策是否减半避险
+    </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="bias">IV &nbsp;·&nbsp; 多周期偏置矩阵 · Bias Matrix</div>
+<div class="card highlight">
+  <div class="sec-intro"><strong>把宏观结论翻译成价格行为。</strong>D1 决定方向、H4 决定结构、H1 决定时机、M15 决定扳机；
+  四个周期同向才是顺势，分裂时只能小仓位摸鱼。</div>
+  <div class="card-title">多周期价格行为共振矩阵 (TF 权重 D=2 / H4=3 / H1=2 / M15=1)</div>
+  <div style="overflow-x:auto">
+  <table style="min-width:700px">
+    <thead>
+      <tr><th style="width:70px">周期</th><th>市场结构</th><th>BOS/CHoCH</th><th>趋势通道</th>
+          <th style="width:110px">偏向信号</th><th style="width:60px;text-align:center">得分</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><strong style="font-family:var(--display);color:var(--text)">日线</strong></td>
+          <td><span class="pill neutral sm">区间震荡（结构不明）</span></td>
+          <td class="dim">无近期事件</td>
+          <td class="dim">上升通道 · 价位 20%</td>
+          <td style="text-align:center"><span class="pill neutral">偏中 ■</span></td>
+          <td style="text-align:center;font-family:var(--mono);color:var(--neutral);font-weight:600">+0.0</td>
+        </tr>
+        <tr>
+          <td><strong style="font-family:var(--display);color:var(--text)">H4</strong></td>
+          <td><span class="pill bear sm">偏空震荡（空头特征居多）</span></td>
+          <td class="dim">BOS↓</td>
+          <td class="dim">上升通道 · 价位 -217%</td>
+          <td style="text-align:center"><span class="pill bear">偏空 ▼</span></td>
+          <td style="text-align:center;font-family:var(--mono);color:var(--bear);font-weight:600">-3.9</td>
+        </tr>
+        <tr>
+          <td><strong style="font-family:var(--display);color:var(--text)">H1</strong></td>
+          <td><span class="pill bear sm">明确下降结构（LH+LL）</span></td>
+          <td class="dim">BOS↓</td>
+          <td class="dim">下降通道 · 价位 -48%</td>
+          <td style="text-align:center"><span class="pill bear">偏空 ▼</span></td>
+          <td style="text-align:center;font-family:var(--mono);color:var(--bear);font-weight:600">-2.6</td>
+        </tr>
+        <tr>
+          <td><strong style="font-family:var(--display);color:var(--text)">M15</strong></td>
+          <td><span class="pill bear sm">偏空震荡（空头特征居多）</span></td>
+          <td class="dim">BOS↓</td>
+          <td class="dim">水平区间 · 价位 -298%</td>
+          <td style="text-align:center"><span class="pill bear">偏空 ▼</span></td>
+          <td style="text-align:center;font-family:var(--mono);color:var(--bear);font-weight:600">-1.3</td>
+        </tr></tbody>
+  </table>
+  </div>
+
+  <div class="g2 mt12">
+    <div style="background:var(--bg1);border-radius:6px;padding:14px 16px;border:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">共振评分 · 综合</div>
+      <div style="font-family:var(--mono);font-size:32px;font-weight:600;color:var(--bear)">-9.8 / 10</div>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:4px">高确信做空 · 可全仓做空，顺势加仓</div>
+      <div class="mt8" style="font-size:12px;color:var(--text-dim);line-height:1.85"><div class='dim'>—</div></div>
+    </div>
+    <div style="background:var(--bg1);border-radius:6px;padding:14px 16px;border:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">操作分级阈值</div>
+      <table style="font-size:11px">
+        <tr><td style="color:var(--text-mute);padding:5px 8px;width:80px">+7 ~ +10</td><td><span class="pill bull sm">高确信做多</span> 全仓可用</td></tr>
+        <tr><td style="color:var(--text-mute);padding:5px 8px">+3 ~ +6</td><td><span class="pill bull sm" style="background:rgba(93,212,168,0.06)">做多偏向</span> 半仓介入</td></tr>
+        <tr><td style="color:var(--text-mute);padding:5px 8px">−2 ~ +2</td><td><span class="pill warn sm">震荡观望</span> 等待明确</td></tr>
+        <tr><td style="color:var(--text-mute);padding:5px 8px">−3 ~ −6</td><td><span class="pill bear sm" style="background:rgba(240,133,151,0.06)">做空偏向</span> 半仓介入</td></tr>
+        <tr><td style="color:var(--text-mute);padding:5px 8px">−7 ~ −10</td><td><span class="pill bear sm">高确信做空</span> 全仓可用</td></tr>
+      </table>
+      <div style="margin-top:10px;padding:8px 10px;background:var(--bear-bg, var(--warn-bg));border-radius:4px;font-size:11px;color:var(--bear)">
+        当前得分 -9.8 → <strong>高确信做空</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="vol">V &nbsp;·&nbsp; 波动与节奏 · EDR / ATR / Killzone</div>
+<div class="card highlight">
+  <div class="sec-intro"><strong>日内波段成败的一半是节奏。</strong>这一节解决三个问题：
+  今日还剩多少波动空间？现在该不该出手？哪个时段才是肉？</div>
+  <div class="g2 mb12">
+    <div>
+      <div class="vol-head"><span class="vol-k">今日波动消耗 · EDR(20D)</span>
+           <span class="mono fw6" style="color:var(--bear)">93%</span></div>
+      <div class="edr-track"><div class="edr-fill" style="width:93.3%;background:var(--bear)"></div></div>
+      <div class="kpi-row">
+        <div class="kpi-mini"><div class="l">EDR (20D)</div><div class="v">111.4</div></div>
+        <div class="kpi-mini"><div class="l">今日振幅</div><div class="v gold">103.9</div></div>
+        <div class="kpi-mini"><div class="l">剩余空间</div><div class="v">7.5</div></div>
+        <div class="kpi-mini"><div class="l">日内位置</div><div class="v warn">2%</div></div>
+      </div>
+      <div class="cadence-note">今日波动消耗已 ≥80%，<strong class='bear'>晚段倾向均值回归</strong>，慎追突破。</div>
+    </div>
+    <div>
+      <div class="vol-head"><span class="vol-k">ATR · 多周期波动尺度</span>
+           <span class="mono dim sm">即时</span></div>
+      <table class="atr-tab">
+        <tr><td>M15 ATR</td><td class="mono fw6">10.0</td><td class="dim sm">单根 K 平均波幅 · 止损/T1 单位</td></tr>
+        <tr><td>H1 ATR(14)</td><td class="mono fw6">15.2</td><td class="dim sm">小时级波动 · 波段目标尺度</td></tr>
+      </table>
+      <div class="vol-head" style="margin-top:14px"><span class="vol-k">Killzone · 当前时段 (UTC+8)</span>
+           <span class="mono dim sm">欧盘启动</span></div>
+      <div class="kz-bar"><div class="kz-seg kz-asia"><div class="kz-name">亚盘 08-15</div><div class="kz-hint">区间窄 · 埋伏点</div></div><div class="kz-seg kz-london kz-active"><div class="kz-name">伦敦 15-21</div><div class="kz-hint">流动性放量 · 主行情</div></div><div class="kz-seg kz-ny"><div class="kz-name">纽约 21-03</div><div class="kz-hint">数据驱动 · 扩波</div></div><div class="kz-seg kz-post"><div class="kz-name">盘后 03-08</div><div class="kz-hint">收敛回归</div></div></div>
+      <div class="dim sm" style="margin-top:8px;line-height:1.6">
+        机构原则：<strong class="gold">伦敦/纽约开盘前 30 分钟</strong> 是 Sweep 与 Judas 高发窗口，
+        亚盘埋伏 + 伦敦验证 + 纽约兑现 是日内波段的标准节奏。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="smc">VI &nbsp;·&nbsp; SMC / ICT 机构行为地图 · Liquidity &amp; OB</div>
+<div class="card highlight">
+  <div class="sec-intro"><strong>这一节告诉你「机构在哪等」。</strong>OB 是它们留下的脚印、FVG 是它们错过的回头票、
+  SSL/BSL 是它们准备打劫的止损池；下一节 VII 的入场区，就建在这张地图上。</div>
+  <div class="card-title">流动性 · Order Block · FVG 综合地图</div>
+  <div class="g2">
+    <div class="smc-map">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text-mute);letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">价格结构梯度 · 当前价 $4,613.11</div>
+      <div class="price-ladder">
+        <div class="ladder-row above">
+          <div class="ladder-price bear">4708.2–4722.3</div>
+          <div class="ladder-dist mute">+102.1</div>
+          <div class="ladder-tag"><span class="badge badge-OB-B">牛OB (H1)</span>&nbsp;<span class="badge badge-FVG-S">FVG(H1) 未回补</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div></div>
+        </div>
+        <div class="ladder-row above">
+          <div class="ladder-price bear">4686.6–4711.8</div>
+          <div class="ladder-dist mute">+86.1</div>
+          <div class="ladder-tag"><span class="badge badge-OB-S">熊OB (H4)</span>&nbsp;<span class="badge badge-OB-S">熊OB (H1)</span>&nbsp;<span class="badge badge-OB-B">牛OB (H1)</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div></div>
+        </div>
+        <div class="ladder-row above">
+          <div class="ladder-price bear">4679.8–4690.2</div>
+          <div class="ladder-dist mute">+71.9</div>
+          <div class="ladder-tag"><span class="badge badge-FVG-S">FVG(H1) 未回补</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot"></div><div class="str-dot"></div></div>
+        </div>
+        <div class="ladder-row above">
+          <div class="ladder-price bear">4668.2–4682.1</div>
+          <div class="ladder-dist mute">+62.0</div>
+          <div class="ladder-tag"><span class="badge badge-FVG-S">FVG(H4) 未回补</span>&nbsp;<span class="badge badge-OB-B">牛OB (H1)</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot"></div></div>
+        </div>
+        <div class="ladder-row above">
+          <div class="ladder-price bear">4628.1–4694.4</div>
+          <div class="ladder-dist mute">+48.1</div>
+          <div class="ladder-tag"><span class="badge badge-OB-B">牛OB (H4)</span>&nbsp;<span class="badge badge-FVG-S">FVG(H1) 未回补</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div></div>
+        </div>
+        <div class="ladder-row above">
+          <div class="ladder-price bear">4630.1–4666.2</div>
+          <div class="ladder-dist mute">+35.0</div>
+          <div class="ladder-tag"><span class="badge badge-FVG-S">FVG(H4) 未回补</span>&nbsp;<span class="badge badge-KEY">整数关口 $4650</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot"></div></div>
+        </div>
+            <div class="ladder-row current">
+              <div class="ladder-price gold" style="font-size:15px">▶ 4,613.11</div>
+              <div class="ladder-dist" style="color:var(--gold)">NOW</div>
+              <div class="ladder-tag gold fw6">当前价格</div>
+              <div class="ladder-strength"><div class="str-dot on" style="background:var(--gold)"></div></div>
+            </div>
+        <div class="ladder-row below">
+          <div class="ladder-price bull">4600.0</div>
+          <div class="ladder-dist mute">-13.1</div>
+          <div class="ladder-tag"><span class="badge badge-KEY">整数关口 $4600</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot"></div><div class="str-dot"></div></div>
+        </div>
+        <div class="ladder-row below">
+          <div class="ladder-price bull">4580.3</div>
+          <div class="ladder-dist mute">-32.8</div>
+          <div class="ladder-tag"><span class="badge badge-LIQ">SSL 卖方流动性(H4, 强度×1)</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot"></div></div>
+        </div>
+        <div class="ladder-row below">
+          <div class="ladder-price bull">4550.0</div>
+          <div class="ladder-dist mute">-63.1</div>
+          <div class="ladder-tag"><span class="badge badge-KEY">整数关口 $4550</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot"></div><div class="str-dot"></div></div>
+        </div>
+        <div class="ladder-row below">
+          <div class="ladder-price bull">4500.0</div>
+          <div class="ladder-dist mute">-113.1</div>
+          <div class="ladder-tag"><span class="badge badge-KEY">整数关口 $4500</span>&nbsp;</div>
+          <div class="ladder-strength"><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot on"></div><div class="str-dot"></div><div class="str-dot"></div></div>
+        </div></div>
+    </div>
+    <div>
+      <div style="background:var(--bg3);border-radius:6px;padding:14px 16px;border:1px solid var(--border);margin-bottom:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-mute);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">SMC/ICT 要素说明</div>
+        <div class="tf-row"><div class="k"><span class="badge badge-OB-S">熊OB</span></div><div class="v dim">机构卖单原始区 · 回测=最优做空点</div></div>
+        <div class="tf-row"><div class="k"><span class="badge badge-OB-B">牛OB</span></div><div class="v dim">机构买单原始区 · 回测=最优做多点</div></div>
+        <div class="tf-row"><div class="k"><span class="badge badge-FVG-S">FVG↓</span></div><div class="v dim">看空缺口 · 回补后做空</div></div>
+        <div class="tf-row"><div class="k"><span class="badge badge-FVG-B">FVG↑</span></div><div class="v dim">看多缺口 · 回补后支撑做多</div></div>
+        <div class="tf-row"><div class="k"><span class="badge badge-LIQ">SSL/BSL</span></div><div class="v dim">流动性池 · 止损单聚集，机构惯用扫单位置</div></div>
+        <div class="tf-row" style="border-bottom:none"><div class="k"><span class="badge badge-KEY">KEY</span></div><div class="v dim">关键支阻 / 整数关口 / 前高前低</div></div>
+      </div>
+      <div style="background:var(--bg3);border-radius:6px;padding:14px 16px;border:1px solid var(--border-gold)">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--gold-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">当前 SMC 核心结论</div>
+        <div style="font-size:12px;line-height:1.85;color:var(--text-dim)">① 下方最强防线：<strong class='bull'>$4600.0</strong>（整数关口 $4600）距 13.1 pt<br>② 上方最近阻力：<strong class='bear'>$4648.1</strong>（FVG(H4) 未回补/整数关口 $4650）距 35.0 pt<br>③ 上下均存在 <strong class='gold'>流动性池</strong>，机构倾向先扫单再走方向</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="plan">VII &nbsp;·&nbsp; 策略执行单 · Trade Plans (OB 入场 + R:R 过滤)</div>
+<div class="sec-intro"><strong>从地图到扳机。</strong>每张卡 = 一个完整 setup（入场 / 止损 / 三段目标 / R:R 等级 / 失效条件）；
+R:R T1 不达 1:1.5 自动降级为「不应开仓」，以防情绪追单。</div>
+<div class='card' style='border-color:var(--warn);background:var(--warn-bg);margin-bottom:8px'><div style='font-size:12px;color:var(--warn)'>⚠ 只有做空方案达标，做多方案被拒：仅考虑做空。</div></div>
+<div class="g2">
+  
+<div class="plan-box suppressed">
+  <div class="plan-header">
+    <div>
+      <div class="plan-title bull">📈 做多 做多方案 A &nbsp;<span class="pill bear" style="font-size:10px;vertical-align:middle">❌ 暂无方案</span></div>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:4px">❌ 入场区错位</div>
+    </div>
+  </div>
+  <div style="background:rgba(240,133,151,0.08);border-radius:6px;padding:14px 16px;margin-top:8px;font-size:12px;color:var(--text-dim);line-height:1.85">
+    可用入场区均在当前价上方（价格已超过 OB/通道）→ <strong>等价格回调到合理位再评估</strong>
+  </div>
+</div>
+  
+<div class="plan-box primary-bear">
+  <div class="plan-header">
+    <div>
+      <div class="plan-title bear">📉 做空 做空方案 B &nbsp;<span class="pill bull" style="font-size:10px;vertical-align:middle">✅ 首选·顺势</span></div>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:4px">✅ 高确信 · T1 R:R 1:2.2 达标，标准仓位</div>
+    </div>
+    <div>
+      <div class="rr-label">盈亏比 T2</div>
+      <div class="plan-rr">1 : 2.6</div>
+    </div>
+  </div>
+  <table class="plan-table">
+    <tr><td>入场区</td><td class="bear">$4686.6 – $4711.8</td><td class="xs mute">熊OB (H4)/熊OB (H1)</td></tr>
+    <tr><td>止损</td><td class="bull">$4726.8</td><td class="xs mute">风险 40.2 pt</td></tr>
+    
+            <tr>
+              <td>目标 T1</td>
+              <td class="bear">$4600.0</td>
+              <td class="xs mute">整数关口 $4600 &nbsp;<span class="bull">R:R 1:2.15 ✓</span></td>
+            </tr>
+            <tr>
+              <td>目标 T2</td>
+              <td class="bear">$4580.3</td>
+              <td class="xs mute">SSL 卖方流动性(H4, 强度×1) &nbsp;<span class="bull">R:R 1:2.64 ✓</span></td>
+            </tr>
+            <tr>
+              <td>目标 T3</td>
+              <td class="bear">$4550.0</td>
+              <td class="xs mute">整数关口 $4550 &nbsp;<span class="bull">R:R 1:3.40 ✓</span></td>
+            </tr>
+  </table>
+  <div class="confidence-row">
+    <div class="conf-stars">★★★★☆</div>
+    <div class="conf-text">置信度 70% · 顺势 + 盈亏比达标，<strong class='bull'>可用标准仓位的80%</strong></div>
+  </div>
+</div>
+</div>
+<div class="card" style="margin-top:8px;border-style:dashed;border-color:var(--border-gold)">
+  <div style="font-size:11px;color:var(--text-mute);line-height:1.8">
+    💡 <strong style="color:var(--gold)">入场区优先策略</strong>：当存在牛OB/熊OB 时，入场区自动收紧到 OB 范围；若无 OB 数据则回落到日内通道。
+    <strong style="color:var(--warn)">所有方案严格遵守 R3 规则</strong>：T1 R:R &lt; 1:1.5 时方案被压制（虚线灰色框）。
+  </div>
+</div>
+
+<div class="sec-label gold" id="scenario">VIII &nbsp;·&nbsp; 场景概率决策树 · Scenario Tree</div>
+<div class="card highlight">
+  <div class="sec-intro"><strong>市场只走三种路：上、下、横。</strong>提前为每条路写好「触发条件 / 失效条件 / 应对动作」，
+  比临盘拍脑袋决定快一个量级；这是日内波段的「if-then」程序化大脑。</div>
+  <div class="card-title">If-Then 场景应对 · 概率加权（启发式估算）</div>
+  
+        <div class="scenario" style="border-color:rgba(154,163,182,0.22)">
+          <div class="scenario-header">
+            <div class="scenario-trigger bear">🔴 场景1 · 价格跌破 $4600.0 后空头延伸</div>
+            <div class="scenario-prob prob-mid">概率 45%</div>
+          </div>
+          <div class="prob-bar bear-bar" style="width:45%"></div>
+          <table style="font-size:12px">
+            <tr><td style="width:110px;color:var(--text-mute)">结构含义</td><td>跌破关键支撑（整数关口 $4600），原支撑转阻力，空头加速</td></tr>
+            <tr><td style="color:var(--text-mute)">执行动作</td><td class="bear fw6">等 M15/H1 收盘确认跌破，<strong>反抽 $4600.0（破后转阻）受阻收阴</strong>时做空，目标 $4580.3</td></tr>
+            <tr><td style="color:var(--text-mute)">持仓者</td><td>多单立即止损，不抱侥幸</td></tr>
+            <tr><td style="color:var(--text-mute);border-bottom:none">失效条件</td><td style="border-bottom:none">反抽 $4600.0 反而强势收阳并站稳上方 → 放弃做空（假突破）</td></tr>
+          </table>
+        </div>
+        <div class="scenario" style="border-color:rgba(154,163,182,0.22)">
+          <div class="scenario-header">
+            <div class="scenario-trigger bull">🟢 场景2 · 价格在 $4600.0 区域企稳反弹</div>
+            <div class="scenario-prob prob-mid">概率 25%</div>
+          </div>
+          <div class="prob-bar bull-bar" style="width:25%"></div>
+          <table style="font-size:12px">
+            <tr><td style="width:110px;color:var(--text-mute)">结构含义</td><td>支撑/牛OB 有效，超卖反弹（但高周期偏空时仅短多）</td></tr>
+            <tr><td style="color:var(--text-mute)">执行动作</td><td class="bull fw6">M15 收阳 / 锤子线确认后做多，目标 $4648.1</td></tr>
+            <tr><td style="color:var(--text-mute)">持仓者</td><td>已多单：T1 看 4648.1，进入阻力区减仓</td></tr>
+            <tr><td style="color:var(--text-mute);border-bottom:none">失效条件</td><td style="border-bottom:none">M15 跌破支撑下沿 + 收盘破位 → 立即止损</td></tr>
+          </table>
+        </div>
+        <div class="scenario" style="border-color:rgba(154,163,182,0.22)">
+          <div class="scenario-header">
+            <div class="scenario-trigger warn">🟡 场景3 · 价格反弹至 $4648.1 阻力区受阻回落</div>
+            <div class="scenario-prob prob-hi">概率 55%</div>
+          </div>
+          <div class="prob-bar warn-bar" style="width:55%"></div>
+          <table style="font-size:12px">
+            <tr><td style="width:110px;color:var(--text-mute)">结构含义</td><td>阻力/熊OB 有效，价格在阻力区被拒绝（符合高周期空头逻辑）</td></tr>
+            <tr><td style="color:var(--text-mute)">执行动作</td><td class="warn fw6">在 $4648.1 区域出现 M15 收阴/吞没/上影线时做空，T1 看回落至当前价 $4613.1，T2 延伸至 $4600.0</td></tr>
+            <tr><td style="color:var(--text-mute)">持仓者</td><td>短多减仓离场</td></tr>
+            <tr><td style="color:var(--text-mute);border-bottom:none">失效条件</td><td style="border-bottom:none">M15 收盘强势站稳 $4648.1 上方（非影线刺穿） → 升级到场景4</td></tr>
+          </table>
+        </div>
+        <div class="scenario" style="border-color:rgba(154,163,182,0.22)">
+          <div class="scenario-header">
+            <div class="scenario-trigger gold">🟠 场景4 · 价格强势突破 $4661.2（结构反转）</div>
+            <div class="scenario-prob prob-lo">概率 10%</div>
+          </div>
+          <div class="prob-bar gold-bar" style="width:10%"></div>
+          <table style="font-size:12px">
+            <tr><td style="width:110px;color:var(--text-mute)">结构含义</td><td>H4 收盘 CHoCH↑ 确认，空头逻辑作废，转入多头框架</td></tr>
+            <tr><td style="color:var(--text-mute)">执行动作</td><td class="gold fw6">等 H4 收盘确认突破，<strong>回踩 $4661.2（破后转支撑）不破做多</strong></td></tr>
+            <tr><td style="color:var(--text-mute)">持仓者</td><td>持空单立即止损，不抗单</td></tr>
+            <tr><td style="color:var(--text-mute);border-bottom:none">失效条件</td><td style="border-bottom:none">通常需要重大消息面催化（NFP / CPI / FOMC / 地缘事件）</td></tr>
+          </table>
+        </div>
+  <div class="inv-box">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--bear);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">⚠ 所有方案通用失效条件</div>
+    <div style="font-size:12px;color:var(--text-dim);line-height:1.85">
+      · 非农/CPI/FOMC 等重大数据发布前后 30分钟：<strong class="bear">关闭所有仓位</strong><br>
+      · 连续亏损2笔后：<strong class="bear">当日停止交易，复盘归因</strong><br>
+      · 单日最大亏损达账户 2%：<strong class="bear">强制停止</strong><br>
+      · M15/H1 突然出现异常大K线（&gt;3×ATR）：<strong class="warn">暂停判断，等待结构稳定</strong>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="tf-detail">IX &nbsp;·&nbsp; 多周期结构详解 · Per-TF Deep Dive</div>
+<div class="sec-intro"><strong>把 IV 矩阵的每一行展开。</strong>每个周期一张结构图 + 关键事件 + 通道位置，
+用来回答「为什么这个周期是这个分」「下一根 K 线我看哪里」。</div>
+<div class="g2">
+  
+<div class="tf-block card" style="padding:0;margin-bottom:0">
+  <div class="tf-header">
+    <div class="tf-name">日线 DAILY</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span class="pill neutral sm">区间震荡（结构不明） ■</span>
+      <span class="mono sm dim">得分 +0.0</span>
+    </div>
+  </div>
+  
+  <div class="tf-body">
+    <div class="tf-row"><div class="k">市场结构</div><div class="v neutral">区间震荡（结构不明）</div></div>
+    <div class="tf-row"><div class="k">已触发事件</div><div class="v mute">近期无新事件</div></div>
+    <div class="tf-row"><div class="k">趋势通道</div><div class="v">上升通道 · 价位 20%</div></div>
+    <div class="tf-row"><div class="k">最近高/低点</div><div class="v"><span class="bear">$4889.4</span> / <span class="bull">$4098.5</span></div></div>
+    <div class="tf-row"><div class="k">操作建议</div><div class="v neutral">等结构明确再操作</div></div>
+  </div>
+</div>
+  
+<div class="tf-block card" style="padding:0;margin-bottom:0">
+  <div class="tf-header">
+    <div class="tf-name">H4 · 4小时</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span class="pill bear sm">偏空震荡（空头特征居多） ▼</span>
+      <span class="mono sm dim">得分 -3.9</span>
+    </div>
+  </div>
+  
+  <div class="tf-body">
+    <div class="tf-row"><div class="k">市场结构</div><div class="v bear">偏空震荡（空头特征居多）</div></div>
+    <div class="tf-row"><div class="k">已触发事件</div><div class="v bear">BOS↓ @ 4668.3</div></div>
+    <div class="tf-row"><div class="k">趋势通道</div><div class="v">上升通道 · 价位 -217%</div></div>
+    <div class="tf-row"><div class="k">最近高/低点</div><div class="v"><span class="bear">$4740.1</span> / <span class="bull">$4657.5</span></div></div>
+    <div class="tf-row"><div class="k">操作建议</div><div class="v bear">顺势找反弹做空</div></div>
+  </div>
+</div>
+</div>
+<div class="g2 mt12">
+  
+<div class="tf-block card" style="padding:0;margin-bottom:0">
+  <div class="tf-header">
+    <div class="tf-name">H1 · 1小时</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span class="pill bear sm">明确下降结构（LH+LL） ▼</span>
+      <span class="mono sm dim">得分 -2.6</span>
+    </div>
+  </div>
+  
+  <div class="tf-body">
+    <div class="tf-row"><div class="k">市场结构</div><div class="v bear">明确下降结构（LH+LL）</div></div>
+    <div class="tf-row"><div class="k">已触发事件</div><div class="v bear">BOS↓ @ 4671.9</div></div>
+    <div class="tf-row"><div class="k">趋势通道</div><div class="v">下降通道 · 价位 -48%</div></div>
+    <div class="tf-row"><div class="k">最近高/低点</div><div class="v"><span class="bear">$4701.3</span> / <span class="bull">$4667.0</span></div></div>
+    <div class="tf-row"><div class="k">操作建议</div><div class="v bear">顺势找反弹做空</div></div>
+  </div>
+</div>
+  
+<div class="tf-block card" style="padding:0;margin-bottom:0">
+  <div class="tf-header">
+    <div class="tf-name">M15 · 15分钟</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span class="pill bear sm">偏空震荡（空头特征居多） ▼</span>
+      <span class="mono sm dim">得分 -1.3</span>
+    </div>
+  </div>
+  
+  <div class="tf-body">
+    <div class="tf-row"><div class="k">市场结构</div><div class="v bear">偏空震荡（空头特征居多）</div></div>
+    <div class="tf-row"><div class="k">已触发事件</div><div class="v bear">BOS↓ @ 4666.2</div></div>
+    <div class="tf-row"><div class="k">趋势通道</div><div class="v">水平区间 · 价位 -298%</div></div>
+    <div class="tf-row"><div class="k">最近高/低点</div><div class="v"><span class="bear">$4635.3</span> / <span class="bull">$4622.9</span></div></div>
+    <div class="tf-row"><div class="k">操作建议</div><div class="v bear">顺势找反弹做空</div></div>
+  </div>
+</div>
+</div>
+
+<div class="sec-label gold" id="risk">X &nbsp;·&nbsp; 风控协议 · 三段交易守则</div>
+<div class="card highlight">
+  <div class="sec-intro"><strong>所有信号都可错。</strong>让你长期活下来的不是模型，是这张可勾选清单。
+  开仓前过 PRE，持仓中按 IN，平仓后写 POST，每一项都不可跳。</div>
+  <div class="g3">
+    <div class="ck-card ck-pre">
+      <div class="ck-title bull">PRE-TRADE · 开仓前</div>
+      <label class="ck-row"><input type="checkbox"><span>账户日累计回撤 &lt; 1.5%（DDL 未触发）</span></label>
+      <label class="ck-row"><input type="checkbox"><span>该笔风险 ≤ 净值 1%（高确信 ≤ 1.5%）</span></label>
+      <label class="ck-row"><input type="checkbox"><span>距下一个 HIGH 事件 ≥ 30 分钟（embargo 通过）</span></label>
+      <label class="ck-row"><input type="checkbox"><span>R:R T1 ≥ 1:1.5（边界），≥ 1:2.0（标准）</span></label>
+      <label class="ck-row"><input type="checkbox"><span>多周期共振 ≥ 2 个 TF 同向</span></label>
+      <label class="ck-row"><input type="checkbox"><span>EDR 消耗 &lt; 80%（晚段不追突破）</span></label>
+      <label class="ck-row"><input type="checkbox"><span>入场区距当前价合理（不挂远不挂近）</span></label>
+    </div>
+    <div class="ck-card ck-in">
+      <div class="ck-title gold">IN-TRADE · 持仓中</div>
+      <label class="ck-row"><input type="checkbox"><span>1× ATR(M15) 内未止损 → 移 SL 到 -0.3R</span></label>
+      <label class="ck-row"><input type="checkbox"><span>触及 T1 → 平 50% + SL 移到成本</span></label>
+      <label class="ck-row"><input type="checkbox"><span>触及 T2 → 平 30% + SL 移到 T1</span></label>
+      <label class="ck-row"><input type="checkbox"><span>跨 Killzone 仍持仓 → 主动减 30%</span></label>
+      <label class="ck-row"><input type="checkbox"><span>异常 K（&gt;3×ATR）出现 → 暂停加仓</span></label>
+      <label class="ck-row"><input type="checkbox"><span>CHoCH 反向 → 不立即翻向，等 2 根 H1 收盘</span></label>
+      <label class="ck-row"><input type="checkbox"><span>禁绝拉止损、禁绝逆势加仓摊成本</span></label>
+    </div>
+    <div class="ck-card ck-post">
+      <div class="ck-title bear">POST-TRADE · 平仓后</div>
+      <label class="ck-row"><input type="checkbox"><span>记录 setup / 入场 / 出场 / 反思（30 分钟内）</span></label>
+      <label class="ck-row"><input type="checkbox"><span>PnL 落入预期（±1σ），否则触发例外审计</span></label>
+      <label class="ck-row"><input type="checkbox"><span>当日累计仓位 ≤ 4，否则强制冷静期 4h</span></label>
+      <label class="ck-row"><input type="checkbox"><span>连亏 2 笔 → 当日停止交易</span></label>
+      <label class="ck-row"><input type="checkbox"><span>结构准确率 / 执行率 / 盈亏归因 三件套</span></label>
+      <label class="ck-row"><input type="checkbox"><span>记入 decision_log.md / daily_audit.md</span></label>
+      <label class="ck-row"><input type="checkbox"><span>下一笔不在情绪温度 ≥ 7/10 时开</span></label>
+    </div>
+  </div>
+  <div class="g2 mt12">
+    <div class="calc-box">
+      <div class="calc-h">仓位规模公式 · Position Sizing</div>
+      <div class="calc-f">手数 = (账户净值 × 风险%) ÷ (止损pt × 每点价值)</div>
+      <div class="calc-eg">示例：$10,000 × 1% ÷ (12pt × $1) = <span class="gold fw6">0.83 手</span></div>
+      <div class="dim sm" style="margin-top:6px;line-height:1.55">
+        Kelly 上限：<strong class="gold">25% × Full Kelly</strong>，过度乐观时启动相关性折减
+        <span class="mono">final_lots = lots × (1 − max_corr_with_open_pos)</span>。
+      </div>
+    </div>
+    <div class="calc-box">
+      <div class="calc-h">关键阈值 · Risk Limits</div>
+      <table class="rlimit">
+        <tr><td>单笔风险</td><td class="mono fw6">≤ 1.0%</td><td class="dim sm">高确信可至 1.5%</td></tr>
+        <tr><td>日累计</td><td class="mono fw6 bear">≤ 2.0%</td><td class="dim sm">触及强制停止当日</td></tr>
+        <tr><td>周累计</td><td class="mono fw6 bear">≤ 3.0%</td><td class="dim sm">触及停周</td></tr>
+        <tr><td>同时持仓</td><td class="mono fw6">≤ 3 单</td><td class="dim sm">总敞口 ≤ 3%</td></tr>
+        <tr><td>R:R 门槛</td><td class="mono fw6">T1 ≥ 1:1.5</td><td class="dim sm">标准 ≥ 1:2.0</td></tr>
+        <tr><td>新闻禁交易</td><td class="mono fw6 warn">±30 分钟</td><td class="dim sm">High 事件全程 / Med ±10 分钟</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="sec-label gold" id="audit">99 &nbsp;·&nbsp; 审计与披露 · Audit &amp; Disclosures</div>
+<div class="card" style="border-color:var(--border-gold);background:var(--bg1)">
+  <div class="sec-intro" style="margin-bottom:10px"><strong>每一份机构报告必须可被审计。</strong>
+  以下编号、数据源、模型版本与免责声明，是这份报告唯一的"出生证"。</div>
+  <table class="audit-tab">
+    <tr><td class="k">报告编号</td><td class="mono">GLD-INTRADAY-20260428-1735-001</td>
+        <td class="k">签发时间</td><td class="mono">2026-04-28 17:35 <span class="dim sm">UTC+8</span></td></tr>
+    <tr><td class="k">分析品种</td><td class="mono">XAU/USD · Spot Gold (Intraday Swing)</td>
+        <td class="k">数据源</td><td class="mono">MT5:XAUUSD</td></tr>
+    <tr><td class="k">模型版本</td><td class="mono">institutional_render · v1.1 (2026-04)</td>
+        <td class="k">综合得分</td><td class="mono gold">-9.8/10 · strong_bear</td></tr>
+    <tr><td class="k">分发范围</td><td class="mono warn">INTERNAL · NOT FOR REDISTRIBUTION</td>
+        <td class="k">有效期</td><td class="mono">24H 或下一次重大事件前</td></tr>
+    <tr><td class="k">利益披露</td><td class="mono dim">本桌台 / 模型不持有 XAU 头寸</td>
+        <td class="k">复盘记录</td><td class="mono">decision_log.md / daily_audit.md</td></tr>
+  </table>
+  <div class="disclaimer">
+    <strong>免责声明：</strong>本报告由量化模型自动生成，所有数据存在延迟与误差。报告中的偏向、目标位、概率均为
+    基于历史规律的<strong>启发式估算</strong>，不构成任何投资建议。最终交易决策由交易员承担全部责任。
+    机构纪律 &gt; 模型信号 &gt; 直觉冲动。
+  </div>
+</div>
+<div class="footer">
+  GOLDDESK &nbsp;·&nbsp; <span>XAU/USD Institutional Intraday Swing Framework</span><br>
+  执行摘要 · 宏观锚点 · 偏置矩阵 · 波动节奏 · SMC/ICT · 策略执行 · 场景树 · 周期详解 · 风控协议<br>
+  <span>Generated 2026-04-28 17:35　|　Source MT5:XAUUSD</span>
+</div>
+</body>
+</html>

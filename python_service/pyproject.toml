@@ -1,0 +1,15 @@
+[project]
+name = "python-service"
+version = "0.1.0"
+description = "Trader Workbench Python Backend"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "MetaTrader5",
+    "pytest",
+    "httpx",
+    "pandas",
+    "numpy",
+    "pyinstaller",
+]

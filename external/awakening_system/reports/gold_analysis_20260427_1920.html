@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>XAU/USD 行情分析</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0a18;color:#ddd;font-family:'Segoe UI',Arial,sans-serif;padding:20px;max-width:1400px;margin:0 auto}
+    h1{color:#f0c040;font-size:20px;margin-bottom:3px}
+    h2{color:#555;font-size:13px;margin-bottom:20px;font-weight:normal}
+    h3{color:#e0e0e0;font-size:14px;margin:0 0 12px;border-left:3px solid #f0c040;padding-left:9px}
+    .card{background:#111125;border-radius:10px;padding:18px;margin-bottom:16px;border:1px solid #1e1e35}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:#16162a;color:#666;padding:7px 9px;text-align:left;font-weight:normal;border-bottom:1px solid #222}
+    td{padding:7px 9px;border-bottom:1px solid #141426;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+    .box{background:#16162e;border-radius:8px;padding:12px;text-align:center;border:1px solid #1e1e40}
+    .box .v{font-size:20px;font-weight:bold;margin-bottom:3px}
+    .box .l{font-size:10px;color:#555}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:700px){.two-col{grid-template-columns:1fr}}
+    .footer{text-align:center;color:#333;font-size:11px;margin-top:24px}
+  </style>
+</head>
+<body>
+  <h1>XAU/USD 黄金日内波段分析报告</h1>
+  <h2>生成时间：2026-04-27 19:20:03　|　数据来源：MT4</h2>
+
+  <!-- ① 价格 + 核心数据 -->
+  <div class="card" style="text-align:center;padding:22px 0">
+    <div style="font-size:11px;color:#555;letter-spacing:3px">XAU / USD &nbsp;·&nbsp; 黄金现货</div>
+    <div style="font-size:52px;font-weight:bold;color:#f0c040;margin:6px 0">$4704.30</div>
+    <div style="font-size:12px;color:#444">
+      ATR(H4): 34.8 (0.74%) &nbsp;|&nbsp;
+      综合评分: <span style="color:#ef5350;font-weight:bold">-45</span> &nbsp;|&nbsp;
+      周线 <span style="color:#26a69a">强势多头</span> &nbsp;/&nbsp;
+      日线 <span style="color:#ef5350">弱势空头</span> &nbsp;/&nbsp;
+      H4 <span style="color:#ef5350">强势空头</span>
+    </div>
+  </div>
+
+  <!-- ② 多周期共振速览 -->
+  <div class="card">
+    <h3>多周期趋势共振 &amp; 核心指标</h3>
+    <div class="grid">
+      <div class="box"><div class="v" style="color:#26a69a">强势多头</div><div class="l">周线趋势</div></div>
+      <div class="box"><div class="v" style="color:#ef5350">弱势空头</div><div class="l">日线趋势</div></div>
+      <div class="box"><div class="v" style="color:#ef5350">强势空头</div><div class="l">H4趋势</div></div>
+      <div class="box"><div class="v" style="color:#aaa;font-size:15px">30 — 趋势明确</div><div class="l">H4 ADX（趋势强度）</div></div>
+      <div class="box"><div class="v" style="color:#f0c040">K:55 D:63</div><div class="l">H4 Stoch K/D</div></div>
+      <div class="box"><div class="v" style="color:#aaa">-29</div><div class="l">H4 CCI</div></div>
+      <div class="box"><div class="v" style="color:#ef5350">4704.6</div><div class="l">最近阻力</div></div>
+      <div class="box"><div class="v" style="color:#26a69a">4402.0</div><div class="l">最近支撑</div></div>
+    </div>
+  </div>
+
+  <!-- ③ 日内波段策略（核心内容，置顶）-->
+  <div class="card">
+    <h3>日内波段介入策略 &amp; 各情景应对</h3>
+    <div style="font-size:12px;color:#555;margin-bottom:14px;line-height:1.8">
+      策略优先级：
+      <span style="color:#f0c040">S1 趋势EMA回调</span>（最高胜率）&gt;
+      <span style="color:#26a69a">S3 RSI背离反转</span>（最强反转）&gt;
+      <span style="color:#aaa">S4 多周期共振</span>（大势顺势）&gt;
+      <span style="color:#888">S2 亚盘区间突破</span>（开盘方向）&gt;
+      <span style="color:#555">S5 等待观望</span>
+    </div>
+    
+        <div style="border:1px solid #ef5350;border-radius:10px;padding:18px;margin-bottom:16px;background:#0f0f20">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+            <span style="background:#ef5350;padding:4px 14px;border-radius:5px;font-weight:bold;font-size:14px">做空</span>
+            <span style="color:#ddd;font-size:15px;font-weight:500">【策略一】趋势EMA回调入场（ADX=30，趋势趋势明确）</span>
+            <span style="margin-left:auto;background:#1a1a30;padding:3px 10px;border-radius:4px;font-size:12px">
+              把握度 <span style="color:#26a69a;font-weight:bold">高</span>
+            </span>
+          </div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="width:90px;color:#666;padding:6px 8px">触发条件</td>
+              <td style="color:#ccc;padding:6px 8px">价格反弹至 EMA20（4718.0）附近，H1出现射击之星/阴包阳/长上影拒绝K线，RSI≤60 且KD死叉后入场做空</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">入场区域</td>
+              <td style="color:#fff;font-weight:bold;font-size:15px;padding:6px 8px">4710.6 – 4722.5</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">止损</td>
+              <td style="color:#ef5350;padding:6px 8px">4744.8  (1.8×H1 ATR)</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">目标 TP1/2</td>
+              <td style="color:#26a69a;font-weight:bold;padding:6px 8px">4412.4 &nbsp;/&nbsp; 4402.0</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">风险回报</td>
+              <td style="color:#f0c040;font-weight:bold;padding:6px 8px">1 : 10.8</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">持仓管理</td>
+              <td style="color:#aaa;padding:6px 8px;line-height:1.7">① EMA区域分批建仓（50%确认+50%反弹加仓）<br>② 到达TP1移止损至成本价，减仓一半<br>③ 若H1K线收盘于EMA上方，等待下一阻力区</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">失效条件</td>
+              <td style="color:#ef5350;padding:6px 8px;font-size:12px">H1收盘突破 4744.8（EMA上方27点），趋势反转信号，本次反弹已演变为突破，立即止损</td>
+            </tr>
+            <tr>
+              <td style="color:#666;padding:6px 8px">建议时段</td>
+              <td style="color:#888;padding:6px 8px;font-size:12px">伦敦盘（15:00-19:00 BJ）或纽约盘（21:00-01:00 BJ）趋势最流畅</td>
+            </tr>
+          </table>
+        </div>
+        <div style="border:1px solid #9e9e9e;border-radius:10px;padding:18px;margin-bottom:16px;background:#0f0f20">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+            <span style="background:#555;padding:4px 14px;border-radius:5px;font-weight:bold;font-size:14px">突破</span>
+            <span style="color:#ddd;font-size:15px;font-weight:500">【策略二】亚盘区间突破（区间 4672.0–4730.1，幅度 58 点，偏空突破）</span>
+            <span style="margin-left:auto;background:#1a1a30;padding:3px 10px;border-radius:4px;font-size:12px">
+              把握度 <span style="color:#888;font-weight:bold">中等</span>
+            </span>
+          </div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="width:90px;color:#666;padding:6px 8px">触发条件</td>
+              <td style="color:#ccc;padding:6px 8px">亚盘区间 4672.0 – 4730.1（2026-04-27）
+伦敦开盘（15:00 BJ）后若H1收盘突破 4730.1 → 做多
+若H1收盘跌破 4672.0 → 做空
+注意：突破后若30分钟内价格回到区间内，视为假突破，不追</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">入场区域</td>
+              <td style="color:#fff;font-weight:bold;font-size:15px;padding:6px 8px">突破 4730.1 做多 / 跌破 4672.0 做空（H1收盘确认）</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">止损</td>
+              <td style="color:#ef5350;padding:6px 8px">多单止损 4654.1（区间低点下方 18 点）
+空单止损 4748.0（区间高点上方 18 点）</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">目标 TP1/2</td>
+              <td style="color:#26a69a;font-weight:bold;padding:6px 8px">多 4788.2 / 空 4613.9（1:1 目标） &nbsp;/&nbsp; 多 4834.7 / 空 4567.4（1:1.8 目标）</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">风险回报</td>
+              <td style="color:#f0c040;font-weight:bold;padding:6px 8px">1 : 1.5 – 1 : 2</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">持仓管理</td>
+              <td style="color:#aaa;padding:6px 8px;line-height:1.7">① 突破后等待价格回踩区间边缘不破（15-30分钟），确认后入场<br>② TP1减仓50%，止损移至成本<br>③ 若突破后价格在区间外横盘超过2小时，视为假突破，平仓观望<br>④ 重叠亚盘高点/低点与枢轴点/Fib位时，可信度更高</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">失效条件</td>
+              <td style="color:#ef5350;padding:6px 8px;font-size:12px">突破后价格在1-2根H1K线内回落至区间内（假突破），立即平仓
+区间突破方向与日线/H4趋势相反时，仓位减半，快进快出</td>
+            </tr>
+            <tr>
+              <td style="color:#666;padding:6px 8px">建议时段</td>
+              <td style="color:#888;padding:6px 8px;font-size:12px">伦敦开盘（15:00-17:00 BJ）为最佳突破时段，纽约开盘（21:00-23:00 BJ）次之</td>
+            </tr>
+          </table>
+        </div>
+        <div style="border:1px solid #ef5350;border-radius:10px;padding:18px;margin-bottom:16px;background:#0f0f20">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+            <span style="background:#ef5350;padding:4px 14px;border-radius:5px;font-weight:bold;font-size:14px">做空</span>
+            <span style="color:#ddd;font-size:15px;font-weight:500">【策略四】多周期共振做空（2/3周期偏空，大势顺势）</span>
+            <span style="margin-left:auto;background:#1a1a30;padding:3px 10px;border-radius:4px;font-size:12px">
+              把握度 <span style="color:#f0c040;font-weight:bold">较高</span>
+            </span>
+          </div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="width:90px;color:#666;padding:6px 8px">触发条件</td>
+              <td style="color:#ccc;padding:6px 8px">周线/日线/H4 2个周期偏空共振
+价格反弹至 4704.6–4718.5 阻力区，H1出现拒绝K线（射击之星/阴包阳）
+MACD柱由正转负 + KD死叉后入场</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">入场区域</td>
+              <td style="color:#fff;font-weight:bold;font-size:15px;padding:6px 8px">4704.6 – 4718.5</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">止损</td>
+              <td style="color:#ef5350;padding:6px 8px">4756.7  (+52，约1.5×H4 ATR)</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">目标 TP1/2</td>
+              <td style="color:#26a69a;font-weight:bold;padding:6px 8px">4412.4 &nbsp;/&nbsp; 4402.0</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">风险回报</td>
+              <td style="color:#f0c040;font-weight:bold;padding:6px 8px">1 : 5.6</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">持仓管理</td>
+              <td style="color:#aaa;padding:6px 8px;line-height:1.7">① 分批建仓：第一笔在入场区低点，第二笔等H1确认信号<br>② TP1减仓50%，移止损至成本<br>③ 剩余仓位用H4 ATR跟踪止损，顺势持有<br>④ 若价格在阻力区横盘3根以上H1K线不破，可小仓先建试探</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">失效条件</td>
+              <td style="color:#ef5350;padding:6px 8px;font-size:12px">H1收盘突破 4756.7（阻力上方1.5×ATR），
+或ADX骤降至15以下（趋势瓦解），立即全部止损出场</td>
+            </tr>
+            <tr>
+              <td style="color:#666;padding:6px 8px">建议时段</td>
+              <td style="color:#888;padding:6px 8px;font-size:12px">伦敦开盘（15:00-17:00）或纽约开盘（21:00-23:00）信号质量最高</td>
+            </tr>
+          </table>
+        </div>
+        <div style="border:1px solid #9e9e9e;border-radius:10px;padding:18px;margin-bottom:16px;background:#0f0f20">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+            <span style="background:#555;padding:4px 14px;border-radius:5px;font-weight:bold;font-size:14px">观望</span>
+            <span style="color:#ddd;font-size:15px;font-weight:500">【策略五】区间震荡 / 等待方向确认</span>
+            <span style="margin-left:auto;background:#1a1a30;padding:3px 10px;border-radius:4px;font-size:12px">
+              把握度 <span style="color:#888;font-weight:bold">—</span>
+            </span>
+          </div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="width:90px;color:#666;padding:6px 8px">触发条件</td>
+              <td style="color:#ccc;padding:6px 8px">当前区间 4402.0 – 4704.6（幅度 303 点）
+ADX=30（趋势中等）
+多空信号尚不明确，不宜盲目入场</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">入场区域</td>
+              <td style="color:#fff;font-weight:bold;font-size:15px;padding:6px 8px">不操作，等信号</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">止损</td>
+              <td style="color:#ef5350;padding:6px 8px">—</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">目标 TP1/2</td>
+              <td style="color:#26a69a;font-weight:bold;padding:6px 8px">— &nbsp;/&nbsp; —</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px">风险回报</td>
+              <td style="color:#f0c040;font-weight:bold;padding:6px 8px">—</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">持仓管理</td>
+              <td style="color:#aaa;padding:6px 8px;line-height:1.7">等待以下任一条件触发策略一/二/三/四：<br>① 价格有效突破 4704.6 + H1收盘确认 → 做多（策略二/四）<br>② 价格有效跌破 4402.0 + H1收盘确认 → 做空（策略二/四）<br>③ 价格回调至 EMA20/50 + 背离信号出现 → 做多/空（策略一/三）<br>④ 重大经济数据（非农/CPI/FOMC）前后60分钟绝对不开新仓</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1a2a">
+              <td style="color:#666;padding:6px 8px;vertical-align:top">失效条件</td>
+              <td style="color:#ef5350;padding:6px 8px;font-size:12px">N/A</td>
+            </tr>
+            <tr>
+              <td style="color:#666;padding:6px 8px">建议时段</td>
+              <td style="color:#888;padding:6px 8px;font-size:12px">任何时段均可观察，无需守盘；重点关注伦敦/纽约开盘方向</td>
+            </tr>
+          </table>
+        </div>
+  </div>
+
+  <!-- ④ 关键价位 + 枢轴点 -->
+  <div class="two-col">
+    <div class="card">
+      <h3>分级关键价位（多空梯）</h3>
+      <div style="font-size:11px;color:#666;margin-bottom:10px;line-height:1.6">
+        ★ <span style="color:#f0c040">多空关键位</span>：当前价附近最强转折，破则趋势翻转
+        &nbsp;|&nbsp; <span style="color:#ef5350">回调看空</span>：到位反弹做空
+        &nbsp;|&nbsp; <span style="color:#ef5350">不破看空</span>：守位以下看空
+        &nbsp;|&nbsp; <span style="color:#26a69a">回调看多</span>：到位回踩做多
+        &nbsp;|&nbsp; <span style="color:#26a69a">不破看多</span>：守位以上看多
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#1a0a0a 0%,#0e0e1e 100%);border-left:1px solid #ef535033;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#ef5350"> 第4强阻力·不破看空（0.16×ATR）</span><span style="color:#ef5350;font-family:monospace">$4709.90</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#1a0a0a 0%,#0e0e1e 100%);border-left:1px solid #ef535033;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#ef5350"> 第3强阻力·回调看空（0.11×ATR）</span><span style="color:#ef5350;font-family:monospace">$4708.00</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#1a0a0a 0%,#0e0e1e 100%);border-left:1px solid #ef535033;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#ef5350"> 第2强阻力（0.06×ATR）</span><span style="color:#ef5350;font-family:monospace">$4706.50</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#1a0a0a 0%,#0e0e1e 100%);border-left:1px solid #ef535033;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#ef5350"> 第1阻力（0.04×ATR）</span><span style="color:#ef5350;font-family:monospace">$4705.70</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#1a1410 0%,#0e0e1e 100%);border-left:2px solid #f0c040;border-radius:4px;margin:3px 0;font-size:15px;font-weight:bold"><span style="color:#f0c040">★ 多空关键位</span><span style="color:#f0c040;font-family:monospace">$4704.60</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1a1a2e;border-left:2px solid #fff;border-radius:4px;margin:3px 0;font-size:15px;font-weight:bold"><span style="color:#fff">▼ 当前价</span><span style="color:#fff;font-family:monospace">$4704.30</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#0a1a14 0%,#0e0e1e 100%);border-left:1px solid #26a69a33;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#26a69a"> 第1支撑（0.24×ATR）</span><span style="color:#26a69a;font-family:monospace">$4695.90</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#0a1a14 0%,#0e0e1e 100%);border-left:1px solid #26a69a33;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#26a69a"> 第2强支撑（0.27×ATR）</span><span style="color:#26a69a;font-family:monospace">$4695.00</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#0a1a14 0%,#0e0e1e 100%);border-left:1px solid #26a69a33;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#26a69a"> 第3强支撑·回调看多（0.56×ATR）</span><span style="color:#26a69a;font-family:monospace">$4684.90</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,#0a1a14 0%,#0e0e1e 100%);border-left:1px solid #26a69a33;border-radius:4px;margin:3px 0;font-size:13px;font-weight:normal"><span style="color:#26a69a"> 第4支撑·不破看多（0.61×ATR）</span><span style="color:#26a69a;font-family:monospace">$4683.10</span></div>
+    </div>
+    <div class="card">
+      <h3>日线枢轴点 (Pivot Points)</h3>
+      <table style="text-align:center">
+          <tr>
+            <th style="color:#ef5350">R3</th><th style="color:#ef5350">R2</th><th style="color:#ef5350">R1</th>
+            <th style="color:#f0c040">Pivot</th>
+            <th style="color:#26a69a">S1</th><th style="color:#26a69a">S2</th><th style="color:#26a69a">S3</th>
+          </tr><tr>
+            <td style="text-align:center;color:#ef5350;font-weight:bold">4720.0 ◀</td><td style="text-align:center;color:#ef5350;font-weight:bold">4709.9 ◀</td><td style="text-align:center;color:#ef5350;font-weight:bold">4695.0 ◀</td>
+            <td style="text-align:center;color:#f0c040;font-weight:bold">4684.9</td>
+            <td style="text-align:center;color:#26a69a;font-weight:bold">4670.0</td><td style="text-align:center;color:#26a69a;font-weight:bold">4659.9</td><td style="text-align:center;color:#26a69a;font-weight:bold">4645.0</td>
+          </tr></table>
+    </div>
+  </div>
+
+  <!-- ⑤ 斐波那契 -->
+  <div class="card">
+    <h3>斐波那契回撤位（H4）</h3>
+    <p style="color:#666;font-size:12px;margin-bottom:8px">
+            区间高点 4889.7 → 低点 4657.6（H4近60根K线）</p>
+            <table style="width:300px"><tr style=""><td style="color:#888">100%</td><td style="color:#ef5350;font-weight:bold">4889.7</td></tr><tr style=""><td style="color:#888">78.6%</td><td style="color:#ef5350;font-weight:bold">4840.0</td></tr><tr style=""><td style="color:#888">61.8%</td><td style="color:#ef5350;font-weight:bold">4801.0</td></tr><tr style=""><td style="color:#888">50.0%</td><td style="color:#ef5350;font-weight:bold">4773.6</td></tr><tr style=""><td style="color:#888">38.2%</td><td style="color:#ef5350;font-weight:bold">4746.2</td></tr><tr style="background:#1e2a1e"><td style="color:#888">23.6%</td><td style="color:#ef5350;font-weight:bold">4712.4  ← 当前价附近</td></tr><tr style=""><td style="color:#888">0.0%</td><td style="color:#26a69a;font-weight:bold">4657.6</td></tr></table>
+  </div>
+
+  <!-- ⑥ 风险控制 -->
+  <div class="card" style="background:#0a150a;border-color:#1a301a">
+    <h3>风险控制 &amp; 操作纪律</h3>
+    <table style="font-size:13px">
+      <tr><td style="color:#666;width:140px">单笔最大风险</td><td>账户净值的 <strong style="color:#f0c040">1%</strong>（激进不超过2%）</td></tr>
+      <tr><td style="color:#666">仓位公式</td><td style="color:#aaa">手数 = (账户 × 风险%) ÷ (止损点数 × 每点价值)</td></tr>
+      <tr><td style="color:#666">入场纪律</td><td style="color:#aaa">必须等 H1 K线收盘确认再入场，不在K线运行中追单</td></tr>
+      <tr><td style="color:#666">移动止损</td><td style="color:#aaa">到达TP1后立即将止损移至成本价，锁定无风险持仓</td></tr>
+      <tr><td style="color:#666">回避时段</td><td style="color:#aaa">重大数据（非农/CPI/FOMC/美联储讲话）前后 <strong style="color:#f0c040">60分钟</strong> 不开新仓</td></tr>
+      <tr><td style="color:#666">连亏处理</td><td style="color:#aaa">连续亏损3次后当日停止交易，复盘后次日再战</td></tr>
+      <tr><td style="color:#666">黑天鹅</td><td style="color:#aaa">地缘政治突发事件可导致价格瞬间跳空，务必设置硬止损</td></tr>
+    </table>
+  </div>
+
+  <!-- ⑦ 技术指标详表（分析根据，置底）-->
+  <div class="card">
+    <h3>技术指标详表（分析依据）</h3>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>周期</th><th>价格</th><th>趋势</th><th>EMA 20/50/200</th>
+        <th>RSI(14)</th><th>Stoch K/D</th><th>ADX/DI</th>
+        <th>CCI</th><th>MACD柱</th><th>ATR</th><th>评分</th><th>信号</th>
+      </tr></thead>
+      <tbody><tr>
+          <td style="color:#ccc;font-weight:bold">周线</td>
+          <td style="color:#fff">4704.30</td>
+          <td style="color:#26a69a;font-weight:bold">强势多头<br><span style="font-size:10px;color:#666">极强趋势</span></td>
+          <td style="color:#aaa;font-size:12px">4644/4189/2998.8</td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#f0c040;width:55%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#f0c040">54.6</span></td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#f0c040;width:40%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#f0c040">40.5</span><br><span style="font-size:10px;color:#555">D:41</span></td>
+          <td style="color:#26a69a">41<br>
+              <span style="font-size:10px;color:#26a69a">+26</span>/<span style="font-size:10px;color:#ef5350">-21</span></td>
+          <td style="color:#aaa">-17</td>
+          <td style="color:#ef5350">-71.8</td>
+          <td style="font-size:12px;color:#aaa">283.2<br><span style="color:#666">6.02%</span></td>
+          <td style="color:#26a69a;font-weight:bold">+25</td>
+          <td style="max-width:200px"><span style="background:#26a69a;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">MACD空头动能减弱</span> <span style="background:#26a69a;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">ADX多头</span> <span style="background:#ef5350;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">RSI看跌背离</span></td>
+        </tr><tr>
+          <td style="color:#ccc;font-weight:bold">日线</td>
+          <td style="color:#fff">4704.30</td>
+          <td style="color:#ef5350;font-weight:bold">弱势空头<br><span style="font-size:10px;color:#666">震荡盘整</span></td>
+          <td style="color:#aaa;font-size:12px">4735/4772/4424.4</td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#f0c040;width:47%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#f0c040">47.3</span></td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#26a69a;width:24%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#26a69a">24.5</span><br><span style="font-size:10px;color:#555">D:22</span></td>
+          <td style="color:#888">14<br>
+              <span style="font-size:10px;color:#26a69a">+20</span>/<span style="font-size:10px;color:#ef5350">-22</span></td>
+          <td style="color:#aaa">-57</td>
+          <td style="color:#ef5350">-3.1</td>
+          <td style="font-size:12px;color:#aaa">108.9<br><span style="color:#666">2.31%</span></td>
+          <td style="color:#f0c040;font-weight:bold">-5</td>
+          <td style="max-width:200px"><span style="background:#26a69a;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">KD低位金叉</span></td>
+        </tr><tr>
+          <td style="color:#ccc;font-weight:bold">H4</td>
+          <td style="color:#fff">4704.30</td>
+          <td style="color:#ef5350;font-weight:bold">强势空头<br><span style="font-size:10px;color:#666">趋势明确</span></td>
+          <td style="color:#aaa;font-size:12px">4718/4739/4769.9</td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#f0c040;width:45%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#f0c040">45.5</span></td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#f0c040;width:55%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#f0c040">54.6</span><br><span style="font-size:10px;color:#555">D:63</span></td>
+          <td style="color:#26a69a">30<br>
+              <span style="font-size:10px;color:#26a69a">+17</span>/<span style="font-size:10px;color:#ef5350">-28</span></td>
+          <td style="color:#aaa">-29</td>
+          <td style="color:#26a69a">3.1</td>
+          <td style="font-size:12px;color:#aaa">34.8<br><span style="color:#666">0.74%</span></td>
+          <td style="color:#ef5350;font-weight:bold">-45</td>
+          <td style="max-width:200px"><span style="background:#ef5350;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">MACD多头动能减弱</span> <span style="background:#ef5350;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">KD高位死叉</span> <span style="background:#ef5350;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">ADX空头</span></td>
+        </tr><tr>
+          <td style="color:#ccc;font-weight:bold">H1</td>
+          <td style="color:#fff">4704.30</td>
+          <td style="color:#ef5350;font-weight:bold">强势空头<br><span style="font-size:10px;color:#666">震荡盘整</span></td>
+          <td style="color:#aaa;font-size:12px">4708/4711/4739.2</td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#f0c040;width:48%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#f0c040">48.1</span></td>
+          <td><div style="background:#222;border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:#f0c040;width:55%;height:100%;border-radius:4px"></div></div> <span style="font-size:11px;color:#f0c040">55.5</span><br><span style="font-size:10px;color:#555">D:58</span></td>
+          <td style="color:#888">13<br>
+              <span style="font-size:10px;color:#26a69a">+22</span>/<span style="font-size:10px;color:#ef5350">-22</span></td>
+          <td style="color:#aaa">-38</td>
+          <td style="color:#ef5350">-0.7</td>
+          <td style="font-size:12px;color:#aaa">14.9<br><span style="color:#666">0.32%</span></td>
+          <td style="color:#ef5350;font-weight:bold">-25</td>
+          <td style="max-width:200px"><span style="background:#ef5350;padding:2px 7px;border-radius:4px;font-size:11px;margin:2px;display:inline-block;white-space:nowrap">KD高位死叉</span></td>
+        </tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="footer">XAU/USD Analysis Bot · 自动生成于 2026-04-27 19:20:03</div>
+</body>
+</html>

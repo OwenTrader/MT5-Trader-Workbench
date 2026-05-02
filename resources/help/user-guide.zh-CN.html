@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MT5 Trader Workbench 使用教程</title>
+  <style>
+    :root {
+      --bg: #09111b;
+      --panel: #101c2a;
+      --text: #eef4ff;
+      --muted: #9fb0c8;
+      --line: rgba(159, 176, 200, 0.18);
+      --accent: #67e8f9;
+      --accent-2: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(103, 232, 249, 0.12), transparent 28%),
+        linear-gradient(180deg, #08111b 0%, #0b1622 100%);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .page {
+      width: min(1080px, calc(100vw - 32px));
+      margin: 24px auto 56px;
+    }
+    .hero, .card {
+      background: rgba(16, 28, 42, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+    }
+    .hero { padding: 28px; }
+    .hero h1 { margin: 0 0 10px; font-size: clamp(30px, 4vw, 46px); }
+    .hero p { margin: 0; color: var(--muted); }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .meta span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(8, 17, 27, 0.6);
+      font-size: 13px;
+    }
+    .toc, .grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .toc {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .toc a, .quick-item {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(8, 17, 27, 0.62);
+      border: 1px solid var(--line);
+    }
+    .toc a:hover { border-color: rgba(103, 232, 249, 0.42); }
+    .grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .card {
+      margin-top: 18px;
+      padding: 22px 24px;
+    }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 10px; font-size: 18px; color: var(--accent); }
+    ul, ol { margin: 10px 0 0 20px; padding: 0; }
+    li + li { margin-top: 6px; }
+    .tip, .warn {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+    }
+    .tip {
+      background: rgba(103, 232, 249, 0.08);
+      color: #d7fbff;
+    }
+    .warn {
+      background: rgba(251, 191, 36, 0.08);
+      color: #fff2c2;
+    }
+    code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>MT5 Trader Workbench 使用教程</h1>
+      <p>这份教程面向第一次使用软件的用户，重点说明每个主要功能怎么用、先做什么、出了问题看哪里。</p>
+      <div class="meta">
+        <span>适用场景：首次安装后快速上手</span>
+        <span>推荐顺序：先设置，再连接，再开监控</span>
+        <span>技术分析报告会在系统浏览器中打开</span>
+      </div>
+      <nav class="toc">
+        <a href="#quick-start">快速开始</a>
+        <a href="#dashboard">工作台总览</a>
+        <a href="#alerts">价格/波动/指标预警</a>
+        <a href="#orders">订单中心</a>
+        <a href="#analysis">技术分析</a>
+        <a href="#settings">系统设置</a>
+        <a href="#faq">常见问题</a>
+      </nav>
+    </section>
+
+    <section id="quick-start" class="card">
+      <h2>1. 快速开始</h2>
+      <ol>
+        <li>先打开 <strong>设置</strong>，填写 <code>MetaTrader 5 路径</code>，然后点“验证”。</li>
+        <li>如果你只运行一个 MT5 终端，填主程序路径即可；如果有多个终端，请填你要连接的那个完整路径。</li>
+        <li>验证通过后，回到 <strong>工作台总览</strong>，点击“启动/重连 MT5”。</li>
+        <li>连接成功后，再根据需要开启价格浮窗、添加预警、查看订单统计或生成技术分析。</li>
+      </ol>
+      <div class="tip">建议第一次使用时先只做两件事：<strong>验证 MT5 路径</strong> 和 <strong>启动/重连 MT5</strong>。</div>
+    </section>
+
+    <section id="dashboard" class="card">
+      <h2>2. 工作台总览</h2>
+      <div class="grid">
+        <div class="quick-item">
+          <h3>MT5 状态</h3>
+          查看后端是否连上 MT5。常见状态有：未运行、运行中未登录、已连接。
+        </div>
+        <div class="quick-item">
+          <h3>账户余额 / 净值 / 盈亏</h3>
+          用来快速确认账户当前资金和浮动盈亏。
+        </div>
+        <div class="quick-item">
+          <h3>保证金比例</h3>
+          用于判断账户风险是否偏高，接近危险值时要优先减仓或补充保证金。
+        </div>
+      </div>
+      <div class="tip">如果总览页一直显示“未运行”，优先去设置页重新验证 MT5 路径。</div>
+    </section>
+
+    <section id="alerts" class="card">
+      <h2>3. 价格 / 波动 / 指标预警</h2>
+      <h3>价格预警</h3>
+      <ul>
+        <li>填写交易品种、目标价格、触发条件。</li>
+        <li><code>&gt;=</code> 适合“涨破提醒”，<code>&lt;=</code> 适合“跌破提醒”。</li>
+        <li>保存前后端会结合当前 MT5 价格做校验。</li>
+      </ul>
+      <h3>波动检测</h3>
+      <ul>
+        <li>适合监控短时间内的大幅波动。</li>
+        <li>阈值越小越容易触发，统计时长越短越敏感。</li>
+      </ul>
+      <h3>指标预警</h3>
+      <ul>
+        <li>可按品种、周期、指标类型、阈值来设置触发规则。</li>
+        <li>适合把常看的 RSI 条件自动化。</li>
+      </ul>
+      <div class="warn">如果你开启了 Bot 推送，但没有收到消息，请去“设置 &gt; Bot预警”检查 webhook 或 token 是否已经保存成功。</div>
+    </section>
+
+    <section id="orders" class="card">
+      <h2>4. 订单中心</h2>
+      <ul>
+        <li>可查看当日、本周、本月盈亏概览。</li>
+        <li>可按开始日期和结束日期查询每日统计明细。</li>
+        <li>适合回看一段时间内的交易表现，而不是只盯着实时浮盈亏。</li>
+      </ul>
+    </section>
+
+    <section id="analysis" class="card">
+      <h2>5. 技术分析</h2>
+      <ul>
+        <li>点击“生成技术分析”后，软件会串行生成多套分析结果。</li>
+        <li>最终综合报告会在系统默认浏览器打开，不在应用内预览。</li>
+        <li>当前综合报告主要围绕 <code>XAUUSD</code> 设计。</li>
+      </ul>
+      <div class="tip">如果分析页打开失败，先确认后端服务已启动，再确认 MT5 或数据源是否可用。</div>
+    </section>
+
+    <section id="settings" class="card">
+      <h2>6. 系统设置</h2>
+      <h3>通用</h3>
+      <ul>
+        <li>界面语言：切换中文 / English。</li>
+        <li>MT5 路径：最重要的首次配置项。</li>
+        <li>自动连接：打开后，软件启动时会自动尝试连接 MT5。</li>
+        <li>浮窗品种、字体大小、颜色：控制价格浮窗的显示内容。</li>
+      </ul>
+      <h3>音效</h3>
+      <ul>
+        <li>可选内置提示音，也可选择自定义音频文件。</li>
+        <li>点击“测试播放”可立即试听。</li>
+      </ul>
+      <h3>Bot预警</h3>
+      <ul>
+        <li>支持钉钉、企业微信、飞书。</li>
+        <li>先填配置，再点“立即保存”，最后再点“发送测试推送”。</li>
+      </ul>
+    </section>
+
+    <section id="faq" class="card">
+      <h2>7. 常见问题</h2>
+      <h3>Q1：软件打开了，但没有数据？</h3>
+      <ul>
+        <li>先看“工作台总览”里的 MT5 状态。</li>
+        <li>再去设置页验证 MT5 路径。</li>
+        <li>确认 MT5 已登录真实或模拟账户，而不是仅启动了空终端。</li>
+      </ul>
+      <h3>Q2：价格浮窗没显示？</h3>
+      <ul>
+        <li>先在工作台总览点击“开启价格浮窗”。</li>
+        <li>检查设置里的浮窗品种列表是否为空。</li>
+      </ul>
+      <h3>Q3：Bot 测试推送失败？</h3>
+      <ul>
+        <li>检查 webhook / token / secret 是否填对。</li>
+        <li>确认网络可访问对应平台。</li>
+      </ul>
+      <div class="tip">你可以随时在应用右上角点击“使用教程”再次打开这份文档。</div>
+    </section>
+  </main>
+</body>
+</html>

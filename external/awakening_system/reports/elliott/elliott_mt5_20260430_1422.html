@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAU/USD · 艾略特波浪专项 · 2026-04-30 14:22</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg0:#050508;--bg1:#0a0a14;--bg2:#0f0f1a;--bg3:#15151f;
+      --gold:#d9b85c;--gold-dim:#a88a3e;--bull:#1ddfa9;--bear:#ff5e7c;
+      --warn:#ffb066;--text:#e6e9f0;--text-dim:#b4bcca;--text-mute:#7a8290;
+      --border:rgba(255,255,255,0.06);--border-gold:rgba(217,184,92,0.28);
+      --mono:'JetBrains Mono','Consolas',monospace;
+      --body:'Microsoft YaHei','Segoe UI',sans-serif;}
+body{background:var(--bg0);color:var(--text);font-family:var(--body);
+     font-size:13px;line-height:1.7;max-width:1600px;margin:0 auto;padding:70px 22px 44px}
+.topbar{position:fixed;top:0;left:0;right:0;background:rgba(5,5,8,0.92);
+        backdrop-filter:blur(18px);border-bottom:1px solid var(--border-gold);
+        z-index:100;display:flex;align-items:center;padding:0 26px;height:54px}
+.brand{font-size:16px;font-weight:800;color:var(--gold);letter-spacing:2px;margin-right:24px}
+.brand span{color:var(--text-dim);font-weight:400;letter-spacing:0}
+.topbar-nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.topbar-nav a{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text-dim);
+        text-decoration:none;padding:6px 11px;border-radius:5px;letter-spacing:0.5px;
+        transition:all 0.15s;text-transform:uppercase}
+.topbar-nav a:hover{color:var(--gold);background:rgba(217,184,92,0.13)}
+.ts{font-family:var(--mono);font-size:11px;color:var(--text-mute)}
+h1.hero{font-size:30px;font-weight:800;letter-spacing:1px;margin:8px 0 6px;
+        background:linear-gradient(90deg,#fff,#d9b85c);-webkit-background-clip:text;
+        -webkit-text-fill-color:transparent}
+.hero-sub{color:var(--text-dim);font-size:13px;margin-bottom:22px}
+.hero-sub b{color:var(--gold)}
+.section{margin:34px 0 14px}
+.section-title{font-size:16px;font-weight:700;color:var(--gold);
+        letter-spacing:1.5px;padding-bottom:8px;margin-bottom:14px;
+        border-bottom:1px solid var(--border-gold);text-transform:uppercase}
+.tf-block{background:var(--bg1);border:1px solid var(--border);border-radius:10px;
+        padding:18px 20px;margin-bottom:22px;border-left:3px solid var(--gold-dim)}
+.tf-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;
+        padding-bottom:10px;border-bottom:1px dashed var(--border)}
+.tf-name{font-size:18px;font-weight:700;color:var(--gold);letter-spacing:1px}
+.tf-state{font-size:13px;color:var(--text-dim)}
+.tf-tag{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:4px;
+        font-weight:700;letter-spacing:0.5px;margin-left:8px}
+.tag-bull{background:rgba(29,223,169,0.13);color:var(--bull);border:1px solid rgba(29,223,169,0.4)}
+.tag-bear{background:rgba(255,94,124,0.13);color:var(--bear);border:1px solid rgba(255,94,124,0.4)}
+.tag-warn{background:rgba(255,176,102,0.13);color:var(--warn);border:1px solid rgba(255,176,102,0.4)}
+.tag-mute{background:rgba(122,130,144,0.13);color:var(--text-mute);border:1px solid rgba(122,130,144,0.3)}
+.chart-wrap{margin:14px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.chart-wrap img{width:100%;display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width: 920px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.card h4{font-size:12px;color:var(--text-mute);font-weight:600;letter-spacing:1px;
+        margin-bottom:10px;text-transform:uppercase}
+table{width:100%;font-size:12.5px;border-collapse:collapse}
+table th,table td{padding:6px 8px;border-bottom:1px solid var(--border)}
+table th{color:var(--text-mute);font-weight:600;text-align:left;font-size:11px;letter-spacing:0.5px}
+.mono{font-family:var(--mono)}
+.right{text-align:right}
+.rule{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.rule:last-child{border-bottom:none}
+.rule-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;
+        justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.rule-pass{background:rgba(29,223,169,0.18);color:var(--bull)}
+.rule-fail{background:rgba(255,94,124,0.18);color:var(--bear)}
+.rule-text{flex:1;color:var(--text-dim);font-size:12.5px}
+.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:12.5px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--text-mute)}
+.kv .v{font-family:var(--mono);color:var(--text)}
+.kv .v.bull{color:var(--bull)}
+.kv .v.bear{color:var(--bear)}
+.kv .v.gold{color:var(--gold)}
+.warn-box{margin-top:12px;padding:10px 14px;background:rgba(255,94,124,0.08);
+        border:1px solid rgba(255,94,124,0.4);border-radius:6px;color:var(--bear);
+        font-size:12.5px}
+.warn-box b{color:#ff8fa3}
+.narrative{background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--gold);
+        border-radius:8px;padding:18px 22px;font-size:13px;line-height:1.85;color:var(--text-dim)}
+.narrative p{margin-bottom:10px}
+.narrative b{color:var(--gold)}
+.footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);
+        font-size:11px;color:var(--text-mute);text-align:center;line-height:1.8}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--text-dim);
+        background:var(--bg2);padding:10px 14px;border-radius:6px;margin-bottom:18px;
+        border:1px solid var(--border)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:18px;border-radius:50%;text-align:center;
+        line-height:18px;font-style:normal;font-weight:700;font-size:11px;
+        background:#050508;border:1.5px solid;}
+</style></head><body>
+    
+    <div class="topbar">
+      <div class="brand">ELLIOTT WAVE <span>· XAU/USD 艾略特波浪专项</span></div>
+      <div class="topbar-nav">
+        <a href="#overview">总体解读</a>
+        <a href="#daily">日线</a>
+        <a href="#h4">H4</a>
+        <a href="#h1">H1</a>
+        <a href="#m15">M15</a>
+      </div>
+      <div class="ts">2026-04-30 14:22</div>
+    </div>
+    
+    <h1 class="hero">XAU/USD · 艾略特波浪专项分析</h1>
+    <div class="hero-sub">
+      数据源：<b>MT5:XAUUSD</b> &nbsp;|&nbsp; 当前价：<b>4566.49</b>
+      &nbsp;|&nbsp; 报告时间：<b>2026-04-30 14:22</b>
+    </div>
+
+    <div class="section" id="overview">
+      <div class="section-title">总体解读 · 主计数与风险</div>
+      <div class="narrative"><p>主导级别落在 <b>H1</b>，正在演化一组 <b>看跌推动浪</b>。当前阶段：<b>第 5 浪已完成（4510.01），警惕 ABC 反向调整启动</b>。已识别 5 个推动浪点，规则评分 <b>125/100</b>。</p>
+<p>关键目标位：A 浪目标 0.382 ≈ 4594.09；A 浪目标 0.5 ≈ 4620.07；A 浪目标 0.618 ≈ 4646.04。当前价 <b>4566.49</b>。</p>
+<p>风险控制：一旦价格 升破 <b>4510.01</b>，主计数即作废，应立即停止按此计数布局并切换为反向假设。</p>
+<p>多周期共振统计：多空各 <b>2</b> 个周期，方向分歧，建议等待大级别明朗后再行动。</p>
+<p style='color:var(--text-mute);font-size:12px'>声明：艾略特波浪存在主观性，本报告基于 ZigZag 自动识别，仅供研究参考。实战中请结合关键支撑阻力、成交量、动量背离等多重证据。</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">图例</div>
+      
+    <div class="legend">
+      <span><i style="border-color:#1ddfa9;color:#1ddfa9">①</i>推动浪点（多）</span>
+      <span><i style="border-color:#ff5e7c;color:#ff5e7c">①</i>推动浪点（空）</span>
+      <span><i style="border-color:#ffb066;color:#ffb066">Ⓐ</i>调整浪 ABC</span>
+      <span style="color:var(--gold)">━━━ 浪段连线</span>
+      <span style="color:var(--gold)">┄┄┄ 下一浪目标投影</span>
+      <span style="color:var(--bear)">┅┅┅ 形态作废线</span>
+    </div>
+    
+    </div>
+
+    <div class="section">
+      <div class="section-title">多周期艾略特波浪计数</div>
+      
+    <div class="tf-block">
+      <div class="tf-head">
+        <div>
+          <span class="tf-name">日线</span>
+          <span class="tf-tag tag-bull">看涨推动</span><span class="tf-tag tag-warn">已识别 5/5 浪</span>
+        </div>
+        <div class="tf-state">第 5 浪已完成（5418.94），警惕 ABC 反向调整启动</div>
+      </div>
+      
+      <div class="grid2">
+        <div class="card">
+          <h4>浪点序列</h4>
+          <table>
+        <thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead>
+        <tbody><tr><td class='mono'>⓪</td><td>11-18 00:00</td><td>低</td><td class='right mono'>3997.78</td></tr><tr><td class='mono'>①</td><td>12-26 00:00</td><td>高</td><td class='right mono'>4550.22</td></tr><tr><td class='mono'>②</td><td>12-31 00:00</td><td>低</td><td class='right mono'>4274.17</td></tr><tr><td class='mono'>③</td><td>01-29 00:00</td><td>高</td><td class='right mono'>5597.30</td></tr><tr><td class='mono'>④</td><td>02-06 00:00</td><td>低</td><td class='right mono'>4654.62</td></tr><tr><td class='mono'>⑤</td><td>03-02 00:00</td><td>高</td><td class='right mono'>5418.94</td></tr><tr><td class='mono'>Ⓐ</td><td>03-23 00:00</td><td>低</td><td class='right mono'>4098.53</td></tr><tr><td class='mono'>Ⓑ</td><td>04-17 00:00</td><td>高</td><td class='right mono'>4889.41</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h4>艾略特规则核查</h4>
+          <div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 1 · 第 2 浪不得超越第 1 浪起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 2 · 第 3 浪须突破第 1 浪终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 3 · 第 4 浪不得进入第 1 浪价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">守则 · 第 3 浪通常非 1/3/5 中最短的浪</div></div>
+        </div>
+        <div class="card">
+          <h4>实测斐波那契比率</h4>
+          <div class='kv'><span class='k'>W2/W1 <small style='color:var(--text-mute)'>理想 0.5 ~ 0.618</small></span><span class='v gold'>0.500</span></div><div class='kv'><span class='k'>W3/W1 <small style='color:var(--text-mute)'>理想 1.618（强势可达 2.618）</small></span><span class='v gold'>2.395</span></div><div class='kv'><span class='k'>W4/W3 <small style='color:var(--text-mute)'>理想 0.382（最多 0.5）</small></span><span class='v gold'>0.712</span></div><div class='kv'><span class='k'>W5/W1 <small style='color:var(--text-mute)'>理想 1.0 或 1.618</small></span><span class='v gold'>1.384</span></div>
+        </div>
+        <div class="card">
+          <h4>下一浪目标投影</h4>
+          <div class='kv'><span class='k'>A 浪目标 0.382</span><span class='v bull'>4876.06</span></div><div class='kv'><span class='k'>A 浪目标 0.5</span><span class='v bull'>4708.36</span></div><div class='kv'><span class='k'>A 浪目标 0.618</span><span class='v bull'>4540.66</span></div>
+        </div>
+      </div>
+      <div class='warn-box'>
+            <b>形态作废价位：</b>价格跌破
+            <b>5418.94</b>，则当前波浪计数失效，需重新识别。
+        </div>
+    </div>
+    <div class="tf-block">
+      <div class="tf-head">
+        <div>
+          <span class="tf-name">H4</span>
+          <span class="tf-tag tag-bear">看跌推动</span><span class="tf-tag tag-warn">已识别 2/5 浪</span>
+        </div>
+        <div class="tf-state">第 2 浪已结束（4740.06），目前应在第 3 浪发动</div>
+      </div>
+      
+      <div class="grid2">
+        <div class="card">
+          <h4>浪点序列</h4>
+          <table>
+        <thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead>
+        <tbody><tr><td class='mono'>⓪</td><td>04-22 08:00</td><td>高</td><td class='right mono'>4772.37</td></tr><tr><td class='mono'>①</td><td>04-24 04:00</td><td>低</td><td class='right mono'>4657.47</td></tr><tr><td class='mono'>②</td><td>04-24 16:00</td><td>高</td><td class='right mono'>4740.06</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h4>艾略特规则核查</h4>
+          <div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 1 · 第 2 浪不得超越第 1 浪起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 2 · 第 3 浪须突破第 1 浪终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 3 · 第 4 浪不得进入第 1 浪价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">守则 · 第 3 浪通常非 1/3/5 中最短的浪</div></div>
+        </div>
+        <div class="card">
+          <h4>实测斐波那契比率</h4>
+          <div class='kv'><span class='k'>W2/W1 <small style='color:var(--text-mute)'>理想 0.5 ~ 0.618</small></span><span class='v gold'>0.719</span></div>
+        </div>
+        <div class="card">
+          <h4>下一浪目标投影</h4>
+          <div class='kv'><span class='k'>W3 目标 1.0×W1</span><span class='v bear'>4625.16</span></div><div class='kv'><span class='k'>W3 目标 1.618×W1</span><span class='v bear'>4554.15</span></div><div class='kv'><span class='k'>W3 目标 2.618×W1</span><span class='v bear'>4439.25</span></div>
+        </div>
+      </div>
+      <div class='warn-box'>
+            <b>形态作废价位：</b>价格突破
+            <b>4772.37</b>，则当前波浪计数失效，需重新识别。
+        </div>
+    </div>
+    <div class="tf-block">
+      <div class="tf-head">
+        <div>
+          <span class="tf-name">H1</span>
+          <span class="tf-tag tag-bear">看跌推动</span><span class="tf-tag tag-warn">已识别 5/5 浪</span>
+        </div>
+        <div class="tf-state">第 5 浪已完成（4510.01），警惕 ABC 反向调整启动</div>
+      </div>
+      
+      <div class="grid2">
+        <div class="card">
+          <h4>浪点序列</h4>
+          <table>
+        <thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead>
+        <tbody><tr><td class='mono'>⓪</td><td>04-27 07:00</td><td>高</td><td class='right mono'>4730.12</td></tr><tr><td class='mono'>①</td><td>04-27 18:00</td><td>低</td><td class='right mono'>4667.00</td></tr><tr><td class='mono'>②</td><td>04-28 03:00</td><td>高</td><td class='right mono'>4701.26</td></tr><tr><td class='mono'>③</td><td>04-28 15:00</td><td>低</td><td class='right mono'>4554.68</td></tr><tr><td class='mono'>④</td><td>04-29 03:00</td><td>高</td><td class='right mono'>4610.56</td></tr><tr><td class='mono'>⑤</td><td>04-29 16:00</td><td>低</td><td class='right mono'>4510.01</td></tr><tr><td class='mono'>Ⓐ</td><td>04-29 19:00</td><td>高</td><td class='right mono'>4564.92</td></tr><tr><td class='mono'>Ⓑ</td><td>04-29 22:00</td><td>低</td><td class='right mono'>4532.88</td></tr><tr><td class='mono'>Ⓒ</td><td>04-30 04:00</td><td>高</td><td class='right mono'>4582.49</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h4>艾略特规则核查</h4>
+          <div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 1 · 第 2 浪不得超越第 1 浪起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 2 · 第 3 浪须突破第 1 浪终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 3 · 第 4 浪不得进入第 1 浪价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">守则 · 第 3 浪通常非 1/3/5 中最短的浪</div></div>
+        </div>
+        <div class="card">
+          <h4>实测斐波那契比率</h4>
+          <div class='kv'><span class='k'>W2/W1 <small style='color:var(--text-mute)'>理想 0.5 ~ 0.618</small></span><span class='v gold'>0.543</span></div><div class='kv'><span class='k'>W3/W1 <small style='color:var(--text-mute)'>理想 1.618（强势可达 2.618）</small></span><span class='v gold'>2.322</span></div><div class='kv'><span class='k'>W4/W3 <small style='color:var(--text-mute)'>理想 0.382（最多 0.5）</small></span><span class='v gold'>0.381</span></div><div class='kv'><span class='k'>W5/W1 <small style='color:var(--text-mute)'>理想 1.0 或 1.618</small></span><span class='v gold'>1.593</span></div>
+        </div>
+        <div class="card">
+          <h4>下一浪目标投影</h4>
+          <div class='kv'><span class='k'>A 浪目标 0.382</span><span class='v bear'>4594.09</span></div><div class='kv'><span class='k'>A 浪目标 0.5</span><span class='v bear'>4620.07</span></div><div class='kv'><span class='k'>A 浪目标 0.618</span><span class='v bear'>4646.04</span></div>
+        </div>
+      </div>
+      <div class='warn-box'>
+            <b>形态作废价位：</b>价格突破
+            <b>4510.01</b>，则当前波浪计数失效，需重新识别。
+        </div>
+    </div>
+    <div class="tf-block">
+      <div class="tf-head">
+        <div>
+          <span class="tf-name">M15</span>
+          <span class="tf-tag tag-bull">看涨推动</span><span class="tf-tag tag-warn">已识别 2/5 浪</span>
+        </div>
+        <div class="tf-state">第 2 浪已结束（4540.64），目前应在第 3 浪发动</div>
+      </div>
+      
+      <div class="grid2">
+        <div class="card">
+          <h4>浪点序列</h4>
+          <table>
+        <thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead>
+        <tbody><tr><td class='mono'>⓪</td><td>04-30 01:00</td><td>低</td><td class='right mono'>4539.46</td></tr><tr><td class='mono'>①</td><td>04-30 04:45</td><td>高</td><td class='right mono'>4582.49</td></tr><tr><td class='mono'>②</td><td>04-30 07:30</td><td>低</td><td class='right mono'>4540.64</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <h4>艾略特规则核查</h4>
+          <div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 1 · 第 2 浪不得超越第 1 浪起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 2 · 第 3 浪须突破第 1 浪终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">铁律 3 · 第 4 浪不得进入第 1 浪价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">守则 · 第 3 浪通常非 1/3/5 中最短的浪</div></div>
+        </div>
+        <div class="card">
+          <h4>实测斐波那契比率</h4>
+          <div class='kv'><span class='k'>W2/W1 <small style='color:var(--text-mute)'>理想 0.5 ~ 0.618</small></span><span class='v gold'>0.973</span></div>
+        </div>
+        <div class="card">
+          <h4>下一浪目标投影</h4>
+          <div class='kv'><span class='k'>W3 目标 1.0×W1</span><span class='v bull'>4583.67</span></div><div class='kv'><span class='k'>W3 目标 1.618×W1</span><span class='v bull'>4610.26</span></div><div class='kv'><span class='k'>W3 目标 2.618×W1</span><span class='v bull'>4653.29</span></div>
+        </div>
+      </div>
+      <div class='warn-box'>
+            <b>形态作废价位：</b>价格跌破
+            <b>4539.46</b>，则当前波浪计数失效，需重新识别。
+        </div>
+    </div>
+    </div>
+
+    <div class="footer">
+      Elliott Wave Analyzer · 基于 ZigZag + 三铁律 + 斐波那契比率自动识别<br>
+      仅供研究学习，非投资建议。市场有风险，决策需谨慎。
+    </div>
+    </body></html>

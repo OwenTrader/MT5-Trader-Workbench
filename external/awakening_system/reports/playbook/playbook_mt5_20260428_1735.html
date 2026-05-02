@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>黄金 · 场景化交易剧本 · 2026-04-28 17:35</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg0:#050508;--bg1:#0a0a14;--bg2:#0f0f1a;--bg3:#15151f;
+      --gold:#d9b85c;--gold-dim:#a88a3e;--bull:#1ddfa9;--bear:#ff5e7c;
+      --warn:#ffb066;--text:#e6e9f0;--text-dim:#b4bcca;--text-mute:#7a8290;
+      --border:rgba(255,255,255,0.06);--border-gold:rgba(217,184,92,0.28);
+      --mono:'JetBrains Mono','Consolas',monospace;
+      --body:'Microsoft YaHei','Segoe UI',sans-serif;}
+body{background:var(--bg0);color:var(--text);font-family:var(--body);
+     font-size:13px;line-height:1.8;max-width:1280px;margin:0 auto;padding:24px}
+.brand{font-size:11px;color:var(--gold-dim);letter-spacing:3px;margin-bottom:6px}
+h1{font-size:26px;font-weight:800;letter-spacing:1px;margin-bottom:6px;
+   background:linear-gradient(90deg,#fff,#d9b85c);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subline{color:var(--text-dim);font-size:12.5px;margin-bottom:24px;font-family:var(--mono)}
+.subline b{color:var(--gold)}
+
+.section{margin-top:30px}
+.section-title{font-size:14px;font-weight:700;color:var(--gold);
+        letter-spacing:1.5px;padding-bottom:8px;margin-bottom:14px;
+        border-bottom:1px solid var(--border-gold)}
+.section-title small{font-size:11.5px;color:var(--text-mute);font-weight:400;
+        letter-spacing:1px;margin-left:8px}
+
+/* 当前态势 */
+.stance{padding:20px 24px;background:linear-gradient(135deg,#0a0a14 0%,#101019 100%);
+        border:1px solid var(--border-gold);border-radius:10px;margin-bottom:18px;line-height:1.95}
+.stance .label{font-size:10.5px;color:var(--gold-dim);letter-spacing:2px;margin-bottom:8px}
+.stance .text{font-size:14px;color:var(--text);font-weight:500}
+.stance .text b{color:var(--gold)}
+.stance .params{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media(max-width:900px){.stance .params{grid-template-columns:repeat(2,1fr)}}
+.stance .param{background:var(--bg2);padding:10px 12px;border-radius:6px;border:1px solid var(--border)}
+.stance .param .k{font-size:10.5px;color:var(--text-mute);letter-spacing:1px;margin-bottom:4px}
+.stance .param .v{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text)}
+.stance .param .v.bull{color:var(--bull)} .stance .param .v.bear{color:var(--bear)} .stance .param .v.gold{color:var(--gold)}
+
+/* 关键价位地图 */
+.level-map{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.level-map{grid-template-columns:1fr}}
+.level-col{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.level-col.above{border-left:3px solid var(--bear)}
+.level-col.below{border-left:3px solid var(--bull)}
+.level-col h3{font-size:12px;color:var(--gold-dim);letter-spacing:1.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px dashed var(--border)}
+.level-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12.5px}
+.level-row:last-child{border-bottom:none}
+.level-row .lv-info{flex:1}
+.level-row .lv-kind{color:var(--text);font-weight:600}
+.level-row .lv-note{color:var(--text-mute);font-size:11px;margin-top:2px}
+.level-row .lv-price{font-family:var(--mono);font-weight:700;font-size:14px;margin-left:10px;flex-shrink:0}
+.level-row .lv-price.bear{color:var(--bear)} .level-row .lv-price.bull{color:var(--bull)}
+.level-row .stars{font-size:10px;color:var(--gold);margin-left:6px}
+.cur-price-bar{padding:10px 14px;background:rgba(217,184,92,0.08);border:1px dashed var(--gold);
+        border-radius:6px;margin:14px 0;text-align:center;font-family:var(--mono);
+        color:var(--gold);font-weight:700;font-size:14px}
+
+/* 场景树 */
+.scen{background:var(--bg1);border:1px solid var(--border);border-radius:10px;
+        padding:20px 22px;margin-bottom:18px;border-left:4px solid var(--gold-dim)}
+.scen.bull{border-left-color:var(--bull)}
+.scen.bear{border-left-color:var(--bear)}
+.scen.warn{border-left-color:var(--warn)}
+.scen-head{display:flex;justify-content:space-between;align-items:flex-start;
+        margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed var(--border)}
+.scen-head h3{font-size:17px;font-weight:800;letter-spacing:0.5px}
+.scen.bull .scen-head h3{color:var(--bull)}
+.scen.bear .scen-head h3{color:var(--bear)}
+.scen.warn .scen-head h3{color:var(--warn)}
+.scen-head .sub{font-size:12px;color:var(--text-dim);margin-top:4px;font-weight:400}
+.scen-prob{font-family:var(--mono);font-size:11px;font-weight:700;
+        padding:4px 10px;border-radius:4px;flex-shrink:0;margin-left:12px}
+.scen.bull .scen-prob{background:rgba(29,223,169,0.15);color:var(--bull);border:1px solid rgba(29,223,169,0.4)}
+.scen.bear .scen-prob{background:rgba(255,94,124,0.15);color:var(--bear);border:1px solid rgba(255,94,124,0.4)}
+.scen.warn .scen-prob{background:rgba(255,176,102,0.15);color:var(--warn);border:1px solid rgba(255,176,102,0.4)}
+
+.scen-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:900px){.scen-grid{grid-template-columns:1fr}}
+.scen-block{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:12px 14px}
+.scen-block h5{font-size:11px;color:var(--text-mute);letter-spacing:1.5px;margin-bottom:8px;font-weight:700}
+.scen-block .body{font-size:12.5px;color:var(--text-dim);line-height:1.85}
+.scen-block .body b{color:var(--gold)}
+.scen-block.target h5{color:var(--gold)}
+.scen-block.target .tline{display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;border-bottom:1px dashed var(--border)}
+.scen-block.target .tline:last-child{border-bottom:none}
+.scen-block.target .tline .lbl{color:var(--text-mute)}
+.scen-block.target .tline .val{font-family:var(--mono);font-weight:700;color:var(--text)}
+
+.branch{padding:12px 14px;margin-top:10px;background:var(--bg2);border:1px solid var(--border);
+        border-radius:7px;border-left:3px solid var(--gold-dim)}
+.branch h6{font-size:12.5px;color:var(--gold);font-weight:700;margin-bottom:6px;letter-spacing:0.5px}
+.branch .b-cond{font-size:12px;color:var(--text-dim);margin-bottom:6px}
+.branch .b-cond::before{content:"触发：";color:var(--text-mute);font-weight:600}
+.branch .b-act{font-size:12px;color:var(--text)}
+.branch .b-act::before{content:"操作：";color:var(--text-mute);font-weight:600}
+
+.exec-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+@media(max-width:900px){.exec-row{grid-template-columns:1fr}}
+.exec-row .e-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:12px}
+.exec-row .e-card .lbl{font-size:10.5px;color:var(--text-mute);letter-spacing:1px;margin-bottom:4px}
+.exec-row .e-card .val{color:var(--text);line-height:1.7}
+.exec-row .e-card .val b{color:var(--gold)}
+
+.invalid-bar{margin-top:14px;padding:10px 14px;background:rgba(255,94,124,0.07);
+        border:1px dashed var(--bear);border-radius:6px;font-size:12px;color:var(--bear);line-height:1.7}
+.invalid-bar::before{content:"场景作废条件 ▸ ";font-weight:700;letter-spacing:1px}
+
+/* 操作清单 */
+.checklist{counter-reset:cl;display:flex;flex-direction:column;gap:10px}
+.cl-item{display:flex;gap:14px;padding:14px 16px;background:var(--bg1);border:1px solid var(--border);
+        border-radius:8px;border-left:3px solid var(--gold)}
+.cl-item::before{counter-increment:cl;content:counter(cl);
+        flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--gold);
+        color:#0a0a14;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.cl-item .ct{font-size:13px;line-height:1.85;color:var(--text-dim)}
+.cl-item .ct b{color:var(--gold)}
+
+/* 时间窗口 */
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.time-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.time-grid{grid-template-columns:1fr}}
+.t-card{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.t-card .name{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.t-card .tm{font-family:var(--mono);font-size:11.5px;color:var(--text);margin-bottom:8px}
+.t-card .nt{font-size:11.5px;color:var(--text-mute);line-height:1.7}
+
+.footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--border);
+        font-size:11px;color:var(--text-mute);text-align:center;line-height:1.8}
+</style></head><body>
+    <div class="brand">黄金 · 场景化交易剧本</div>
+    <h1>场景化交易剧本</h1>
+    <div class="subline">数据源：<b>MT5:XAUUSD</b> &nbsp;|&nbsp; 当前价：<b>4613.12</b> &nbsp;|&nbsp; 报告时间：<b>2026-04-28 17:35</b></div>
+
+    <div class="section">
+      <div class="section-title">第一部分 · 当前态势 <small>定位与基础参数</small></div>
+      <div class="stance">
+      <div class="label">当前态势</div>
+      <div class="text">当前金价站位 <b>4613.12</b>。<b>H4</b> 周期判断为 <b>偏空震荡（空头特征居多）</b>，<b>M15</b> 周期判断为 <b>偏空震荡（空头特征居多）</b>。上方第一阻力距当前 <b>17.0</b> 美元，下方第一支撑距当前 <b>245.7</b> 美元，价格处于<b>上方阻力更近</b>的位置。以下场景推演基于纯价格行为与流动性结构，三大主场景互斥且穷尽（任一场景的失效条件等于另一场景的触发条件），请按照场景对照实盘走势进行操作选择。</div>
+      <div class="params">
+        <div class="param"><div class="k">当前价</div><div class="v gold">4613.12</div></div>
+        <div class="param"><div class="k">大周期偏好</div><div class="v bear">偏空</div></div>
+        <div class="param"><div class="k">小周期波动率</div><div class="v">$10.04</div></div>
+        <div class="param"><div class="k">关键价位</div><div class="v">上方 5 · 下方 1</div></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第二部分 · 关键价位地图 <small>上下方支撑阻力按距离与权重排序</small></div>
+      <div class="level-map">
+      <div class="level-col above"><h3>上方阻力（按距离排序）</h3><div class="level-row"><div class="lv-info"><div><span class="lv-kind">第 1 档 · 看跌失衡缺口下沿</span><span class="stars">★★</span></div><div class="lv-note">未回补区间 $4630.1 ~ $4666.2，空头磁吸（距当前价 17.0 美元）</div></div><div class="lv-price bear">$4630.1</div></div><div class="level-row"><div class="lv-info"><div><span class="lv-kind">第 2 档 · 空头订单块下沿</span><span class="stars">★★★</span></div><div class="lv-note">机构卖盘压制区，区间 $4652.4 ~ $4659.6（距当前价 39.3 美元）</div></div><div class="lv-price bear">$4652.4</div></div><div class="level-row"><div class="lv-info"><div><span class="lv-kind">第 3 档 · 空头订单块下沿</span><span class="stars">★★★</span></div><div class="lv-note">机构卖盘压制区，区间 $4667.5 ~ $4669.9（距当前价 54.4 美元）</div></div><div class="lv-price bear">$4667.5</div></div><div class="level-row"><div class="lv-info"><div><span class="lv-kind">第 4 档 · 上方流动性池</span><span class="stars">★★</span></div><div class="lv-note">前期高点聚集，机构常先扫损此处再做方向选择（距当前价 98.5 美元）</div></div><div class="lv-price bear">$4711.6</div></div><div class="level-row"><div class="lv-info"><div><span class="lv-kind">第 5 档 · 上方流动性池</span><span class="stars">★★</span></div><div class="lv-note">前期高点聚集，机构常先扫损此处再做方向选择（距当前价 124.8 美元）</div></div><div class="lv-price bear">$4737.9</div></div></div>
+      <div class="level-col below"><h3>下方支撑（按距离排序）</h3><div class="level-row"><div class="lv-info"><div><span class="lv-kind">第 1 档 · 多头订单块上沿</span><span class="stars">★★★</span></div><div class="lv-note">机构买盘吸筹区，区间 $4098.5 ~ $4367.4（距当前价 245.7 美元）</div></div><div class="lv-price bull">$4367.4</div></div></div>
+    </div>
+    <div class="cur-price-bar">▼ 当前价 $4613.12 ▼</div>
+    
+    </div>
+
+    <div class="section">
+      <div class="section-title">第三部分 · 场景推演决策树 <small>三大主场景互斥且穷尽，每个含两条分叉路径</small></div>
+      <div class="scen bull">
+      <div class="scen-head">
+        <div>
+          <h3>场景一 · 上行突破</h3>
+          <div class="sub">价格突破上方 <b>看跌失衡缺口下沿</b> 后向上方流动性池发起进攻</div>
+        </div>
+        <div class="scen-prob">概率权重 25%</div>
+      </div>
+      <div class="scen-grid">
+        <div class="scen-block">
+          <h5>触发条件</h5>
+          <div class="body">价格站稳并收盘于 <b>看跌失衡缺口下沿 $4630.1</b> 上方（建议以小周期连续两根收盘突破为确认条件）</div>
+        </div>
+        <div class="scen-block target">
+          <h5>目标位</h5>
+          <div class="tline"><span class="lbl">第一目标</span><span class="val">$4630.1（看跌失衡缺口下沿）</span></div>
+          <div class="tline"><span class="lbl">第二目标</span><span class="val">$4652.4（空头订单块下沿）</span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--text-mute);letter-spacing:1.5px;font-weight:700">触及第一目标后的两种分叉</div>
+      <div class="branch">
+          <h6>分叉 A · 受阻回落</h6>
+          <div class="b-cond">价格触及第一目标 <b>$4630.1</b> 后出现拒绝信号（如长上影、连续两根反向 K 线、上方流动性被扫损后回落）</div>
+          <div class="b-act">立即将 50% 仓位止盈离场，剩余仓位上移止损至成本价；若小周期形成结构转换向下信号，则全部止盈，考虑反手轻仓做空回踩 <b>$4620.0</b>。</div>
+        </div><div class="branch">
+          <h6>分叉 B · 顺势加速</h6>
+          <div class="b-cond">价格突破 <b>$4630.1</b> 且回踩不破，小周期出现新的多头订单块或失衡缺口</div>
+          <div class="b-act">剩余仓位继续持有，加仓 1/3 单位（仓位上限不超过初始 1.5 倍），目标看向第二阻力 <b>$4652.4</b>，止损上移至第一目标下方。</div>
+        </div>
+      <div class="exec-row">
+        <div class="e-card"><div class="lbl">进场参考</div><div class="val">突破后回踩 <b>$4630.1 ~ $4635.1</b> 区间不破即进场</div></div>
+        <div class="e-card"><div class="lbl">止损</div><div class="val">硬止损 <b>$4618.0</b>（突破价下方 1.2 倍小周期 ATR）</div></div>
+        <div class="e-card"><div class="lbl">仓位建议</div><div class="val">建议总风险敞口 0.5%；若小周期与大周期共振向上，可放大至 1%</div></div>
+      </div>
+      <div class="invalid-bar">价格收盘于 <b>$4367.4</b> 下方 → 上行场景作废，自动进入下行场景</div>
+    </div><div class="scen bear">
+      <div class="scen-head">
+        <div>
+          <h3>场景二 · 下行突破</h3>
+          <div class="sub">价格跌破下方 <b>多头订单块上沿</b> 后向下方流动性池继续扩张</div>
+        </div>
+        <div class="scen-prob">概率权重 50%</div>
+      </div>
+      <div class="scen-grid">
+        <div class="scen-block">
+          <h5>触发条件</h5>
+          <div class="body">价格跌破并收盘于 <b>多头订单块上沿 $4367.4</b> 下方（建议以小周期连续两根收盘破位为确认条件）</div>
+        </div>
+        <div class="scen-block target">
+          <h5>目标位</h5>
+          <div class="tline"><span class="lbl">第一目标</span><span class="val">$4367.4（多头订单块上沿）</span></div>
+          <div class="tline"><span class="lbl">第二目标</span><span class="val">$4299.7（按 ATR 投影）</span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--text-mute);letter-spacing:1.5px;font-weight:700">触及第一目标后的两种分叉</div>
+      <div class="branch">
+          <h6>分叉 A · 受撑反弹</h6>
+          <div class="b-cond">价格触及第一目标 <b>$4367.4</b> 后出现拒绝信号（如长下影、连续两根反向 K 线、下方流动性被扫损后反弹）</div>
+          <div class="b-act">立即将 50% 仓位止盈离场，剩余仓位下移止损至成本价；若小周期形成结构转换向上信号，则全部止盈，考虑反手轻仓做多反弹至 <b>$4377.4</b>。</div>
+        </div><div class="branch">
+          <h6>分叉 B · 顺势加速</h6>
+          <div class="b-cond">价格跌破 <b>$4367.4</b> 且反弹不上，小周期出现新的空头订单块或失衡缺口</div>
+          <div class="b-act">剩余仓位继续持有，加仓 1/3 单位（仓位上限不超过初始 1.5 倍），目标看向第二支撑 <b>$4299.7</b>，止损下移至第一目标上方。</div>
+        </div>
+      <div class="exec-row">
+        <div class="e-card"><div class="lbl">进场参考</div><div class="val">破位后反抽 <b>$4362.4 ~ $4367.4</b> 区间不上即进场</div></div>
+        <div class="e-card"><div class="lbl">止损</div><div class="val">硬止损 <b>$4379.5</b>（破位价上方 1.2 倍小周期 ATR）</div></div>
+        <div class="e-card"><div class="lbl">仓位建议</div><div class="val">建议总风险敞口 0.5%；若小周期与大周期共振向下，可放大至 1%</div></div>
+      </div>
+      <div class="invalid-bar">价格收盘于 <b>$4630.1</b> 上方 → 下行场景作废，自动进入上行场景</div>
+    </div><div class="scen warn">
+      <div class="scen-head">
+        <div>
+          <h3>场景三 · 区间震荡</h3>
+          <div class="sub">价格在 <b>$4367.4 ~ $4630.1</b> 区间反复试探，等待方向选择</div>
+        </div>
+        <div class="scen-prob">概率权重 25%</div>
+      </div>
+      <div class="scen-grid">
+        <div class="scen-block">
+          <h5>触发条件</h5>
+          <div class="body">价格未能突破 <b>$4630.1</b>，也未能跌破 <b>$4367.4</b>，小周期形成 4 小时以上的横盘整理</div>
+        </div>
+        <div class="scen-block target">
+          <h5>目标位</h5>
+          <div class="tline"><span class="lbl">第一目标</span><span class="val">区间上沿 $4630.1</span></div>
+          <div class="tline"><span class="lbl">第二目标</span><span class="val">区间下沿 $4367.4</span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--text-mute);letter-spacing:1.5px;font-weight:700">触及第一目标后的两种分叉</div>
+      <div class="branch">
+          <h6>分叉 A · 高抛低吸</h6>
+          <div class="b-cond">价格连续两次在区间边界出现拒绝信号</div>
+          <div class="b-act">边界做反向，止损放在边界外 0.5 倍 ATR 处，目标看向区间中线 <b>$4498.7</b>，仓位减半为 0.25%。</div>
+        </div><div class="branch">
+          <h6>分叉 B · 突破方向</h6>
+          <div class="b-cond">区间任一边出现强势突破并伴随成交量放大</div>
+          <div class="b-act">立即转入场景一或场景二的破位跟随策略，区间内的反向单全部清仓。</div>
+        </div>
+      <div class="exec-row">
+        <div class="e-card"><div class="lbl">进场参考</div><div class="val">区间边界拒绝信号确认后进场（如锤子线 / 吞没形态 / 流动性扫损反转）</div></div>
+        <div class="e-card"><div class="lbl">止损</div><div class="val">硬止损：边界外 0.5 ~ 0.8 倍小周期 ATR</div></div>
+        <div class="e-card"><div class="lbl">仓位建议</div><div class="val">震荡行情仓位减半，单笔风险 0.25%，避免被假突破连续止损</div></div>
+      </div>
+      <div class="invalid-bar">价格收盘突破 <b>$4630.1</b> 或 <b>$4367.4</b> → 震荡场景作废，自动进入对应方向的破位场景</div>
+    </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第四部分 · 当下操作清单 <small>进场前的强制规则</small></div>
+      <div class="checklist"><div class="cl-item"><div class="ct">立即将 上方 <b>$4630.1</b>（看跌失衡缺口下沿）、下方 <b>$4367.4</b>（多头订单块上沿） 设为提醒价位，价格触及任一处即进入交易准备状态</div></div><div class="cl-item"><div class="ct">进场前必看的三个确认信号：①小周期收盘突破或收盘破位；②突破后回踩或反抽不再越过关键位；③回踩反抽时出现明确的拒绝 K 线形态（长影线、吞没、双针等）</div></div><div class="cl-item"><div class="ct">单笔交易风险敞口控制在账户净值 0.5% 至 1%，进场前必须先算清楚硬止损价位与目标位之间的盈亏比，<b>不达 1:2 的机会一律放弃</b></div></div><div class="cl-item"><div class="ct">若连续两次止损，立即停止交易并复盘 30 分钟以上；若连续盈利情绪高涨，强制减仓 50% 后再进入下一笔</div></div><div class="cl-item"><div class="ct">当前大周期偏空，<b>优先做空</b>；多单仅作为对冲应对，仓位减半，盈亏比目标 1:3 以上方可考虑</div></div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第五部分 · 关键时间窗口 <small>北京时间盘段切换提示</small></div>
+      <div class="time-grid"><div class="t-card"><div class="name">亚盘开盘</div><div class="tm">北京时间 09:00 ~ 11:30</div><div class="nt">成交清淡，多以延续昨日尾盘方向为主，不建议主动交易</div></div><div class="t-card"><div class="name">欧盘开盘</div><div class="tm">北京时间 15:00 ~ 17:00</div><div class="nt">波动放大，常出现日内方向选择，是关键观察窗口</div></div><div class="t-card"><div class="name">美盘开盘</div><div class="tm">北京时间 20:30 ~ 22:30</div><div class="nt">黄金最活跃时段，方向选择常在此完成，重点交易窗口</div></div><div class="t-card"><div class="name">美盘尾盘</div><div class="tm">北京时间 次日 02:00 ~ 04:00</div><div class="nt">流动性下降，假突破频发，建议避免重仓</div></div></div>
+    </div>
+
+    <div class="footer">
+      场景化交易剧本 · 基于价格行为与流动性结构 · 决策树式分支推演<br>
+      所有场景共享同一组关键价位与同一组波动率，互斥且穷尽，逻辑前后一致<br>
+      本报告仅供研究学习，不构成投资建议。市场有风险，决策需谨慎。
+    </div>
+    </body></html>

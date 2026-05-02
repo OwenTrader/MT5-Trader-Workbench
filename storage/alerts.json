@@ -1,0 +1,28 @@
+[
+  {
+    "id": "664b4c1d-e1da-4034-a142-dc5f8b6576a9",
+    "symbol": "XAUUSD",
+    "price": 4712.0,
+    "condition": "below",
+    "is_active": false,
+    "is_triggered": false,
+    "comment": "",
+    "type": "price"
+  },
+  {
+    "id": "7ae5ee23-b39f-4a48-81e1-41762b353e6c",
+    "symbol": "XAUUSD",
+    "price": 4713.0,
+    "condition": "above",
+    "is_active": false,
+    "is_triggered": false,
+    "comment": "",
+    "type": "price"
+  },
+  {
+    "id": "1559c6bd-4865-40c9-8fe1-769cd0a1df34",
+    "symbol": "XAUUSD",
+    "is_active": true,
+    "type": "order-broadcast"
+  }
+]

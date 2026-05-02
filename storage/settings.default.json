@@ -1,0 +1,27 @@
+{
+  "mt5_path": "",
+  "auto_connect": false,
+  "price_alerts_path": "",
+  "account_monitoring_interval": 5,
+  "volatility_check_interval": 60,
+  "overlay_font_size": 18,
+  "overlay_font_color": "#30e718",
+  "overlay_symbols": [
+    "XAUUSD",
+    "USDJPY"
+  ],
+  "overlay_width": 320,
+  "overlay_height": 250,
+  "dingtalk_enabled": false,
+  "dingtalk_token": "",
+  "dingtalk_secret": "",
+  "wecom_enabled": false,
+  "wecom_webhook_url": "",
+  "feishu_enabled": false,
+  "feishu_webhook_url": "",
+  "theme": "light",
+  "language": "zh-CN",
+  "alert_sound_enabled": true,
+  "alert_sound_path": "",
+  "alert_sound_volume": 0.5
+}

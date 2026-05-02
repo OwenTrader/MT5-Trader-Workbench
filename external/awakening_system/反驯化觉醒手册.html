@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反驯化觉醒手册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            font-weight: 500;
+        }
+        
+        h2 {
+            font-size: 1.8em;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            color: #764ba2;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        h4 {
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            color: #666;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, #ffeaa7 0%, #ffeaa7 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 40%;
+            background-position: 0 88%;
+            font-weight: 600;
+        }
+        
+        .danger-text {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        .success-text {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .practice-box {
+            background: #f8f9fa;
+            border-left: 5px solid #764ba2;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .practice-title {
+            font-weight: 700;
+            color: #764ba2;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .checklist li:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            color: #764ba2;
+            font-weight: bold;
+        }
+        
+        .checklist li.checked:before {
+            content: "☑";
+            color: #27ae60;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #2d3436;
+            color: #dfe6e9;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .quote {
+            border-left: 5px solid #764ba2;
+            padding-left: 20px;
+            margin: 25px 0;
+            font-style: italic;
+            color: #555;
+            background: #f8f9fa;
+            padding: 20px 20px 20px 25px;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .section-divider {
+            text-align: center;
+            margin: 40px 0;
+            color: #764ba2;
+            font-size: 1.5em;
+            letter-spacing: 10px;
+        }
+        
+        strong {
+            color: #764ba2;
+        }
+        
+        .tip-box {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .tip-title {
+            color: #2e7d32;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+            .warning-box {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            table {
+                font-size: 0.85em;
+            }
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>反驯化觉醒手册</h1>
+        <p class="subtitle">从系统底层节点到自主个体</p>
+        
+        <div class="warning-box">
+            <strong>⚠️ 警告：</strong>本文档包含对主流教育、社会评价体系的批判性分析，可能引发认知不适。这是觉醒的正常反应。
+        </div>
+        
+        <h2>核心声明：你被设计成"听话的零件"</h2>
+        
+        <p>现代教育系统和社会规范的核心功能，<span class="highlight">不是培养你的潜能，而是将你加工成系统需要的标准化零件</span>。理解这一点，是觉醒的起点。</p>
+        
+        <h3>驯化流水线图解</h3>
+        <pre>
+儿童（原始状态）
+    ↓
+[标准化教育] ──→ 灌输统一知识、服从权威、害怕犯错
+    ↓
+[评价体系] ──→ 分数、排名、奖状 = 自我价值绑定外部认可
+    ↓
+[职业筛选] ──→ 学历证书 = 准入门槛，能力让位于 credentials
+    ↓
+[职场规训] ──→ KPI、加班文化、"团队精神" = 个体边界消融
+    ↓
+[消费绑定] ──→ 收入-房贷-消费循环 = 恐惧驱动服从
+    ↓
+[社会评价] ──→ 房子/车子/婚姻/孩子 = 人生标准剧本
+    ↓
+顺从的劳动力 + 稳定的消费者 + 可控的社会成员</pre>
+        
+        <h2>驯化思想识别手册</h2>
+        <p>以下是你被植入的<span class="danger-text">控制性信念</span>，觉醒的第一步是识别它们：</p>
+        
+        <h3>类型一：权威服从型</h3>
+        <table>
+            <tr>
+                <th>驯化语句</th>
+                <th>真实含义</th>
+                <th>觉醒视角</th>
+            </tr>
+            <tr>
+                <td>"老师/领导都是为了你好"</td>
+                <td>质疑权威会被惩罚，服从才有安全感</td>
+                <td><span class="success-text">任何人的"为你好"都必须经过你的检验</span></td>
+            </tr>
+            <tr>
+                <td>"要尊重长辈/上级"</td>
+                <td>等级秩序不可挑战，下位者没有话语权</td>
+                <td><span class="success-text">尊重基于行为而非地位，年龄≠智慧</span></td>
+            </tr>
+            <tr>
+                <td>"听话才是好孩子/好员工"</td>
+                <td>独立思考是危险的，顺从才有价值</td>
+                <td><span class="success-text">"听话"是被驯化的标志，不是美德</span></td>
+            </tr>
+            <tr>
+                <td>"不要问为什么，照做就行"</td>
+                <td>理解是特权，执行是你的本分</td>
+                <td><span class="success-text">不理解的事情有权拒绝执行</span></td>
+            </tr>
+        </table>
+        
+        <div class="practice-box">
+            <div class="practice-title">💡 身体信号识别</div>
+            <p>当你准备质疑权威但感到<strong>胃部紧缩、心跳加速</strong>时，这是驯化程序在启动。</p>
+            <p><span class="highlight">注意到这个信号，然后继续质疑。</span></p>
+        </div>
+        
+        <h3>类型二：标准化评价型</h3>
+        <table>
+            <tr>
+                <th>驯化语句</th>
+                <th>真实含义</th>
+                <th>觉醒视角</th>
+            </tr>
+            <tr>
+                <td>"你怎么不如XXX"</td>
+                <td>你的价值取决于相对位置</td>
+                <td><span class="success-text">比较是永无止境的陷阱，你有自己的坐标系</span></td>
+            </tr>
+            <tr>
+                <td>"考不上好大学人生就完了"</td>
+                <td>一次考试定义终身，恐惧驱动服从</td>
+                <td><span class="success-text">人生是漫长实验，没有单点失败</span></td>
+            </tr>
+            <tr>
+                <td>"稳定比什么都重要"</td>
+                <td>冒险的代价不可承受，恐惧锁死选择</td>
+                <td><span class="success-text">稳定是控制手段，不是普世真理</span></td>
+            </tr>
+        </table>
+        
+        <div class="practice-box">
+            <div class="practice-title">💡 羞耻感识别</div>
+            <p>当你因为"不如别人"而感到羞耻时，这是外部评价体系在你体内生效。</p>
+            <p><span class="highlight">羞耻感是控制工具，不是真实感受。</span></p>
+        </div>
+        
+        <h3>类型三：自我牺牲型</h3>
+        <table>
+            <tr>
+                <th>驯化语句</th>
+                <th>真实含义</th>
+                <th>觉醒视角</th>
+            </tr>
+            <tr>
+                <td>"要有集体荣誉感"</td>
+                <td>个体利益必须让位于集体，牺牲是美德</td>
+                <td><span class="success-text">集体由个体组成，没有个体的集体是空壳</span></td>
+            </tr>
+            <tr>
+                <td>"父母为你付出那么多"</td>
+                <td>愧疚是控制杠杆，你必须偿还</td>
+                <td><span class="success-text">生育是选择，不是债务合同</span></td>
+            </tr>
+            <tr>
+                <td>"年轻人要多吃苦"</td>
+                <td>忍受痛苦是准入门槛，质疑痛苦是不懂事</td>
+                <td><span class="success-text">无意义的苦不值得吃，吃苦不是美德</span></td>
+            </tr>
+            <tr>
+                <td>"忍耐一下就好了"</td>
+                <td>当下的不适应该被压抑，服从忍耐才能通关</td>
+                <td><span class="success-text">持续的不适是系统错误的信号，不是必经之路</span></td>
+            </tr>
+        </table>
+        
+        <div class="practice-box">
+            <div class="practice-title">💡 身体信号识别</div>
+            <p>当你感到"我必须忍受"但内心在尖叫时，<span class="highlight">听从那个尖叫</span>。那是真实的你在反抗驯化。</p>
+        </div>
+        
+        <p class="section-divider">◆ ◆ ◆</p>
+        
+        <h2>第一部分：认知解毒——清除驯化程序</h2>
+        
+        <h3>核心信念清单（逐条检验）</h3>
+        
+        <div class="practice-box">
+            <div class="practice-title">📋 信念审计卡</div>
+            <p><strong>信念 #___</strong></p>
+            <p>内容：_____________________________________________</p>
+            <br>
+            <p><strong>植入来源追溯：</strong></p>
+            <ul class="checklist">
+                <li>父母反复灌输（从____岁开始）</li>
+                <li>学校教育强化（具体场景：________________）</li>
+                <li>媒体/广告塑造（哪个频道/节目/广告：________）</li>
+                <li>同龄群体压力（谁的评价让你接受这个信念：____）</li>
+                <li>自身经历验证（请描述具体证据：________________）</li>
+            </ul>
+            <br>
+            <p><strong>功能分析（诚实回答）：</strong></p>
+            <p>这个信念让我：</p>
+            <ul class="checklist">
+                <li>更自由（扩大选择范围）  还是  更受束缚（限制选择）？</li>
+                <li>更自信（相信自己）      还是  更自卑（需要外部认可）？</li>
+                <li>更勇敢（敢于尝试）      还是  更恐惧（害怕犯错）？</li>
+                <li>更真实（表达自己）      还是  更表演（隐藏真实）？</li>
+            </ul>
+        </div>
+        
+        <h4>关键信念审计目录（逐一检验）</h4>
+        <ol>
+            <li><strong>关于自我价值</strong> - "我的价值取决于_______"<br>
+            <em>常见答案：成绩/工资/职位/他人评价/房子车子</em><br>
+            检验：如果失去这些，你还是你吗？</li>
+            <li><strong>关于成功</strong> - "成功意味着_______"<br>
+            检验：这是你自己的定义，还是你被告知应该追求的？</li>
+            <li><strong>关于关系</strong> - "好的关系意味着_______"<br>
+            检验：这种"好"让你更真实还是更压抑？</li>
+            <li><strong>关于风险</strong> - "冒险是_______"<br>
+            检验：从不冒险的人生，是你想要的吗？</li>
+            <li><strong>关于权威</strong> - "权威人士_______"<br>
+            检验：你生命中的权威，有多少次是错的？</li>
+            <li><strong>关于快乐</strong> - "快乐是_______"<br>
+            检验：为什么现在不能快乐？谁在延迟你的满足？</li>
+            <li><strong>关于责任</strong> - "我必须_______"<br>
+            检验：这些"必须"是谁写的剧本？</li>
+            <li><strong>关于失败</strong> - "失败意味着_______"<br>
+            检验：你认识的"成功人士"有没有失败过？</li>
+        </ol>
+        
+        <h2>第二部分：感知重建——唤醒被压抑的真实自我</h2>
+        
+        <h3>2.1 身体主权：你最先被占领的领土</h3>
+        
+        <p>驯化从身体开始。<span class="highlight">重获身体感知，是重获自主权的第一步</span>。</p>
+        
+        <div class="practice-box">
+            <div class="practice-title">🔍 身体异化检查清单</div>
+            <ul class="checklist">
+                <li>我每天久坐超过6小时，不是因为需要，而是因为"应该在工作"</li>
+                <li>我忽视饥饿/口渴/疲劳的信号，因为"再等等/没空"</li>
+                <li>我穿着不舒适的衣服/鞋子，因为"这样看起来专业/得体"</li>
+                <li>我压抑表情/声音/姿态，因为"这样更成熟/不被看轻"</li>
+                <li>我在疼痛/不适时继续工作，因为"要坚持/不能娇气"</li>
+                <li>我按照时钟而不是身体节律安排作息</li>
+                <li>我对身体的外貌感到羞耻或焦虑，尽管它功能正常</li>
+                <li>我将身体视为工具/资产，而非自我的一部分</li>
+            </ul>
+            <p><br><strong>勾选 ≥ 4：</strong>你的身体已被高度异化，需要紧急主权回收。</p>
+        </div>
+        
+        <h4>身体主权恢复练习</h4>
+        
+        <div class="practice-box">
+            <div class="practice-title">练习一：身体需求优先权（每日）</div>
+            <p>当身体发出以下信号时，<strong>立即停止当前活动</strong>：</p>
+            <ul>
+                <li>饥饿（不是"有点想吃"，是胃部的真实信号）</li>
+                <li>口渴（舌头粘腻感，不是"应该喝水"）</li>
+                <li>疲劳（眼皮沉重，不是"该睡觉了"）</li>
+                <li>疼痛（任何部位的紧绷或刺痛）</li>
+                <li>尿意/便意（不要"憋一会儿"）</li>
+            </ul>
+            <p><br><strong>回应方式：</strong></p>
+            <p>"我注意到我的身体需要_______，我现在就去满足它。"<br>
+            <em>（不需要向任何人解释，不需要获得许可）</em></p>
+        </div>
+        
+        <h3>2.2 时间主权：从"被填满"到"我选择"</h3>
+        
+        <p>你的时间被各种"应该"填满，<span class="highlight">没有空间给真实的你</span>。</p>
+        
+        <table>
+            <tr>
+                <th>活动</th>
+                <th>真实动机</th>
+                <th>身体感受</th>
+            </tr>
+            <tr>
+                <td>工作/学习</td>
+                <td>□ 生存需要 □ 恐惧惩罚 □ 惯性 □ 真实兴趣</td>
+                <td>紧绷/麻木/投入</td>
+            </tr>
+            <tr>
+                <td>社交媒体</td>
+                <td>□ 逃避无聊 □ FOMO □ 维持人设 □ 真实连接</td>
+                <td>空虚/焦虑/愉悦</td>
+            </tr>
+            <tr>
+                <td>社交应酬</td>
+                <td>□ 维护关系 □ 害怕孤立 □ 真实享受</td>
+                <td>表演/连接/消耗</td>
+            </tr>
+            <tr>
+                <td>家庭责任</td>
+                <td>□ 爱 □ 愧疚 □ 义务 □ 被迫</td>
+                <td>温暖/沉重/复杂</td>
+            </tr>
+        </table>
+        
+        <h3>2.3 注意力主权：夺回你的认知资源</h3>
+        
+        <div class="practice-box">
+            <div class="practice-title">注意力劫持识别</div>
+            <ul class="checklist">
+                <li>手机通知（平均每小时打断：_____次）</li>
+                <li>算法推荐内容（日均消费：_____小时）</li>
+                <li>工作即时通讯（平均响应时间期待：_____分钟）</li>
+                <li>多任务切换（同时处理_____件事）</li>
+            </ul>
+        </div>
+        
+        <div class="tip-box">
+            <div class="tip-title">🛡️ 紧急主权恢复措施（本周实施）</div>
+            <ol>
+                <li><strong>通知清零</strong> - 关闭所有非人通知，社交应用通知全关，新闻应用全部卸载</li>
+                <li><strong>设备分离</strong> - 工作/学习时段手机放在另一个房间，睡前1小时手机不进卧室</li>
+                <li><strong>时段自治</strong> - 设定每日"深度时间块"（2-4小时），单一任务、无通知、无网络</li>
+                <li><strong>信息策展</strong> - 取消所有算法推荐，建立RSS订阅，实施"先输出后输入"</li>
+                <li><strong>社交降噪</strong> - 退出所有低价值群组，将"被动等待消息"转为"主动定时查看"</li>
+            </ol>
+        </div>
+        
+        <p class="section-divider">◆ ◆ ◆</p>
+        
+        <h2>第三部分：行动解放——从认知到实践的反叛</h2>
+        
+        <h3>最小反叛行动库</h3>
+        
+        <p>反叛不需要宏大宣言，<span class="highlight">需要持续的微小不服从</span>。</p>
+        
+        <div class="practice-box">
+            <div class="practice-title">反叛行动 #1：拒绝解释</div>
+            <p><strong>场景：</strong>有人问你"为什么"（为什么不结婚/为什么不生/为什么辞职）</p>
+            <p><strong>驯化回应：</strong>长篇解释、辩护、列出理由</p>
+            <p><strong>反叛回应：</strong>"这是我的选择。" / "我不想讨论这个。" / 沉默微笑</p>
+            <br>
+            <p><strong>为什么这是反叛：</strong></p>
+            <p>解释=认可对方有质询权。<span class="highlight">不解释=收回解释权主权。</span></p>
+            <p>你的选择不需要任何人的批准。</p>
+        </div>
+        
+        <div class="practice-box">
+            <div class="practice-title">反叛行动 #2：公开"不知道"</div>
+            <p><strong>场景：</strong>会议/课堂/社交中，被问到你不知道答案的问题</p>
+            <p><strong>驯化回应：</strong>猜测、敷衍、转移话题、事后焦虑</p>
+            <p><strong>反叛回应：</strong>"我不知道。" / "我需要查证。" / "这不在我的领域。"</p>
+            <br>
+            <p><strong>为什么这是反叛：</strong></p>
+            <p>"必须知道"是能力焦虑的产物。<span class="highlight">承认不知道=拒绝表演全知。</span></p>
+        </div>
+        
+        <div class="practice-box">
+            <div class="practice-title">反叛行动 #3：身体拒绝</div>
+            <p><strong>场景：</strong>被要求参加不想去的聚会/加班/活动</p>
+            <p><strong>驯化回应：</strong>勉强答应，然后抱怨/找借口/生病逃避</p>
+            <p><strong>反叛回应：</strong>"不，我去不了。"（不提供理由，不提供替代方案）</p>
+            <br>
+            <p><strong>为什么这是反叛：</strong></p>
+            <p>"我有理由才能拒绝"是驯化的规则。<span class="highlight">无理由拒绝=身体主权声明。</span></p>
+            <p>理由会被评估、被讨价还价。"不"是边界，不是谈判起点。</p>
+        </div>
+        
+        <h3>经济解耦：降低系统依赖的路线图</h3>
+        
+        <div class="practice-box">
+            <div class="practice-title">经济依赖度评估</div>
+            <ul class="checklist">
+                <li>我每月收入的_____%来自单一雇主/客户</li>
+                <li>如果明天失去主要收入来源，我能维持_____个月</li>
+                <li>我的债务月还款占收入_____%</li>
+                <li>我的固定月支出占收入_____%</li>
+                <li>我有_____种不同收入来源</li>
+            </ul>
+        </div>
+        
+        <h4>解耦路线图</h4>
+        
+        <table>
+            <tr>
+                <th>阶段</th>
+                <th>目标</th>
+                <th>关键行动</th>
+            </tr>
+            <tr>
+                <td><strong>阶段一</strong><br>生存缓冲<br>（3-6个月）</td>
+                <td>建立"Fuck You Money"<br>（6个月生存资金）</td>
+                <td>• 储蓄率目标30%+<br>• 建立独立储蓄账户<br>• 发展第1个副业收入<br>• 技能盘点与变现</td>
+            </tr>
+            <tr>
+                <td><strong>阶段二</strong><br>能力货币化<br>（6-18个月）</td>
+                <td>至少2种独立收入来源</td>
+                <td>• 副业收入占比提升至20%<br>• 建立个人品牌/作品集<br>• 培养可远程/自由职业技能<br>• 建立多元客户网络</td>
+            </tr>
+            <tr>
+                <td><strong>阶段三</strong><br>选择权积累<br>（18-36个月）</td>
+                <td>拥有"随时离开"的真实选项</td>
+                <td>• 被动收入覆盖基本生活<br>• 建立跨地域工作能力<br>• 维持12个月+储备<br>• 定期演练失业预案</td>
+            </tr>
+            <tr>
+                <td><strong>阶段四</strong><br>主权经济<br>（长期）</td>
+                <td>收入结构反映真实价值</td>
+                <td>• 多元收入（单一来源<50%）<br>• 地理位置自由<br>• 时间自主权<br>• 能力直接变现</td>
+            </tr>
+        </table>
+        
+        <p class="section-divider">◆ ◆ ◆</p>
+        
+        <h2>第四部分：新身份构建——成为自主个体</h2>
+        
+        <h3>意义自主：建立你自己的价值坐标系</h3>
+        
+        <div class="quote">
+            <strong>标准坐标系（社会植入）：</strong><br>
+            X轴（成功）：收入、地位、资产、名声<br>
+            Y轴（幸福）：消费、娱乐、舒适、刺激<br>
+            Z轴（价值）：对他人有用、符合主流、被认可<br><br>
+            <em>问题：这些维度是谁定义的？你在这个坐标系中的位置，是你选择的还是被分配的？</em>
+        </div>
+        
+        <div class="practice-box">
+            <div class="practice-title">构建你的坐标系</div>
+            <p><strong>我的X轴（我定义的成功）：</strong><br>
+            示例：自主程度、创造产出、真实连接、身体自由</p>
+            <br>
+            <p><strong>我的Y轴（我定义的成长）：</strong><br>
+            示例：认知复杂度、技能深度、情绪容纳力、边界清晰度</p>
+            <br>
+            <p><strong>我的Z轴（我定义的影响）：</strong><br>
+            示例：启发他人觉醒、创造真实价值、维护弱者边界、扩展自由空间</p>
+            <br>
+            <p><strong>时间轴（我定义的节奏）：</strong><br>
+            示例：生命是实验而非竞赛、每个阶段有不同的探索重点、失败是数据不是终点</p>
+        </div>
+        
+        <h3>日常主权维护仪式</h3>
+        
+        <div class="practice-box">
+            <div class="practice-title">晨间主权确认（5分钟）</div>
+            <p>"今天，我的时间、注意力、身体是<span class="highlight">属于我的、由我决定的、我选择的</span>。"</p>
+            <br>
+            <p><strong>回顾昨天：</strong></p>
+            <ul>
+                <li>我做出的选择中，有多少比例是自主的？</li>
+                <li>我维护了哪些边界？放弃了哪些？</li>
+                <li>我的身体信号被倾听了吗？</li>
+            </ul>
+            <br>
+            <p><strong>设定今天：</strong></p>
+            <ul>
+                <li>今天我要保护的时间块：_______</li>
+                <li>今天我要拒绝的请求类型：_______</li>
+                <li>今天我要倾听的身体信号：_______</li>
+            </ul>
+        </div>
+        
+        <div class="practice-box">
+            <div class="practice-title">晚间主权审计（5分钟）</div>
+            <p><strong>今天，我在_______方面维护了我的主权。</strong></p>
+            <p><strong>今天，我在_______方面让渡了主权给_______（人/系统/恐惧）。</strong></p>
+            <p><strong>明天，我可以尝试收回主权的方式：_______</strong></p>
+        </div>
+        
+        <div class="practice-box">
+            <div class="practice-title">每周主权审查（30分钟，周日）</div>
+            <ul class="checklist">
+                <li>我的时间有多少比例是"我选择" vs "我必须"？</li>
+                <li>我的身体需求被优先满足，还是持续让位？</li>
+                <li>我的注意力流向哪里？是我想去的地方吗？</li>
+                <li>我表达了几次真实的"不"？维护了什么边界？</li>
+                <li>我的经济依赖度是上升还是下降？</li>
+                <li>我进行了什么"反叛行动"，效果如何？</li>
+                <li>我是否被重新植入恐惧或羞耻？来源是什么？</li>
+            </ul>
+        </div>
+        
+        <p class="section-divider">◆ ◆ ◆</p>
+        
+        <h2>核心原则总结</h2>
+        
+        <ol>
+            <li><span class="highlight">你不是坏掉的零件，是被错误安装的系统</span><br>
+            你的不适应、不对劲、不服从，是真实自我在抵抗错误配置。</li>
+            <br>
+            <li><span class="highlight">羞耻和恐惧是控制工具，不是真实反馈</span><br>
+            当你感到羞耻或恐惧时，先问："这服务于谁的利益？"</li>
+            <br>
+            <li><span class="highlight">你的身体、时间、注意力是你的最后领土</span><br>
+            任何要求你放弃这些的人或系统，都在实施殖民。</li>
+            <br>
+            <li><span class="highlight">边界不是声明，是通过行动维护的领地</span><br>
+            说"不"只是开始，承担"让对方失望"的代价才是主权。</li>
+            <br>
+            <li><span class="highlight">反叛不需要宏大，需要持续的微小不服从</span><br>
+            每一次无理由的拒绝、每一次真实表达、每一次边界维护，都是解放。</li>
+            <br>
+            <li><span class="highlight">你的坐标系必须是你自己的</span><br>
+            社会坐标系是控制地图，不是真实地形。画你自己的地图。</li>
+            <br>
+            <li><span class="highlight">觉醒不是目的地，是持续的实践</span><br>
+            你会倒退，会被重新驯化，会忘记。这就是为什么要每天维护主权。</li>
+        </ol>
+        
+        <div class="warning-box" style="margin-top: 50px;">
+            <strong>最后声明：</strong><br><br>
+            这份手册的目的不是让你"变得更好"，不是让你"适应社会"，不是让你"找到成功秘诀"。<br><br>
+            这份手册的目的是：<span style="font-size: 1.1em;">让你从"被设计成服从的零件"变成"自主决定自己形态的个体"。</span><br><br>
+            社会会称这为"叛逆""不负责任""不合群""异类"。<br><br>
+            <strong>你会称这为"终于活着"。</strong>
+        </div>
+        
+        <div style="text-align: center; margin-top: 60px; color: #666; font-size: 0.9em;">
+            <p>本文档可直接打印或在浏览器中阅读</p>
+            <p>建议配合每日实践使用</p>
+        </div>
+    </div>
+</body>
+</html>

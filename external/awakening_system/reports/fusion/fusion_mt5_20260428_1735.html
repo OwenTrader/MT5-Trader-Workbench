@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAU/USD · PA × Elliott 融合报告 · 2026-04-28 17:35</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg0:#050508;--bg1:#0a0a14;--bg2:#0f0f1a;--bg3:#15151f;
+      --gold:#d9b85c;--gold-dim:#a88a3e;--bull:#1ddfa9;--bear:#ff5e7c;
+      --warn:#ffb066;--text:#e6e9f0;--text-dim:#b4bcca;--text-mute:#7a8290;
+      --border:rgba(255,255,255,0.06);--border-gold:rgba(217,184,92,0.28);
+      --mono:'JetBrains Mono','Consolas',monospace;
+      --body:'Microsoft YaHei','Segoe UI',sans-serif;}
+body{background:var(--bg0);color:var(--text);font-family:var(--body);
+     font-size:13px;line-height:1.7;max-width:1600px;margin:0 auto;padding:70px 22px 44px}
+.topbar{position:fixed;top:0;left:0;right:0;background:rgba(5,5,8,0.92);
+        backdrop-filter:blur(18px);border-bottom:1px solid var(--border-gold);
+        z-index:100;display:flex;align-items:center;padding:0 26px;height:54px}
+.brand{font-size:16px;font-weight:800;color:var(--gold);letter-spacing:2px;margin-right:24px}
+.brand span{color:var(--text-dim);font-weight:400;letter-spacing:0}
+.topbar-nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.topbar-nav a{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text-dim);
+        text-decoration:none;padding:6px 11px;border-radius:5px;letter-spacing:0.5px;
+        transition:all 0.15s;text-transform:uppercase}
+.topbar-nav a:hover{color:var(--gold);background:rgba(217,184,92,0.13)}
+.ts{font-family:var(--mono);font-size:11px;color:var(--text-mute)}
+h1.hero{font-size:30px;font-weight:800;letter-spacing:1px;margin:8px 0 6px;
+        background:linear-gradient(90deg,#fff,#d9b85c);-webkit-background-clip:text;
+        -webkit-text-fill-color:transparent}
+.hero-sub{color:var(--text-dim);font-size:13px;margin-bottom:22px}
+.hero-sub b{color:var(--gold)}
+.section{margin:34px 0 14px}
+.section-title{font-size:16px;font-weight:700;color:var(--gold);
+        letter-spacing:1.5px;padding-bottom:8px;margin-bottom:14px;
+        border-bottom:1px solid var(--border-gold);text-transform:uppercase}
+.tf-block{background:var(--bg1);border:1px solid var(--border);border-radius:10px;
+        padding:18px 20px;margin-bottom:22px;border-left:3px solid var(--gold-dim)}
+.tf-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;
+        padding-bottom:10px;border-bottom:1px dashed var(--border)}
+.tf-name{font-size:18px;font-weight:700;color:var(--gold);letter-spacing:1px}
+.tf-state{font-size:13px;color:var(--text-dim)}
+.tf-tag{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:4px;
+        font-weight:700;letter-spacing:0.5px;margin-left:8px}
+.tag-bull{background:rgba(29,223,169,0.13);color:var(--bull);border:1px solid rgba(29,223,169,0.4)}
+.tag-bear{background:rgba(255,94,124,0.13);color:var(--bear);border:1px solid rgba(255,94,124,0.4)}
+.tag-warn{background:rgba(255,176,102,0.13);color:var(--warn);border:1px solid rgba(255,176,102,0.4)}
+.tag-mute{background:rgba(122,130,144,0.13);color:var(--text-mute);border:1px solid rgba(122,130,144,0.3)}
+.chart-wrap{margin:14px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.chart-wrap img{width:100%;display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width: 920px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.card h4{font-size:12px;color:var(--text-mute);font-weight:600;letter-spacing:1px;
+        margin-bottom:10px;text-transform:uppercase}
+table{width:100%;font-size:12.5px;border-collapse:collapse}
+table th,table td{padding:6px 8px;border-bottom:1px solid var(--border)}
+table th{color:var(--text-mute);font-weight:600;text-align:left;font-size:11px;letter-spacing:0.5px}
+.mono{font-family:var(--mono)}
+.right{text-align:right}
+.rule{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.rule:last-child{border-bottom:none}
+.rule-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;
+        justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.rule-pass{background:rgba(29,223,169,0.18);color:var(--bull)}
+.rule-fail{background:rgba(255,94,124,0.18);color:var(--bear)}
+.rule-text{flex:1;color:var(--text-dim);font-size:12.5px}
+.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:12.5px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--text-mute)}
+.kv .v{font-family:var(--mono);color:var(--text)}
+.kv .v.bull{color:var(--bull)}
+.kv .v.bear{color:var(--bear)}
+.kv .v.gold{color:var(--gold)}
+.warn-box{margin-top:12px;padding:10px 14px;background:rgba(255,94,124,0.08);
+        border:1px solid rgba(255,94,124,0.4);border-radius:6px;color:var(--bear);
+        font-size:12.5px}
+.warn-box b{color:#ff8fa3}
+.narrative{background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--gold);
+        border-radius:8px;padding:18px 22px;font-size:13px;line-height:1.85;color:var(--text-dim)}
+.narrative p{margin-bottom:10px}
+.narrative b{color:var(--gold)}
+.footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);
+        font-size:11px;color:var(--text-mute);text-align:center;line-height:1.8}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--text-dim);
+        background:var(--bg2);padding:10px 14px;border-radius:6px;margin-bottom:18px;
+        border:1px solid var(--border)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:18px;border-radius:50%;text-align:center;
+        line-height:18px;font-style:normal;font-weight:700;font-size:11px;
+        background:#050508;border:1.5px solid;}
+
+.fusion-hero{margin:6px 0 22px;padding:22px 26px;background:linear-gradient(135deg,#0d0d18 0%,#15151f 100%);
+        border:1px solid var(--border-gold);border-radius:12px;position:relative;overflow:hidden}
+.fusion-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+        background:linear-gradient(90deg,#1ddfa9,#d9b85c,#ff5e7c)}
+.verdict{font-size:24px;font-weight:800;letter-spacing:1px;margin:6px 0 10px}
+.verdict.bull{color:var(--bull)}
+.verdict.bear{color:var(--bear)}
+.verdict.neutral{color:var(--text-dim)}
+.score-bar{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}
+.score-card{flex:1;min-width:180px;background:var(--bg2);border:1px solid var(--border);
+        border-radius:8px;padding:12px 14px}
+.score-label{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px}
+.score-val{font-size:22px;font-weight:800;margin-top:4px;font-family:var(--mono)}
+.score-val.bull{color:var(--bull)} .score-val.bear{color:var(--bear)} .score-val.neutral{color:var(--text-dim)}
+.matrix{width:100%;border-collapse:collapse;margin-top:14px;font-size:12.5px}
+.matrix th,.matrix td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:left}
+.matrix th{color:var(--text-mute);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.matrix .pill{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.pill.bull{background:rgba(29,223,169,0.15);color:var(--bull);border:1px solid rgba(29,223,169,0.4)}
+.pill.bear{background:rgba(255,94,124,0.15);color:var(--bear);border:1px solid rgba(255,94,124,0.4)}
+.pill.neutral{background:rgba(122,130,144,0.15);color:var(--text-mute);border:1px solid rgba(122,130,144,0.3)}
+
+.dual-block{background:var(--bg1);border:1px solid var(--border);border-radius:10px;
+        padding:20px 22px;margin-bottom:24px;border-left:3px solid var(--gold)}
+.dual-head{display:flex;justify-content:space-between;align-items:center;
+        padding-bottom:10px;border-bottom:1px dashed var(--border);margin-bottom:16px}
+.dual-title{font-size:18px;font-weight:700;color:var(--gold);letter-spacing:1.5px}
+.tf-tags{display:flex;gap:8px;flex-wrap:wrap}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media (max-width:1100px){.charts-row{grid-template-columns:1fr}}
+.chart-pane{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.chart-pane h4{font-size:12px;color:var(--gold-dim);text-transform:uppercase;
+        letter-spacing:1.5px;margin-bottom:8px;padding-bottom:6px;
+        border-bottom:1px solid var(--border)}
+.chart-pane h4 small{font-size:10.5px;color:var(--text-mute);font-weight:400;
+        letter-spacing:0;margin-left:6px}
+.chart-pane .chart-wrap{margin:0;border:none}
+.chart-pane .chart-wrap img{width:100%;display:block;border-radius:5px}
+.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:1300px){.detail-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:700px){.detail-grid{grid-template-columns:1fr}}
+.detail-card{background:var(--bg2);border:1px solid var(--border);border-radius:7px;
+        padding:12px 14px;min-height:90px}
+.detail-card h5{font-size:11px;color:var(--text-mute);text-transform:uppercase;
+        letter-spacing:1px;margin-bottom:8px;padding-bottom:4px;
+        border-bottom:1px solid var(--border)}
+.detail-card h5 .src{float:right;font-size:9px;color:var(--gold-dim);font-weight:600}
+.tables-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width:1100px){.tables-row{grid-template-columns:1fr}}
+.alerts-row{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+
+/* 顶部综合行情分析 */
+.market-overview{margin:8px 0 24px;padding:24px 28px;background:linear-gradient(135deg,#0a0a14 0%,#101019 100%);
+        border:1px solid var(--border-gold);border-radius:12px;line-height:1.95;
+        font-size:13.5px;color:var(--text-dim)}
+.market-overview h2{font-size:18px;font-weight:800;color:var(--gold);
+        letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.market-overview h2::before{content:"❖";color:var(--gold-dim);font-size:20px}
+.market-overview p{margin-bottom:11px}
+.market-overview b{color:var(--gold)}
+.market-overview .bullish{color:var(--bull);font-weight:700}
+.market-overview .bearish{color:var(--bear);font-weight:700}
+.market-overview .warn{color:var(--warn);font-weight:700}
+.mo-keypoints{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+@media (max-width:900px){.mo-keypoints{grid-template-columns:1fr}}
+.mo-kp{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.mo-kp .lbl{font-size:10.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.mo-kp .val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text)}
+.mo-kp .val.bull{color:var(--bull)} .mo-kp .val.bear{color:var(--bear)} .mo-kp .val.gold{color:var(--gold)}
+</style></head><body>
+    
+    <div class="topbar">
+      <div class="brand">PA × ELLIOTT <span>· XAU/USD 双引擎机构融合报告</span></div>
+      <div class="topbar-nav">
+        <a href="#overview">综合分析</a>
+        <a href="#verdict">双引擎判断</a>
+        <a href="#tf-日线">日线</a>
+        <a href="#tf-H4">H4</a>
+        <a href="#tf-H1">H1</a>
+        <a href="#tf-M15">M15</a>
+        <a href="#narrative">波浪解读</a>
+      </div>
+      <div class="ts">2026-04-28 17:35</div>
+    </div>
+    
+    <h1 class="hero">XAU/USD · 价格行为 × 艾略特波浪 · 机构融合报告</h1>
+    <div class="hero-sub">
+      数据源：<b>MT5:XAUUSD</b> &nbsp;|&nbsp; 当前价：<b>4613.12</b>
+      &nbsp;|&nbsp; 报告时间：<b>2026-04-28 17:35</b>
+    </div>
+
+    <div class="section" id="overview">
+      <div class="section-title">I · 综合行情分析</div>
+      
+    <div class="market-overview">
+      <h2>综合行情分析 · Market Overview</h2>
+      <p><b>当前定位：</b>价格 <b>4613.12</b>，双引擎综合判断为 <span class='bearish'>空头主导（双引擎强共振）</span>。价格行为引擎打分 <b>-3</b>，艾略特波浪引擎打分 <b>-2</b>，合计 <b>-5</b>。</p><p><b>大级别格局：</b>价格行为视角下，日线结构 <b>区间震荡（结构不明）</b>，上升通道（中线 4916.0）；H4结构 <b>偏空震荡（空头特征居多）</b>，上升通道（中线 4814.2）。艾略特视角下，日线 浪型 <b>看涨推动</b>（第 5 浪已完成（5418.94），警惕 ABC 反向调整启动）；H4 浪型 <b>看跌推动</b>（第 2 浪已结束（4740.06），目前应在第 3 浪发动）。</p><p><b>短线驱动：</b>结构上 H1 明确下降结构（LH+LL），BOS 事件 1 个；M15 偏空震荡（空头特征居多），BOS 事件 1 个。浪型上 H1 空头浪 W2目标位 4638.1；M15 空头浪 W4目标位 4600.3。</p><p><b>关键价位：</b>H4 通道上轨 <b>4851.9</b> / 下轨 <b>4776.6</b>；H1 通道上轨 <b>4695.2</b> / 下轨 <b>4639.8</b>；日线 艾略特目标位 A 浪目标 0.382 4876.1、A 浪目标 0.5 4708.4、A 浪目标 0.618 4540.7；<span class='warn'>主计数作废价</span> (跌破) <b>5418.9</b>。</p><p><b>执行建议：</b>策略倾向：<span class='bearish'>顺势做空</span>。等待价格反弹至 H1/H4 通道上轨或 EW 反弹浪高点出现见顶信号后入场，止损放在主计数作废价之外，目标参照艾略特 W3/W5 投影位。</p><p style='color:var(--text-mute);font-size:12px;margin-top:14px;border-top:1px dashed var(--border);padding-top:10px'>声明：本节由价格行为引擎与艾略特波浪引擎双重判断自动综合生成，仅供研究参考，不构成投资建议。实战需结合宏观背景、成交量、动量背离及风控规则。</p>
+      <div class="mo-keypoints"><div class='mo-kp'><div class='lbl'>当前价</div><div class='val gold'>4613.12</div></div><div class='mo-kp'><div class='lbl'>综合方向</div><div class='val bear'>看跌 (-5)</div></div><div class='mo-kp'><div class='lbl'>主计数作废价</div><div class='val bear'>5418.94</div></div></div>
+    </div>
+    </div>
+
+    <div class="section" id="verdict">
+      <div class="section-title">II · 双引擎共振矩阵</div>
+      
+    <div class="fusion-hero">
+      <div style="font-size:11px;color:var(--text-mute);letter-spacing:2px;text-transform:uppercase">
+        Cross-Engine Verdict · 双引擎综合判断
+      </div>
+      <div class="verdict bear">空头主导（双引擎强共振）</div>
+      <div style="color:var(--text-dim);font-size:13px">
+        当前价 <b style="color:var(--gold);font-family:var(--mono)">4613.12</b>
+        &nbsp;|&nbsp; 共振分数（多+ / 空-）：<b class="mono">-5</b>
+      </div>
+      <div class="score-bar">
+        <div class="score-card">
+          <div class="score-label">价格行为引擎得分</div>
+          <div class="score-val bear">-3</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">艾略特波浪引擎得分</div>
+          <div class="score-val bear">-2</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">综合方向</div>
+          <div class="score-val bear">-5</div>
+        </div>
+      </div>
+      <table class="matrix">
+        <thead><tr><th>周期</th><th>价格行为方向</th><th>艾略特方向</th><th>跨引擎一致性</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><b>日线</b></td>
+          <td><span class="pill neutral">区间震荡（结构不明）</span></td>
+          <td><span class="pill bull">看涨推动 W5</span></td>
+          <td><span class="pill neutral">弱信号</span></td>
+        </tr>
+        <tr>
+          <td><b>H4</b></td>
+          <td><span class="pill bear">偏空震荡（空头特征居多）</span></td>
+          <td><span class="pill bear">看跌推动 W2</span></td>
+          <td><span class="pill bear">强共振</span></td>
+        </tr>
+        <tr>
+          <td><b>H1</b></td>
+          <td><span class="pill bear">明确下降结构（LH+LL）</span></td>
+          <td><span class="pill bear">看跌推动 W2</span></td>
+          <td><span class="pill bear">强共振</span></td>
+        </tr>
+        <tr>
+          <td><b>M15</b></td>
+          <td><span class="pill bear">偏空震荡（空头特征居多）</span></td>
+          <td><span class="pill bear">看跌推动 W4</span></td>
+          <td><span class="pill bear">强共振</span></td>
+        </tr></tbody>
+      </table>
+    </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">III · 多周期双引擎对照</div>
+      
+    <div class="dual-block" id="tf-日线">
+      <div class="dual-head">
+        <div class="dual-title">日线 · 双引擎对照</div>
+        <div class="tf-tags"><span class="pill neutral">PA · 区间震荡（结构不明）</span><span class="pill bull">EW · 看涨推动 W5/5</span></div>
+      </div>
+      
+    <div class="charts-row">
+      <div class="chart-pane">
+        <h4>价格行为引擎 <small>ZigZag · 通道 · BOS / CHoCH</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">PA 图表不可用</div>
+      </div>
+      <div class="chart-pane">
+        <h4>艾略特波浪引擎 <small>5 浪 · ABC · 斐波那契目标</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">EW 图表不可用</div>
+      </div>
+    </div>
+      
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h5>市场结构 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #9e9e9e'>
+      <div style='font-size:12px;color:#888;margin-bottom:4px'>市场结构判断</div>
+      <div style='font-size:18px;font-weight:bold;color:#9e9e9e;margin-bottom:10px'>区间震荡（结构不明）</div>
+      <div style='font-size:12px;color:#aaa;margin-bottom:6px'>近 6 个 swing 点结构特征：</div>
+      <div style='display:flex;height:18px;border-radius:9px;overflow:hidden;margin-bottom:8px;background:#0a0a14'>
+        <div style='background:#26a69a;width:50.0%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>多头 3</div>
+        <div style='background:#ef5350;width:50.0%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>空头 3</div>
+      </div>
+      <div style='font-size:11px;color:#666;line-height:1.6'>
+        <span style='color:#26a69a'>HH/HL</span>=多头结构（更高高点+更高低点）&nbsp;|&nbsp;
+        <span style='color:#ef5350'>LH/LL</span>=空头结构（更低高点+更低低点）
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>趋势通道 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #26a69a'>
+      <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px'>
+        <div style='font-size:18px;font-weight:bold;color:#26a69a'>上升通道</div>
+        <div style='font-size:11px;color:#666'>平行度 45%</div>
+      </div>
+      <table style='width:100%;font-size:13px'>
+        <tr><td style='color:#888'>通道上轨</td><td style='text-align:right;color:#ef5350;font-family:monospace'>5421.5</td></tr>
+        <tr><td style='color:#888'>通道中线</td><td style='text-align:right;color:#f0c040;font-family:monospace'>4916.0</td></tr>
+        <tr><td style='color:#888'>通道下轨</td><td style='text-align:right;color:#26a69a;font-family:monospace'>4410.6</td></tr>
+        <tr><td style='color:#888'>通道宽度</td><td style='text-align:right;color:#aaa;font-family:monospace'>1010.9</td></tr>
+      </table>
+      <div style='margin-top:10px'>
+        <div style='font-size:11px;color:#666;margin-bottom:4px'>当前价位置（自下到上 0%-100%）：</div>
+        <div style='position:relative;height:24px;background:#0a0a14;border-radius:6px;overflow:hidden'>
+          <div style='position:absolute;left:20.0%;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 6px #fff'></div>
+          <div style='position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;color:#26a69a;font-size:12px;font-weight:bold'>
+            20% · 贴近下轨（接近支撑）
+          </div>
+        </div>
+      </div>
+      
+      <div style='margin-top:10px;font-size:11px;color:#666'>
+        基于 5 个高点 + 4 个低点的线性回归拟合
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特三铁律 <span class="src">EW</span></h5><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W2 不破 W1 起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 突破 W1 终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W4 不进入 W1 价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 非最短浪</div></div>
+      </div>
+      <div class="detail-card">
+        <h5>下一浪目标 <span class="src">EW</span></h5><div class='kv'><span class='k'>A 浪目标 0.382</span><span class='v bull'>4876.06</span></div><div class='kv'><span class='k'>A 浪目标 0.5</span><span class='v bull'>4708.36</span></div><div class='kv'><span class='k'>A 浪目标 0.618</span><span class='v bull'>4540.66</span></div><div class='kv' style='border-top:1px dashed var(--border);margin-top:6px;padding-top:8px'><span class='k'>⚠ 作废价（跌破）</span><span class='v bear'>5418.94</span></div>
+      </div>
+    </div>
+      
+    <div class="tables-row">
+      <div class="detail-card">
+        <h5>近 12 转折点 <span class="src">PA</span></h5><table style='width:100%;font-size:12px'>
+<thead><tr style='color:#666'>
+  <th>#</th><th>时间</th><th>类型</th><th>结构</th><th style='text-align:right'>价格</th>
+</tr></thead>
+<tbody><tr><td style='color:#555;font-size:11px'>1</td><td style='font-size:11px'>08-20 00:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>3311.45</td></tr><tr><td style='color:#555;font-size:11px'>2</td><td style='font-size:11px'>10-20 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4381.55</td></tr><tr><td style='color:#555;font-size:11px'>3</td><td style='font-size:11px'>10-28 00:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>3886.39</td></tr><tr><td style='color:#555;font-size:11px'>4</td><td style='font-size:11px'>11-13 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4245.45</td></tr><tr><td style='color:#555;font-size:11px'>5</td><td style='font-size:11px'>11-18 00:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>3997.78</td></tr><tr><td style='color:#555;font-size:11px'>6</td><td style='font-size:11px'>12-26 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4550.22</td></tr><tr><td style='color:#555;font-size:11px'>7</td><td style='font-size:11px'>12-31 00:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4274.17</td></tr><tr><td style='color:#555;font-size:11px'>8</td><td style='font-size:11px'>01-29 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>5597.30</td></tr><tr><td style='color:#555;font-size:11px'>9</td><td style='font-size:11px'>02-06 00:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4654.62</td></tr><tr><td style='color:#555;font-size:11px'>10</td><td style='font-size:11px'>03-02 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>5418.94</td></tr><tr><td style='color:#555;font-size:11px'>11</td><td style='font-size:11px'>03-23 00:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4098.53</td></tr><tr><td style='color:#555;font-size:11px'>12</td><td style='font-size:11px'>04-17 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4889.41</td></tr></tbody></table>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特浪点序列 + 实测比率 <span class="src">EW</span></h5>
+        <table><thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead><tbody><tr><td class='mono'>⓪</td><td>11-18 00:00</td><td>低</td><td class='right mono'>3997.78</td></tr><tr><td class='mono'>①</td><td>12-26 00:00</td><td>高</td><td class='right mono'>4550.22</td></tr><tr><td class='mono'>②</td><td>12-31 00:00</td><td>低</td><td class='right mono'>4274.17</td></tr><tr><td class='mono'>③</td><td>01-29 00:00</td><td>高</td><td class='right mono'>5597.30</td></tr><tr><td class='mono'>④</td><td>02-06 00:00</td><td>低</td><td class='right mono'>4654.62</td></tr><tr><td class='mono'>⑤</td><td>03-02 00:00</td><td>高</td><td class='right mono'>5418.94</td></tr><tr><td class='mono'>Ⓐ</td><td>03-23 00:00</td><td>低</td><td class='right mono'>4098.53</td></tr><tr><td class='mono'>Ⓑ</td><td>04-17 00:00</td><td>高</td><td class='right mono'>4889.41</td></tr></tbody></table><div style='margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)'><div class='kv'><span class='k'>W2/W1<br><small style='color:var(--text-mute)'>理想 0.5~0.618</small></span><span class='v gold'>0.500</span></div><div class='kv'><span class='k'>W3/W1<br><small style='color:var(--text-mute)'>理想 1.618</small></span><span class='v gold'>2.395</span></div><div class='kv'><span class='k'>W4/W3<br><small style='color:var(--text-mute)'>理想 0.382</small></span><span class='v gold'>0.712</span></div><div class='kv'><span class='k'>W5/W1<br><small style='color:var(--text-mute)'>理想 1.0/1.618</small></span><span class='v gold'>1.384</span></div></div>
+      </div>
+    </div>
+      <div class="alerts-row"><div class="detail-card"><h5>BOS / CHoCH 事件 <span class="src">PA</span></h5>
+        <div style='padding:12px;background:#16162e;border-radius:8px;color:#888;font-size:13px'>
+          当前未触发 BOS / CHoCH 事件
+        </div></div></div>
+    </div>
+    <div class="dual-block" id="tf-H4">
+      <div class="dual-head">
+        <div class="dual-title">H4 · 双引擎对照</div>
+        <div class="tf-tags"><span class="pill bear">PA · 偏空震荡（空头特征居多）</span><span class="pill bear">EW · 看跌推动 W2/5</span></div>
+      </div>
+      
+    <div class="charts-row">
+      <div class="chart-pane">
+        <h4>价格行为引擎 <small>ZigZag · 通道 · BOS / CHoCH</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">PA 图表不可用</div>
+      </div>
+      <div class="chart-pane">
+        <h4>艾略特波浪引擎 <small>5 浪 · ABC · 斐波那契目标</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">EW 图表不可用</div>
+      </div>
+    </div>
+      
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h5>市场结构 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #ef5350'>
+      <div style='font-size:12px;color:#888;margin-bottom:4px'>市场结构判断</div>
+      <div style='font-size:18px;font-weight:bold;color:#ef5350;margin-bottom:10px'>偏空震荡（空头特征居多）</div>
+      <div style='font-size:12px;color:#aaa;margin-bottom:6px'>近 6 个 swing 点结构特征：</div>
+      <div style='display:flex;height:18px;border-radius:9px;overflow:hidden;margin-bottom:8px;background:#0a0a14'>
+        <div style='background:#26a69a;width:33.33333333333333%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>多头 2</div>
+        <div style='background:#ef5350;width:66.66666666666666%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>空头 4</div>
+      </div>
+      <div style='font-size:11px;color:#666;line-height:1.6'>
+        <span style='color:#26a69a'>HH/HL</span>=多头结构（更高高点+更高低点）&nbsp;|&nbsp;
+        <span style='color:#ef5350'>LH/LL</span>=空头结构（更低高点+更低低点）
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>趋势通道 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #26a69a'>
+      <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px'>
+        <div style='font-size:18px;font-weight:bold;color:#26a69a'>上升通道</div>
+        <div style='font-size:11px;color:#666'>平行度 53%</div>
+      </div>
+      <table style='width:100%;font-size:13px'>
+        <tr><td style='color:#888'>通道上轨</td><td style='text-align:right;color:#ef5350;font-family:monospace'>4851.9</td></tr>
+        <tr><td style='color:#888'>通道中线</td><td style='text-align:right;color:#f0c040;font-family:monospace'>4814.2</td></tr>
+        <tr><td style='color:#888'>通道下轨</td><td style='text-align:right;color:#26a69a;font-family:monospace'>4776.6</td></tr>
+        <tr><td style='color:#888'>通道宽度</td><td style='text-align:right;color:#aaa;font-family:monospace'>75.4</td></tr>
+      </table>
+      <div style='margin-top:10px'>
+        <div style='font-size:11px;color:#666;margin-bottom:4px'>当前价位置（自下到上 0%-100%）：</div>
+        <div style='position:relative;height:24px;background:#0a0a14;border-radius:6px;overflow:hidden'>
+          <div style='position:absolute;left:-216.9%;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 6px #fff'></div>
+          <div style='position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;color:#26a69a;font-size:12px;font-weight:bold'>
+            -217% · 贴近下轨（接近支撑）
+          </div>
+        </div>
+      </div>
+      
+        <div style='margin-top:10px;padding:8px 12px;background:#ef535022;border:1px solid #ef5350;border-radius:6px'>
+          <strong style='color:#ef5350'>⚠ 通道突破：</strong>
+          <span style='color:#fff;font-size:13px'>已跌破通道下轨，趋势加速或形成新结构（价位 4776.6）</span>
+        </div>
+      <div style='margin-top:10px;font-size:11px;color:#666'>
+        基于 7 个高点 + 6 个低点的线性回归拟合
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特三铁律 <span class="src">EW</span></h5><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W2 不破 W1 起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 突破 W1 终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W4 不进入 W1 价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 非最短浪</div></div>
+      </div>
+      <div class="detail-card">
+        <h5>下一浪目标 <span class="src">EW</span></h5><div class='kv'><span class='k'>W3 目标 1.0×W1</span><span class='v bear'>4625.16</span></div><div class='kv'><span class='k'>W3 目标 1.618×W1</span><span class='v bear'>4554.15</span></div><div class='kv'><span class='k'>W3 目标 2.618×W1</span><span class='v bear'>4439.25</span></div><div class='kv' style='border-top:1px dashed var(--border);margin-top:6px;padding-top:8px'><span class='k'>⚠ 作废价（升破）</span><span class='v bear'>4772.37</span></div>
+      </div>
+    </div>
+      
+    <div class="tables-row">
+      <div class="detail-card">
+        <h5>近 12 转折点 <span class="src">PA</span></h5><table style='width:100%;font-size:12px'>
+<thead><tr style='color:#666'>
+  <th>#</th><th>时间</th><th>类型</th><th>结构</th><th style='text-align:right'>价格</th>
+</tr></thead>
+<tbody><tr><td style='color:#555;font-size:11px'>1</td><td style='font-size:11px'>03-26 20:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4351.05</td></tr><tr><td style='color:#555;font-size:11px'>2</td><td style='font-size:11px'>04-02 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4800.09</td></tr><tr><td style='color:#555;font-size:11px'>3</td><td style='font-size:11px'>04-02 16:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4580.30</td></tr><tr><td style='color:#555;font-size:11px'>4</td><td style='font-size:11px'>04-08 00:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4857.50</td></tr><tr><td style='color:#555;font-size:11px'>5</td><td style='font-size:11px'>04-13 00:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4643.85</td></tr><tr><td style='color:#555;font-size:11px'>6</td><td style='font-size:11px'>04-15 04:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4871.20</td></tr><tr><td style='color:#555;font-size:11px'>7</td><td style='font-size:11px'>04-17 04:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4767.30</td></tr><tr><td style='color:#555;font-size:11px'>8</td><td style='font-size:11px'>04-17 16:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4889.41</td></tr><tr><td style='color:#555;font-size:11px'>9</td><td style='font-size:11px'>04-21 20:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4668.29</td></tr><tr><td style='color:#555;font-size:11px'>10</td><td style='font-size:11px'>04-22 08:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4772.37</td></tr><tr><td style='color:#555;font-size:11px'>11</td><td style='font-size:11px'>04-24 04:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4657.47</td></tr><tr><td style='color:#555;font-size:11px'>12</td><td style='font-size:11px'>04-24 16:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4740.06</td></tr></tbody></table>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特浪点序列 + 实测比率 <span class="src">EW</span></h5>
+        <table><thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead><tbody><tr><td class='mono'>⓪</td><td>04-22 08:00</td><td>高</td><td class='right mono'>4772.37</td></tr><tr><td class='mono'>①</td><td>04-24 04:00</td><td>低</td><td class='right mono'>4657.47</td></tr><tr><td class='mono'>②</td><td>04-24 16:00</td><td>高</td><td class='right mono'>4740.06</td></tr></tbody></table><div style='margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)'><div class='kv'><span class='k'>W2/W1<br><small style='color:var(--text-mute)'>理想 0.5~0.618</small></span><span class='v gold'>0.719</span></div></div>
+      </div>
+    </div>
+      <div class="alerts-row"><div class="detail-card"><h5>BOS / CHoCH 事件 <span class="src">PA</span></h5>
+        <div style='padding:12px;background:#16162e;border-radius:8px;border-left:4px solid #ef5350;margin-bottom:8px'>
+          <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px'>
+            <div><span style='background:#ef5350;color:#000;padding:2px 8px;border-radius:4px;font-weight:bold;font-size:12px'>BOS↓</span> 
+              <span style='color:#ef5350;font-size:14px;font-weight:bold;margin-left:6px'>向下突破前低（趋势延续）</span></div>
+            <span style='color:#aaa;font-family:monospace;font-size:13px'>4668.3</span>
+          </div>
+          <div style='font-size:12px;color:#aaa;line-height:1.6'>价格跌破 4668.3（前低），下降结构有效延续，可顺势找反弹入空</div>
+        </div></div></div>
+    </div>
+    <div class="dual-block" id="tf-H1">
+      <div class="dual-head">
+        <div class="dual-title">H1 · 双引擎对照</div>
+        <div class="tf-tags"><span class="pill bear">PA · 明确下降结构（LH+LL）</span><span class="pill bear">EW · 看跌推动 W2/5</span></div>
+      </div>
+      
+    <div class="charts-row">
+      <div class="chart-pane">
+        <h4>价格行为引擎 <small>ZigZag · 通道 · BOS / CHoCH</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">PA 图表不可用</div>
+      </div>
+      <div class="chart-pane">
+        <h4>艾略特波浪引擎 <small>5 浪 · ABC · 斐波那契目标</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">EW 图表不可用</div>
+      </div>
+    </div>
+      
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h5>市场结构 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #ef5350'>
+      <div style='font-size:12px;color:#888;margin-bottom:4px'>市场结构判断</div>
+      <div style='font-size:18px;font-weight:bold;color:#ef5350;margin-bottom:10px'>明确下降结构（LH+LL）</div>
+      <div style='font-size:12px;color:#aaa;margin-bottom:6px'>近 6 个 swing 点结构特征：</div>
+      <div style='display:flex;height:18px;border-radius:9px;overflow:hidden;margin-bottom:8px;background:#0a0a14'>
+        <div style='background:#26a69a;width:16.666666666666664%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>多头 1</div>
+        <div style='background:#ef5350;width:83.33333333333334%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>空头 5</div>
+      </div>
+      <div style='font-size:11px;color:#666;line-height:1.6'>
+        <span style='color:#26a69a'>HH/HL</span>=多头结构（更高高点+更高低点）&nbsp;|&nbsp;
+        <span style='color:#ef5350'>LH/LL</span>=空头结构（更低高点+更低低点）
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>趋势通道 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #ef5350'>
+      <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px'>
+        <div style='font-size:18px;font-weight:bold;color:#ef5350'>下降通道</div>
+        <div style='font-size:11px;color:#666'>平行度 92%</div>
+      </div>
+      <table style='width:100%;font-size:13px'>
+        <tr><td style='color:#888'>通道上轨</td><td style='text-align:right;color:#ef5350;font-family:monospace'>4695.2</td></tr>
+        <tr><td style='color:#888'>通道中线</td><td style='text-align:right;color:#f0c040;font-family:monospace'>4667.5</td></tr>
+        <tr><td style='color:#888'>通道下轨</td><td style='text-align:right;color:#26a69a;font-family:monospace'>4639.8</td></tr>
+        <tr><td style='color:#888'>通道宽度</td><td style='text-align:right;color:#aaa;font-family:monospace'>55.4</td></tr>
+      </table>
+      <div style='margin-top:10px'>
+        <div style='font-size:11px;color:#666;margin-bottom:4px'>当前价位置（自下到上 0%-100%）：</div>
+        <div style='position:relative;height:24px;background:#0a0a14;border-radius:6px;overflow:hidden'>
+          <div style='position:absolute;left:-48.1%;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 6px #fff'></div>
+          <div style='position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;color:#26a69a;font-size:12px;font-weight:bold'>
+            -48% · 贴近下轨（接近支撑）
+          </div>
+        </div>
+      </div>
+      
+        <div style='margin-top:10px;padding:8px 12px;background:#ef535022;border:1px solid #ef5350;border-radius:6px'>
+          <strong style='color:#ef5350'>⚠ 通道突破：</strong>
+          <span style='color:#fff;font-size:13px'>已跌破通道下轨，趋势加速或形成新结构（价位 4639.8）</span>
+        </div>
+      <div style='margin-top:10px;font-size:11px;color:#666'>
+        基于 11 个高点 + 11 个低点的线性回归拟合
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特三铁律 <span class="src">EW</span></h5><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W2 不破 W1 起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 突破 W1 终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W4 不进入 W1 价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 非最短浪</div></div>
+      </div>
+      <div class="detail-card">
+        <h5>下一浪目标 <span class="src">EW</span></h5><div class='kv'><span class='k'>W3 目标 1.0×W1</span><span class='v bear'>4638.14</span></div><div class='kv'><span class='k'>W3 目标 1.618×W1</span><span class='v bear'>4599.13</span></div><div class='kv'><span class='k'>W3 目标 2.618×W1</span><span class='v bear'>4536.01</span></div><div class='kv' style='border-top:1px dashed var(--border);margin-top:6px;padding-top:8px'><span class='k'>⚠ 作废价（升破）</span><span class='v bear'>4730.12</span></div>
+      </div>
+    </div>
+      
+    <div class="tables-row">
+      <div class="detail-card">
+        <h5>近 12 转折点 <span class="src">PA</span></h5><table style='width:100%;font-size:12px'>
+<thead><tr style='color:#666'>
+  <th>#</th><th>时间</th><th>类型</th><th>结构</th><th style='text-align:right'>价格</th>
+</tr></thead>
+<tbody><tr><td style='color:#555;font-size:11px'>1</td><td style='font-size:11px'>04-21 22:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4668.29</td></tr><tr><td style='color:#555;font-size:11px'>2</td><td style='font-size:11px'>04-22 10:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4772.37</td></tr><tr><td style='color:#555;font-size:11px'>3</td><td style='font-size:11px'>04-23 08:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4692.11</td></tr><tr><td style='color:#555;font-size:11px'>4</td><td style='font-size:11px'>04-23 11:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4724.86</td></tr><tr><td style='color:#555;font-size:11px'>5</td><td style='font-size:11px'>04-23 14:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4695.09</td></tr><tr><td style='color:#555;font-size:11px'>6</td><td style='font-size:11px'>04-23 18:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4741.06</td></tr><tr><td style='color:#555;font-size:11px'>7</td><td style='font-size:11px'>04-24 07:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4657.47</td></tr><tr><td style='color:#555;font-size:11px'>8</td><td style='font-size:11px'>04-24 17:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4740.06</td></tr><tr><td style='color:#555;font-size:11px'>9</td><td style='font-size:11px'>04-27 03:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4671.90</td></tr><tr><td style='color:#555;font-size:11px'>10</td><td style='font-size:11px'>04-27 07:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4730.12</td></tr><tr><td style='color:#555;font-size:11px'>11</td><td style='font-size:11px'>04-27 18:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4667.00</td></tr><tr><td style='color:#555;font-size:11px'>12</td><td style='font-size:11px'>04-28 03:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4701.26</td></tr></tbody></table>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特浪点序列 + 实测比率 <span class="src">EW</span></h5>
+        <table><thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead><tbody><tr><td class='mono'>⓪</td><td>04-27 07:00</td><td>高</td><td class='right mono'>4730.12</td></tr><tr><td class='mono'>①</td><td>04-27 18:00</td><td>低</td><td class='right mono'>4667.00</td></tr><tr><td class='mono'>②</td><td>04-28 03:00</td><td>高</td><td class='right mono'>4701.26</td></tr></tbody></table><div style='margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)'><div class='kv'><span class='k'>W2/W1<br><small style='color:var(--text-mute)'>理想 0.5~0.618</small></span><span class='v gold'>0.543</span></div></div>
+      </div>
+    </div>
+      <div class="alerts-row"><div class="detail-card"><h5>BOS / CHoCH 事件 <span class="src">PA</span></h5>
+        <div style='padding:12px;background:#16162e;border-radius:8px;border-left:4px solid #ef5350;margin-bottom:8px'>
+          <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px'>
+            <div><span style='background:#ef5350;color:#000;padding:2px 8px;border-radius:4px;font-weight:bold;font-size:12px'>BOS↓</span> 
+              <span style='color:#ef5350;font-size:14px;font-weight:bold;margin-left:6px'>向下突破前低（趋势延续）</span></div>
+            <span style='color:#aaa;font-family:monospace;font-size:13px'>4671.9</span>
+          </div>
+          <div style='font-size:12px;color:#aaa;line-height:1.6'>价格跌破 4671.9（前低），下降结构有效延续，可顺势找反弹入空</div>
+        </div></div></div>
+    </div>
+    <div class="dual-block" id="tf-M15">
+      <div class="dual-head">
+        <div class="dual-title">M15 · 双引擎对照</div>
+        <div class="tf-tags"><span class="pill bear">PA · 偏空震荡（空头特征居多）</span><span class="pill bear">EW · 看跌推动 W4/5</span></div>
+      </div>
+      
+    <div class="charts-row">
+      <div class="chart-pane">
+        <h4>价格行为引擎 <small>ZigZag · 通道 · BOS / CHoCH</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">PA 图表不可用</div>
+      </div>
+      <div class="chart-pane">
+        <h4>艾略特波浪引擎 <small>5 浪 · ABC · 斐波那契目标</small></h4>
+        <div style="color:var(--text-mute);padding:30px;text-align:center">EW 图表不可用</div>
+      </div>
+    </div>
+      
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h5>市场结构 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #ef5350'>
+      <div style='font-size:12px;color:#888;margin-bottom:4px'>市场结构判断</div>
+      <div style='font-size:18px;font-weight:bold;color:#ef5350;margin-bottom:10px'>偏空震荡（空头特征居多）</div>
+      <div style='font-size:12px;color:#aaa;margin-bottom:6px'>近 6 个 swing 点结构特征：</div>
+      <div style='display:flex;height:18px;border-radius:9px;overflow:hidden;margin-bottom:8px;background:#0a0a14'>
+        <div style='background:#26a69a;width:33.33333333333333%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>多头 2</div>
+        <div style='background:#ef5350;width:66.66666666666666%;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:bold'>空头 4</div>
+      </div>
+      <div style='font-size:11px;color:#666;line-height:1.6'>
+        <span style='color:#26a69a'>HH/HL</span>=多头结构（更高高点+更高低点）&nbsp;|&nbsp;
+        <span style='color:#ef5350'>LH/LL</span>=空头结构（更低高点+更低低点）
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>趋势通道 <span class="src">PA</span></h5>
+    <div style='padding:14px;background:#16162e;border-radius:8px;border-left:4px solid #9e9e9e'>
+      <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px'>
+        <div style='font-size:18px;font-weight:bold;color:#9e9e9e'>水平区间</div>
+        <div style='font-size:11px;color:#666'>平行度 87%</div>
+      </div>
+      <table style='width:100%;font-size:13px'>
+        <tr><td style='color:#888'>通道上轨</td><td style='text-align:right;color:#ef5350;font-family:monospace'>4677.8</td></tr>
+        <tr><td style='color:#888'>通道中线</td><td style='text-align:right;color:#f0c040;font-family:monospace'>4669.7</td></tr>
+        <tr><td style='color:#888'>通道下轨</td><td style='text-align:right;color:#26a69a;font-family:monospace'>4661.5</td></tr>
+        <tr><td style='color:#888'>通道宽度</td><td style='text-align:right;color:#aaa;font-family:monospace'>16.3</td></tr>
+      </table>
+      <div style='margin-top:10px'>
+        <div style='font-size:11px;color:#666;margin-bottom:4px'>当前价位置（自下到上 0%-100%）：</div>
+        <div style='position:relative;height:24px;background:#0a0a14;border-radius:6px;overflow:hidden'>
+          <div style='position:absolute;left:-297.6%;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 6px #fff'></div>
+          <div style='position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;color:#26a69a;font-size:12px;font-weight:bold'>
+            -298% · 贴近下轨（接近支撑）
+          </div>
+        </div>
+      </div>
+      
+        <div style='margin-top:10px;padding:8px 12px;background:#ef535022;border:1px solid #ef5350;border-radius:6px'>
+          <strong style='color:#ef5350'>⚠ 通道突破：</strong>
+          <span style='color:#fff;font-size:13px'>已跌破通道下轨，趋势加速或形成新结构（价位 4661.5）</span>
+        </div>
+      <div style='margin-top:10px;font-size:11px;color:#666'>
+        基于 14 个高点 + 13 个低点的线性回归拟合
+      </div>
+    </div>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特三铁律 <span class="src">EW</span></h5><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W2 不破 W1 起点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 突破 W1 终点</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W4 不进入 W1 价格区</div></div><div class="rule"><div class="rule-icon rule-pass">✓</div><div class="rule-text">W3 非最短浪</div></div>
+      </div>
+      <div class="detail-card">
+        <h5>下一浪目标 <span class="src">EW</span></h5><div class='kv'><span class='k'>W5 目标 = W1</span><span class='v bear'>4600.27</span></div><div class='kv'><span class='k'>W5 目标 1.618×W1</span><span class='v bear'>4578.63</span></div><div class='kv'><span class='k'>W5 目标 0.618×(W0→W3)</span><span class='v bear'>4586.88</span></div><div class='kv' style='border-top:1px dashed var(--border);margin-top:6px;padding-top:8px'><span class='k'>⚠ 作废价（升破）</span><span class='v bear'>4666.25</span></div>
+      </div>
+    </div>
+      
+    <div class="tables-row">
+      <div class="detail-card">
+        <h5>近 12 转折点 <span class="src">PA</span></h5><table style='width:100%;font-size:12px'>
+<thead><tr style='color:#666'>
+  <th>#</th><th>时间</th><th>类型</th><th>结构</th><th style='text-align:right'>价格</th>
+</tr></thead>
+<tbody><tr><td style='color:#555;font-size:11px'>1</td><td style='font-size:11px'>04-27 12:30</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4698.88</td></tr><tr><td style='color:#555;font-size:11px'>2</td><td style='font-size:11px'>04-27 13:45</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4710.72</td></tr><tr><td style='color:#555;font-size:11px'>3</td><td style='font-size:11px'>04-27 14:30</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4699.73</td></tr><tr><td style='color:#555;font-size:11px'>4</td><td style='font-size:11px'>04-27 15:15</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4712.54</td></tr><tr><td style='color:#555;font-size:11px'>5</td><td style='font-size:11px'>04-27 18:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4667.00</td></tr><tr><td style='color:#555;font-size:11px'>6</td><td style='font-size:11px'>04-27 20:30</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4686.11</td></tr><tr><td style='color:#555;font-size:11px'>7</td><td style='font-size:11px'>04-27 22:30</td><td style='color:#26a69a'>低点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4676.35</td></tr><tr><td style='color:#555;font-size:11px'>8</td><td style='font-size:11px'>04-28 03:00</td><td style='color:#ef5350'>高点</td><td><span style='background:#26a69a22;color:#26a69a;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>HH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4701.26</td></tr><tr><td style='color:#555;font-size:11px'>9</td><td style='font-size:11px'>04-28 05:00</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4666.25</td></tr><tr><td style='color:#555;font-size:11px'>10</td><td style='font-size:11px'>04-28 06:15</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4676.01</td></tr><tr><td style='color:#555;font-size:11px'>11</td><td style='font-size:11px'>04-28 09:45</td><td style='color:#26a69a'>低点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LL</span></td><td style='text-align:right;color:#26a69a;font-family:monospace'>4622.95</td></tr><tr><td style='color:#555;font-size:11px'>12</td><td style='font-size:11px'>04-28 10:30</td><td style='color:#ef5350'>高点</td><td><span style='background:#ef535022;color:#ef5350;padding:1px 7px;border-radius:3px;font-weight:bold;font-size:11px'>LH</span></td><td style='text-align:right;color:#ef5350;font-family:monospace'>4635.28</td></tr></tbody></table>
+      </div>
+      <div class="detail-card">
+        <h5>艾略特浪点序列 + 实测比率 <span class="src">EW</span></h5>
+        <table><thead><tr><th>浪</th><th>时间</th><th>类型</th><th class='right'>价格</th></tr></thead><tbody><tr><td class='mono'>⓪</td><td>04-28 03:00</td><td>高</td><td class='right mono'>4701.26</td></tr><tr><td class='mono'>①</td><td>04-28 05:00</td><td>低</td><td class='right mono'>4666.25</td></tr><tr><td class='mono'>②</td><td>04-28 06:15</td><td>高</td><td class='right mono'>4676.01</td></tr><tr><td class='mono'>③</td><td>04-28 09:45</td><td>低</td><td class='right mono'>4622.95</td></tr><tr><td class='mono'>④</td><td>04-28 10:30</td><td>高</td><td class='right mono'>4635.28</td></tr></tbody></table><div style='margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)'><div class='kv'><span class='k'>W2/W1<br><small style='color:var(--text-mute)'>理想 0.5~0.618</small></span><span class='v gold'>0.279</span></div><div class='kv'><span class='k'>W3/W1<br><small style='color:var(--text-mute)'>理想 1.618</small></span><span class='v gold'>1.516</span></div><div class='kv'><span class='k'>W4/W3<br><small style='color:var(--text-mute)'>理想 0.382</small></span><span class='v gold'>0.232</span></div></div>
+      </div>
+    </div>
+      <div class="alerts-row"><div class="detail-card"><h5>BOS / CHoCH 事件 <span class="src">PA</span></h5>
+        <div style='padding:12px;background:#16162e;border-radius:8px;border-left:4px solid #ef5350;margin-bottom:8px'>
+          <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px'>
+            <div><span style='background:#ef5350;color:#000;padding:2px 8px;border-radius:4px;font-weight:bold;font-size:12px'>BOS↓</span> 
+              <span style='color:#ef5350;font-size:14px;font-weight:bold;margin-left:6px'>向下突破前低（趋势延续）</span></div>
+            <span style='color:#aaa;font-family:monospace;font-size:13px'>4666.2</span>
+          </div>
+          <div style='font-size:12px;color:#aaa;line-height:1.6'>价格跌破 4666.2（前低），下降结构有效延续，可顺势找反弹入空</div>
+        </div></div></div>
+    </div>
+    </div>
+
+    <div class="section" id="narrative">
+      <div class="section-title">IV · 艾略特波浪综合解读</div>
+      <div class="narrative"><p>主导级别落在 <b>日线</b>，正在演化一组 <b>看涨推动浪</b>。当前阶段：<b>第 5 浪已完成（5418.94），警惕 ABC 反向调整启动</b>。已识别 5 个推动浪点，规则评分 <b>121/100</b>。</p>
+<p>关键目标位：A 浪目标 0.382 ≈ 4876.06；A 浪目标 0.5 ≈ 4708.36；A 浪目标 0.618 ≈ 4540.66。当前价 <b>4613.12</b>。</p>
+<p>风险控制：一旦价格 跌破 <b>5418.94</b>，主计数即作废，应立即停止按此计数布局并切换为反向假设。</p>
+<p>多周期共振统计：<b>3</b> 个周期识别为空头推动，<b>1</b> 个为多头，整体偏空。</p>
+<p style='color:var(--text-mute);font-size:12px'>声明：艾略特波浪存在主观性，本报告基于 ZigZag 自动识别，仅供研究参考。实战中请结合关键支撑阻力、成交量、动量背离等多重证据。</p></div>
+    </div>
+
+    <div class="footer">
+      Fusion Report · Price Action Engine + Elliott Wave Engine<br>
+      ZigZag 转折 · 市场结构 · 趋势通道 · BOS / CHoCH · 5 浪 · ABC · 三大铁律 · 斐波那契目标<br>
+      仅供研究学习，非投资建议。市场有风险，决策需谨慎。
+    </div>
+    </body></html>

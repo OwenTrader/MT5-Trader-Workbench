@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>交易锚点 v2 · XAUUSD M15 战场指挥卡</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "微软雅黑", -apple-system, sans-serif;
+    max-width: 920px;
+    margin: 30px auto;
+    padding: 20px 40px;
+    background: #f7f5f0;
+    color: #222;
+    line-height: 1.7;
+  }
+  h1 { color: #c0392b; border-bottom: 3px solid #c0392b; padding-bottom: 8px; }
+  h2 {
+    color: #fff; background: #2c3e50; padding: 8px 14px;
+    border-radius: 4px; margin-top: 36px;
+  }
+  h3 { color: #2c3e50; border-left: 5px solid #e67e22; padding-left: 10px; }
+  .meta {
+    background: #fff; padding: 12px 18px; border-left: 5px solid #16a085;
+    margin: 12px 0; border-radius: 4px;
+  }
+  .danger {
+    background: #fff5f5; border-left: 5px solid #c0392b;
+    padding: 12px 18px; margin: 12px 0; border-radius: 4px;
+  }
+  .ok {
+    background: #f0faf4; border-left: 5px solid #27ae60;
+    padding: 12px 18px; margin: 12px 0; border-radius: 4px;
+  }
+  .warn {
+    background: #fffbe6; border-left: 5px solid #f39c12;
+    padding: 12px 18px; margin: 12px 0; border-radius: 4px;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 14px 0;
+    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  th, td { border: 1px solid #ddd; padding: 9px 12px; text-align: left; }
+  th { background: #34495e; color: #fff; }
+  tr:nth-child(even) { background: #fafafa; }
+  ul { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .case {
+    display: flex; gap: 16px; margin: 16px 0;
+  }
+  .case > div {
+    flex: 1; padding: 14px 18px; border-radius: 6px;
+  }
+  .case-yes { background: #e8f8ee; border: 2px solid #27ae60; }
+  .case-no  { background: #fdecec; border: 2px solid #c0392b; }
+  .case h4 { margin-top: 0; }
+  .case-yes h4 { color: #27ae60; }
+  .case-no  h4 { color: #c0392b; }
+  code {
+    background: #2c3e50; color: #ecf0f1; padding: 2px 6px;
+    border-radius: 3px; font-size: 0.92em;
+  }
+  pre {
+    background: #2c3e50; color: #ecf0f1; padding: 16px 20px;
+    border-radius: 6px; overflow-x: auto; line-height: 1.6;
+  }
+  .checkbox { font-size: 1.1em; }
+  .big-quote {
+    font-size: 1.15em; font-weight: bold; color: #c0392b;
+    text-align: center; padding: 18px; background: #fff;
+    border: 2px dashed #c0392b; border-radius: 8px; margin: 24px 0;
+  }
+  @media print {
+    body { background: #fff; max-width: 100%; }
+    h2 { background: #333 !important; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<h1>交易锚点 v2 · XAUUSD M15 战场指挥卡</h1>
+
+<div class="meta">
+  <strong>品种：</strong>XAUUSD（伦敦金）　
+  <strong>周期：</strong>M15 入场 / H1 看势 / H4 定向<br>
+  <strong>账户：</strong>$5,000　
+  <strong>核心病灶：</strong><span style="color:#c0392b;">死在回撤里</span>　
+  <strong>设计原则：</strong>短窗 · 快收 · 强制保本 · 三层止盈
+</div>
+
+<div class="big-quote">
+"不是市场没机会，是你想做单。"<br>
+执行率 100% &gt; 一时盈亏。
+</div>
+
+<!-- ==================== 决策门 1 ==================== -->
+<h2>🚦 决策门 1：能不能做（时间表 + 硬开关）</h2>
+
+<h3>北京时间窗口（2026 黄金节奏校准版）</h3>
+<div class="warn">
+  <strong>⚠️ 重要：旧观念"欧盘出趋势"已经失效。</strong>现在黄金的节奏是：<br>
+  亚盘启动一波 → 欧盘来回收割 → 美盘前半夜推一波 → 美盘尾盘冲刺。<br>
+  <strong>欧盘是你的主要死亡区，默认不碰。</strong>
+</div>
+<table>
+  <tr><th>时段</th><th>北京时间</th><th>状态</th><th>说明</th></tr>
+  <tr><td>亚盘趋势段</td><td><strong>09:30 – 14:00</strong></td><td>✅ 可做</td><td>常有一波明确方向，跟着做单边</td></tr>
+  <tr><td><strong>欧盘震荡区</strong></td><td><strong>15:00 – 20:00</strong></td><td>❌ <strong>默认不做</strong></td><td><strong>来回扫损区，你过去主要死在这里</strong></td></tr>
+  <tr><td>美盘前半夜</td><td><strong>20:30 – 01:00</strong></td><td>✅ 首选</td><td>趋势重新启动，配合数据看</td></tr>
+  <tr><td>美盘尾盘冲刺</td><td><strong>03:00 – 05:00</strong></td><td>✅ 可做</td><td>最后一波趋势，方向常延续前段</td></tr>
+  <tr><td>美盘过渡</td><td>01:00 – 03:00</td><td>🟡 谨慎</td><td>方向不明，仅做已有趋势延续</td></tr>
+  <tr><td>凌晨/早盘</td><td>05:00 – 09:30</td><td>❌ 不做</td><td>流动性极低</td></tr>
+  <tr><td>周五夜盘</td><td>04:00 后</td><td>❌ 不做</td><td>不持仓过周末</td></tr>
+</table>
+
+<h3>数据避险（任一在 30 分钟内发布 → 立即停手）</h3>
+<ul class="checkbox">
+  <li>☐ 美国 CPI（通常周三 20:30 / 21:30）</li>
+  <li>☐ 美国非农 NFP（每月第一个周五 20:30 或 21:30）</li>
+  <li>☐ FOMC 利率决议（凌晨 02:00）+ 鲍威尔讲话</li>
+  <li>☐ PCE / PPI / 零售销售</li>
+  <li>☐ 地缘突发（战争 / 央行紧急声明）</li>
+</ul>
+
+<h3>账户与状态硬开关（任一 NO → 关电脑）</h3>
+<ul class="checkbox">
+  <li>☐ 当周累计亏损 &lt; <strong>$150（3%）</strong></li>
+  <li>☐ 当日已亏次数 &lt; <strong>2 次</strong></li>
+  <li>☐ 状态评分 ≥ 6/10（睡够、未饮酒、未争吵）</li>
+  <li>☐ 距上一笔交易 ≥ 30 分钟（防复仇下单）</li>
+</ul>
+
+<!-- ==================== 决策门 2 ==================== -->
+<h2>🎯 决策门 2：做不做（A+B+C 三层共振）</h2>
+
+<h3>A 层 · H4 定方向</h3>
+<ul class="checkbox">
+  <li>☐ H4 EMA60 与 EMA144 <strong>同向排列</strong>（多头：60 在 144 上方）</li>
+  <li>☐ H4 最近一根收盘 K 线在 EMA60 同向那一侧</li>
+</ul>
+
+<h3>B 层 · H1 找位置</h3>
+<ul class="checkbox">
+  <li>☐ H1 上能看到清晰的<strong>供需区</strong>（前波摆动高/低形成）</li>
+  <li>☐ 当前价正在<strong>第一次回踩</strong>该区（多次回踩 = 区域将破，不做）</li>
+  <li>☐ 该区距离当前价 ≤ <strong>$3</strong>（M15 操作半径）</li>
+</ul>
+
+<h3>C 层 · M15 等触发</h3>
+<ul class="checkbox">
+  <li>☐ M15 在 B 层供需区内出现明确反转 K 线：
+    <br>　多头：<strong>长下影锤子 / 看涨吞没 / 早晨之星</strong>
+    <br>　空头：<strong>长上影射击之星 / 看跌吞没 / 黄昏之星</strong></li>
+  <li>☐ 该 K 线<strong>已收盘</strong>（绝不抢未收盘信号 —— 这是你的纪律红线）</li>
+  <li>☐ 触发 K 实体 ≥ 前 5 根平均实体（弱信号不做）</li>
+</ul>
+
+<!-- ==================== 欧盘震荡陷阱专章 ==================== -->
+<h2>🪤 欧盘震荡陷阱识别（你的最大杀手）</h2>
+
+<div class="danger">
+  <strong>你过去为什么死在欧盘？</strong>因为你用做趋势的逻辑去做震荡。<br>
+  欧盘 15:00-20:00 黄金的真实节奏：<br>
+  ① 假突破 → 扫亚盘留下的趋势单 ② 反向假突破 → 扫追单 ③ 来回 4-6 次 → 你被打两次就出局。
+</div>
+
+<h3>欧盘的典型剧本（背下来）</h3>
+<ul>
+  <li><strong>剧本 A · 双向扫损</strong>：亚盘涨到 $2,420 → 欧盘冲 $2,425 假突破回落 → 跌破 $2,415 假跌破再拉起 → 收在 $2,418。两边的人都死了。</li>
+  <li><strong>剧本 B · 假趋势</strong>：欧盘开盘连续 3 根阳线像要起飞 → 你追多在 $2,422 → 突然反包 4 根大阴线 → 止损打掉 → 然后又涨回去。</li>
+  <li><strong>剧本 C · 震荡收敛</strong>：高低点逐步收窄，三角形整理 → 你左右都做都亏 → 直到 20:30 美盘开盘才真正破位。</li>
+</ul>
+
+<h3>欧盘的硬规则（任何时候都遵守）</h3>
+<ul class="checkbox">
+  <li>☐ <strong>欧盘不做趋势单。</strong>看到"突破"，那 90% 是假突破</li>
+  <li>☐ <strong>欧盘不追单。</strong>价格已经走出 $5 以上的方向，绝对不进场</li>
+  <li>☐ <strong>亚盘的持仓进入欧盘前，必须做以下二选一：</strong>
+    <br>　① 已经 +1R → 移止损到成本（让它扛震荡）
+    <br>　② 还没 +1R → <strong>欧盘开盘前先平 1/2 仓</strong>，剩下让它跑
+  </li>
+  <li>☐ <strong>欧盘新开仓 = 默认禁止。</strong>除非满足下方"欧盘豁免条件"</li>
+</ul>
+
+<h3>欧盘豁免条件（同时满足全部，才允许做欧盘）</h3>
+<ul class="checkbox">
+  <li>☐ 价格已触及 H1 明确区间的<strong>上沿或下沿</strong>（区间已成型至少 2 小时）</li>
+  <li>☐ 出现明确反转 K 线<strong>且收盘</strong>（不是触及就进，是收盘确认）</li>
+  <li>☐ 仓位<strong>降为标准的一半</strong>（即 0.5%，约 $25 风险）</li>
+  <li>☐ 止盈目标设在<strong>区间另一侧</strong>，不奢望突破</li>
+  <li>☐ <strong>+1R 直接全平不分批</strong>（震荡里不要梦想趋势盈利）</li>
+  <li>☐ 该笔单不计入"重仓机会"</li>
+</ul>
+
+<div class="ok">
+  <strong>记住：欧盘最佳策略是<u>不做</u>。</strong>第二好的策略是"高抛低吸 + 一进一出 + 减半仓"。<br>
+  绝对不要在欧盘做趋势突破——那是给你设的陷阱。
+</div>
+
+<!-- ==================== 可以做 vs 不能做 对照 ==================== -->
+<h2>✅ 可以做 ❌ 不能做（具体场景对照）</h2>
+
+<h3>场景一：黄金从 $2,400 跌到 $2,380 区域</h3>
+<div class="case">
+  <div class="case-yes">
+    <h4>✅ 可以做（多）</h4>
+    <ul>
+      <li>北京时间 <strong>21:00（美盘前半夜）</strong>或 <strong>10:30（亚盘趋势段）</strong></li>
+      <li>H4 均线多头排列，价在 EMA60 上方</li>
+      <li>H1 看到 $2,378-2,382 是前波需求区，第一次回踩</li>
+      <li>M15 在该区出现长下影锤子，已收盘</li>
+      <li>距下一个数据 &gt; 1 小时</li>
+    </ul>
+    <strong>动作：</strong>$2,383 入场多，止损 $2,378（5刀），仓位 0.10 手，目标 $2,393 / $2,403。
+  </div>
+  <div class="case-no">
+    <h4>❌ 不能做</h4>
+    <ul>
+      <li><strong>北京时间 16:00（欧盘）→ 时段否决，无论信号多漂亮</strong></li>
+      <li>或 H4 均线空头排列 → A 层否决</li>
+      <li>或 价格已在该区第三次回踩 → B 层否决</li>
+      <li>或 M15 是十字星不是锤子 → C 层否决</li>
+      <li>或 20 分钟后有 CPI → 数据否决</li>
+    </ul>
+    <strong>动作：</strong>关掉 MT4，去喝水。等美盘开盘。
+  </div>
+</div>
+
+<h3>场景二：黄金强势上涨破 $2,420 后回踩</h3>
+<div class="case">
+  <div class="case-yes">
+    <h4>✅ 可以做（多）</h4>
+    <ul>
+      <li><strong>21:00（美盘开盘后 30 分钟内）</strong></li>
+      <li>H4 H1 全部多头共振</li>
+      <li>$2,420 突破后第一次回踩 $2,418-2,420（突破回踩）</li>
+      <li>M15 大阳吞没已收盘</li>
+      <li>当周仅亏 1 次，状态良好</li>
+    </ul>
+    <strong>动作：</strong>$2,421 入场，止损 $2,416（5刀），<strong>这是重仓机会</strong> → 0.15 手（$75 风险）。
+  </div>
+  <div class="case-no">
+    <h4>❌ 不能做（欧盘假突破 / 追高）</h4>
+    <ul>
+      <li><strong>16:30（欧盘）出现"突破" → 90% 是假的</strong>，绝对不追</li>
+      <li>价格已在 $2,440，没回踩，你想追 → 不追</li>
+      <li>距离最近供需区 &gt; $5</li>
+      <li>止损要放 $10 才安全 → 仓位算下来太小</li>
+      <li>"它还会涨" —— 这是想做单，不是信号</li>
+    </ul>
+    <strong>动作：</strong><strong>不追</strong>。等美盘真突破或回踩。屏幕前刷盘超 20 分钟还没找到信号 = 危险信号。
+  </div>
+</div>
+
+<h3>场景三：浮盈 $50 之后</h3>
+<div class="case">
+  <div class="case-yes">
+    <h4>✅ 必须做（保本）</h4>
+    <ul>
+      <li>多单浮盈达到 +1R（即 $50）</li>
+      <li><strong>立即把止损上移到【入场价 +5 点】</strong></li>
+      <li>从此这一单不可能亏损</li>
+      <li>这是 v2 的核心动作，不可妥协</li>
+    </ul>
+    <strong>这一条做到 → 你 80% 的"死在回撤里"问题消失。</strong>
+  </div>
+  <div class="case-no">
+    <h4>❌ 绝对不能做</h4>
+    <ul>
+      <li>"再等等可能赚更多" → 不动止损</li>
+      <li>"先看看趋势" → 不动止损</li>
+      <li>"反正止损没碰到" → 不动止损</li>
+    </ul>
+    <strong>结果：</strong>价格回头打回起点，你又一次"死在回撤里"。这就是你过去重复的剧本。
+  </div>
+</div>
+
+<!-- ==================== 决策门 3 ==================== -->
+<h2>💰 决策门 3：仓位计算（$5000 账户专用表）</h2>
+
+<div class="warn">
+  <strong>单笔最大风险 = $50（账户 1%）</strong><br>
+  止损距离 = 入场价到供需区另一侧 + 3 点缓冲
+</div>
+
+<table>
+  <tr><th>止损距离</th><th>标准仓位（1%）</th><th>重仓位（1.5%）</th><th>说明</th></tr>
+  <tr><td>$2.0（20点）</td><td>0.25 手</td><td>0.35 手</td><td>M15 紧凑信号</td></tr>
+  <tr><td>$3.0（30点）</td><td>0.16 手</td><td>0.25 手</td><td>标准情况</td></tr>
+  <tr><td>$5.0（50点）</td><td>0.10 手</td><td>0.15 手</td><td>较宽止损</td></tr>
+  <tr><td>$8.0（80点）</td><td>0.06 手</td><td>—</td><td>不做重仓</td></tr>
+  <tr><td>&gt; $10</td><td><strong>不做</strong></td><td>—</td><td>止损过宽 = 信号不清</td></tr>
+</table>
+
+<h3>仓位档位</h3>
+<table>
+  <tr><th>档位</th><th>条件</th><th>风险</th></tr>
+  <tr><td>试探</td><td>只满足 B+C，A 层中性</td><td><strong>不做</strong></td></tr>
+  <tr><td>标准</td><td>A+B+C 三层共振</td><td>$50（1%）</td></tr>
+  <tr><td>重仓</td><td>三层共振 + 周线方向相同 + 美盘开盘 30 分钟内</td><td>$75（1.5%），<strong>每日仅 1 次</strong></td></tr>
+</table>
+
+<div class="danger">
+  ⚠️ <strong>$5000 账户不允许 2% 以上风险。</strong>一次亏 $100 你会失控，规则上禁掉。
+</div>
+
+<!-- ==================== 决策门 4 ==================== -->
+<h2>🛑 决策门 4：止损红线（任一触发立即平仓）</h2>
+<ul class="checkbox">
+  <li>☐ <strong>M15 收盘穿透止损价</strong>（不是触及 —— 防插针）</li>
+  <li>☐ <strong>持仓超过 4 小时仍未盈利</strong>（M15 时间止损硬窗口）</li>
+  <li>☐ <strong>入场理由消失</strong>：进多依据是需求区，结果该区被 M15 收盘跌破 → 立即砍，不等止损位</li>
+  <li>☐ <strong>H1 反向破位</strong>（多单时 H1 收盘跌破 EMA60）</li>
+  <li>☐ <strong>黑天鹅事件</strong>（美联储紧急 / 中东战争 / 闪崩）</li>
+</ul>
+
+<!-- ==================== 决策门 5 - 核心 ==================== -->
+<h2>🪨 决策门 5：止盈三层（专治死在回撤里）</h2>
+
+<div class="danger">
+  <strong>这是 v2 的灵魂。一定要执行。</strong>
+</div>
+
+<pre>
+入场后浮盈进度        必须执行的动作
+─────────────────────────────────────────────────
++0.5R                什么都不做，让信号走
++1.0R   ★关键★     立刻把止损移到【成本+5点】
+                     从此这一单不可能亏损
++1.5R                平 1/2 仓，剩余继续持有
++2.0R                再平 1/4 仓，止损上移到 +1R 位置
++2.5R 以上           剩余 1/4 用 M15 EMA20 追踪
+                     M15 收盘跌破 EMA20 → 平掉
+</pre>
+
+<div class="ok">
+  <strong>R = 单笔风险（$50）。+1R 即浮盈 $50 时，必须移止损到成本。</strong><br>
+  这一条做到 → 你 80% 的"死在回撤里"问题消失。
+</div>
+
+<h3>强制止盈触发（任一满足，全平不留）</h3>
+<ul class="checkbox">
+  <li>☐ 触及 H1 上方/下方下一个供需区</li>
+  <li>☐ 触及当日 ATR 的 1.5 倍（黄金 M15 大概 $4–6）</li>
+  <li>☐ 出现反向 A+B+C 雏形</li>
+  <li>☐ <strong>持仓盈利后超 1 小时无新高/新低</strong>（盈利停滞 = 该收）</li>
+</ul>
+
+<!-- ==================== 决策门 6 ==================== -->
+<h2>🪑 决策门 6：必须等（不做就是赚）</h2>
+<p>出现以下情况，<strong>关掉 MT4 窗口去做别的事</strong>：</p>
+<ul class="checkbox">
+  <li>☐ 价格在 M15 EMA60 / EMA144 之间窄幅震荡</li>
+  <li>☐ 当前价 1×ATR 内<strong>没有任何供需区</strong></li>
+  <li>☐ H4 与 H1 方向冲突</li>
+  <li>☐ 已连续 3 根 M15 K 线为十字星/小实体</li>
+  <li>☐ <strong>你正在屏幕前刷盘超过 20 分钟还没找到信号</strong>
+    <br>　→ 这是危险信号：<span style="color:#c0392b;">不是市场没机会，是你想做单。</span></li>
+</ul>
+
+<!-- ==================== 临盘口诀 ==================== -->
+<h2>📋 临盘 30 秒口诀（贴屏幕用）</h2>
+<pre>
+1. 时段对吗？        ── <strong>不是欧盘 15-20 点</strong>？是亚盘趋势段或美盘？
+2. H4 顺吗？         ── 均线排列对不对？
+3. H1 在区吗？       ── 供需位首次回踩？
+4. M15 收了吗？      ── K 线已收盘且形态清晰？
+5. 止损算了吗？      ── 多少点？多少手？
+6. 我冷静吗？        ── 是信号让我做，还是我想做？
+</pre>
+<div class="big-quote">
+第 6 条不过关 → 关闭终端，去散步 30 分钟。
+</div>
+
+<!-- ==================== 周复盘 ==================== -->
+<h2>🩺 每周复盘 3 问（周日晚）</h2>
+<ol>
+  <li>这周哪几单<strong>违反了哪一条</strong>规则？</li>
+  <li>违反了还赚的，是<strong>侥幸</strong>；遵守了还亏的，是<strong>正常</strong>。</li>
+  <li>下周要把哪一条规则<strong>写进开盘前自检</strong>？</li>
+</ol>
+
+<h2>🎯 下周硬指标（不追求赚钱，追求执行率）</h2>
+<table>
+  <tr><th>指标</th><th>目标</th></tr>
+  <tr><td>单周交易笔数</td><td>≤ 8 笔</td></tr>
+  <tr><td>信号符合 A+B+C 的占比</td><td>≥ 90%</td></tr>
+  <tr><td>浮盈到 +1R 后移止损到成本的执行率</td><td><strong>100%</strong></td></tr>
+  <tr><td>单日亏损达 2 次后立即停手的执行率</td><td><strong>100%</strong></td></tr>
+</table>
+<div class="ok">
+  <strong>达到以上 4 条 → 这周就是成功的，不管最终盈亏。</strong><br>
+  执行率上去了，盈利是结果不是目标。
+</div>
+
+<!-- ==================== 配置锁定 ==================== -->
+<h2>🔧 个人配置（已锁定）</h2>
+<table>
+  <tr><th>项目</th><th>设定</th></tr>
+  <tr><td>品种</td><td>XAUUSD</td></tr>
+  <tr><td>周期</td><td>M15 入场 / H1 H4 看势</td></tr>
+  <tr><td>账户</td><td>$5,000</td></tr>
+  <tr><td>单笔风险</td><td>$50（1%）</td></tr>
+  <tr><td>重仓风险</td><td>$75（1.5%），每日 1 次（仅美盘）</td></tr>
+  <tr><td>欧盘新开仓</td><td><strong>默认禁止</strong>，豁免条件下减半仓</td></tr>
+  <tr><td>单日止损次数</td><td>2 次</td></tr>
+  <tr><td>单周止损</td><td>$150（3%）</td></tr>
+  <tr><td>时间止损</td><td>4 小时</td></tr>
+  <tr><td>强制保本</td><td>+1R</td></tr>
+  <tr><td>三层止盈</td><td>+1.5R / +2R / EMA20 追踪</td></tr>
+</table>
+
+<p style="text-align:center; color:#888; margin-top:40px;">
+v2 · 2026-04-26<br>
+跑满 5 个交易日后统计违规率最高那条 —— 要么改规则，要么改自己。
+</p>
+
+</body>
+</html>
