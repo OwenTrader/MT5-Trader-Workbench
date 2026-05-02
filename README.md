@@ -94,7 +94,7 @@ The project also includes a Python backend in `python_service/`. The Electron ma
 - `npm run build`: build the application
 - `npm run build:python`: rebuild `python_service/dist/mt5_service/mt5_service.exe` with `python -m PyInstaller`
 - `npm run verify:packaging`: verify the backend directory, `mt5_service.exe`, bundled `_internal` runtime files, and the Electron resource path before Windows packaging
-- `npm run package:win`: rebuild Electron, rebuild the Python backend, verify packaging inputs, auto-increment the local build number, then create a Windows installer like `MT5 Trader Workbench Setup 1.0.0.1.exe`
+- `npm run package:win`: rebuild Electron, rebuild the Python backend, verify packaging inputs, auto-increment the local build number, then create a Windows installer like `MT5 Trader Workbench Setup 1.0.0.1.exe`. The packaging script uses a repo-local `electron-builder` cache under `.cache/electron-builder`, and pre-seeds `winCodeSign` and `nsis` from `C:\Users\Administrator\AppData\Local\electron-builder\Cache` when available so packaging tools are reused locally instead of being downloaded again.
 - `npm run test:frontend`: run frontend tests
 - `npm run test:electron`: run Electron smoke tests
 - `npm run test`: run all configured tests

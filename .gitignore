@@ -21,3 +21,4 @@ storage/settings.local.json
 /build/
 test-results/
 .build-version.json
+.cache/
