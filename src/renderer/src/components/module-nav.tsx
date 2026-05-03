@@ -48,7 +48,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
                       title={item.label}
                       isActive={activeModule === item.id}
                       onClick={() => onModuleChange(item.id)}
-                      className="h-10 min-h-10 gap-3 px-3 transition-[width] group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!overflow-hidden group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:[&>span]:hidden [&>svg]:size-5"
+                      className="h-10 min-h-10 gap-3 px-3 transition-[width] group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!overflow-hidden group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:[&>span]:hidden [&>svg]:size-5"
                     >
                       <Icon data-testid={`sidebar-icon-${item.id}`} className="size-5 shrink-0" />
                       <span>{item.label}</span>
