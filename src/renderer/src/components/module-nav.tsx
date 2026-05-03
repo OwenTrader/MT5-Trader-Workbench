@@ -32,11 +32,11 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
   ]
 
   return (
-    <Sidebar collapsible="icon" aria-label="Main navigation" className="border-r">
+    <Sidebar collapsible="icon" className="border-r">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
+            <SidebarMenu>
               {navItems.map((item) => {
                 const Icon = item.icon
 
@@ -44,13 +44,14 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       type="button"
+                      size="lg"
+                      className="gap-3 px-3 text-base group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!p-[14px] [&>svg]:size-5"
                       tooltip={item.label}
                       title={item.label}
                       isActive={activeModule === item.id}
                       onClick={() => onModuleChange(item.id)}
-                      className="h-10 min-h-10 gap-3 px-3 transition-[width] group-data-[collapsible=icon]:!mx-auto group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!overflow-hidden group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:[&>span]:hidden [&>svg]:size-5"
                     >
-                      <Icon data-testid={`sidebar-icon-${item.id}`} className="size-5 shrink-0" />
+                      <Icon data-testid={`sidebar-icon-${item.id}`} />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

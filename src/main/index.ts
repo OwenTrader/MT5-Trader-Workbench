@@ -362,6 +362,7 @@ if (!isSingleInstance) {
     mainWindow = new BrowserWindow({
       width: 1440,
       height: 900,
+      minHeight: 700,
       icon: getAppIconPath(),
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),

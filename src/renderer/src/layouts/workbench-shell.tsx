@@ -14,7 +14,6 @@ interface WorkbenchShellProps {
 
 export function WorkbenchShell({ activeModule, onModuleChange, children }: WorkbenchShellProps) {
   const { t, locale } = useI18n()
-  const [sidebarOpen, setSidebarOpen] = React.useState(false)
 
   const handleOpenUserGuide = async () => {
     try {
@@ -26,14 +25,14 @@ export function WorkbenchShell({ activeModule, onModuleChange, children }: Workb
   }
 
   return (
-    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+    <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden bg-background">
         <ModuleNav activeModule={activeModule} onModuleChange={onModuleChange} />
 
         <SidebarInset className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background/50 px-6 backdrop-blur-md">
             <div className="flex min-w-0 items-center gap-3">
-              <SidebarTrigger aria-label="Toggle main navigation" />
+              <SidebarTrigger />
               <h2 className="truncate text-lg font-semibold tracking-tight">{t('app.title')}</h2>
             </div>
             <Button variant="outline" size="sm" onClick={() => void handleOpenUserGuide()} title={t('help.userGuideHint')}>
