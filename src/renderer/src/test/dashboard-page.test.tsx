@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { App } from '@/App'
 import { I18nProvider } from '@/i18n'
 import { useSettingsStore } from '@/stores/settings-store'
@@ -82,5 +83,38 @@ describe('Dashboard Page', () => {
     render(<TestRoot />)
 
     expect(await screen.findByText('Dashboard')).toBeInTheDocument()
+  })
+
+  it('renders shadcn sidebar navigation labels after expanding the menu', async () => {
+    const user = userEvent.setup()
+    render(<TestRoot />)
+
+    const trigger = await screen.findByRole('button', { name: /toggle sidebar/i })
+    await user.click(trigger)
+
+    const nav = screen.getByLabelText('Main navigation')
+    expect(await within(nav).findByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
+    expect(await within(nav).findByRole('button', { name: 'Technical Analysis' })).toBeInTheDocument()
+    expect(await within(nav).findByRole('button', { name: 'Settings' })).toBeInTheDocument()
+  })
+
+  it('switches modules from the shadcn sidebar menu', async () => {
+    const user = userEvent.setup()
+    render(<TestRoot />)
+
+    const trigger = await screen.findByRole('button', { name: /toggle sidebar/i })
+    await user.click(trigger)
+
+    const nav = screen.getByLabelText('Main navigation')
+    await user.click(await within(nav).findByRole('button', { name: 'Technical Analysis' }))
+
+    expect(await screen.findByText('Generate Technical Analysis')).toBeInTheDocument()
+  })
+
+  it('uses desktop-sized sidebar icons rather than tiny web sidebar icons', async () => {
+    render(<TestRoot />)
+
+    const dashboardIcon = await screen.findByTestId('sidebar-icon-dashboard')
+    expect(dashboardIcon).toHaveClass('size-5')
   })
 })
