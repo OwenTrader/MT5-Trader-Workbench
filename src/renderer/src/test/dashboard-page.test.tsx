@@ -82,14 +82,14 @@ describe('Dashboard Page', () => {
   it('renders dashboard heading in English after settings load', async () => {
     render(<TestRoot />)
 
-    expect(await screen.findByText('Dashboard')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
   it('renders shadcn sidebar navigation labels after expanding the menu', async () => {
     const user = userEvent.setup()
     render(<TestRoot />)
 
-    const trigger = await screen.findByRole('button', { name: /toggle sidebar/i })
+    const trigger = await screen.findByRole('button', { name: /toggle main navigation/i })
     await user.click(trigger)
 
     const nav = screen.getByLabelText('Main navigation')
@@ -102,7 +102,7 @@ describe('Dashboard Page', () => {
     const user = userEvent.setup()
     render(<TestRoot />)
 
-    const trigger = await screen.findByRole('button', { name: /toggle sidebar/i })
+    const trigger = await screen.findByRole('button', { name: /toggle main navigation/i })
     await user.click(trigger)
 
     const nav = screen.getByLabelText('Main navigation')

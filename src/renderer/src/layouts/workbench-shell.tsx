@@ -3,6 +3,7 @@ import { BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { ModuleNav } from '@/components/module-nav'
 import { Button } from '@/components/ui/button'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { toast } from 'sonner'
 
 interface WorkbenchShellProps {
@@ -13,6 +14,7 @@ interface WorkbenchShellProps {
 
 export function WorkbenchShell({ activeModule, onModuleChange, children }: WorkbenchShellProps) {
   const { t, locale } = useI18n()
+  const [sidebarOpen, setSidebarOpen] = React.useState(false)
 
   const handleOpenUserGuide = async () => {
     try {
@@ -24,24 +26,27 @@ export function WorkbenchShell({ activeModule, onModuleChange, children }: Workb
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar Navigation */}
-      <ModuleNav activeModule={activeModule} onModuleChange={onModuleChange} />
-      
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 border-b flex items-center justify-between px-6 bg-background/50 backdrop-blur-md z-10 shrink-0">
-            <h2 className="font-semibold text-lg tracking-tight">{t('app.title')}</h2>
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+      <div className="flex h-screen w-full overflow-hidden bg-background">
+        <ModuleNav activeModule={activeModule} onModuleChange={onModuleChange} />
+
+        <SidebarInset className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background/50 px-6 backdrop-blur-md">
+            <div className="flex min-w-0 items-center gap-3">
+              <SidebarTrigger aria-label="Toggle main navigation" />
+              <h2 className="truncate text-lg font-semibold tracking-tight">{t('app.title')}</h2>
+            </div>
             <Button variant="outline" size="sm" onClick={() => void handleOpenUserGuide()} title={t('help.userGuideHint')}>
               <BookOpen className="mr-2 h-4 w-4" />
               {t('help.userGuide')}
             </Button>
           </header>
-        
-        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden relative">
-          {children}
-        </main>
+
+          <main className="relative flex-1 overflow-y-auto overflow-x-hidden p-6">
+            {children}
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }
