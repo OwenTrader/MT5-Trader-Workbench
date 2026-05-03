@@ -1,6 +1,15 @@
 import { LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n'
-import { cn } from '@/lib/utils'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 
 interface ModuleNavProps {
   activeModule: string
@@ -23,25 +32,35 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
   ]
 
   return (
-    <nav className="w-16 flex flex-col items-center py-4 bg-muted/30 border-r gap-4">
-      {navItems.map((item) => {
-        const Icon = item.icon
-        return (
-          <button
-            key={item.id}
-            onClick={() => onModuleChange(item.id)}
-            className={cn(
-              "p-3 rounded-lg transition-colors",
-              activeModule === item.id 
-                ? "bg-primary text-primary-foreground shadow-lg" 
-                : "text-muted-foreground hover:bg-muted"
-            )}
-            title={item.label}
-          >
-            <Icon className="w-5 h-5" />
-          </button>
-        )
-      })}
-    </nav>
+    <Sidebar collapsible="icon" aria-label="Main navigation" className="border-r">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => {
+                const Icon = item.icon
+
+                return (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      type="button"
+                      tooltip={item.label}
+                      title={item.label}
+                      isActive={activeModule === item.id}
+                      onClick={() => onModuleChange(item.id)}
+                      className="h-11 gap-3 [&>svg]:size-5"
+                    >
+                      <Icon data-testid={`sidebar-icon-${item.id}`} className="size-5 shrink-0" />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarRail />
+    </Sidebar>
   )
 }
