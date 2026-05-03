@@ -1,21 +1,24 @@
 import React, { useEffect } from 'react'
 import { useI18n } from '@/i18n'
 import { useDashboardStore } from '@/stores/dashboard-store'
+import { useOrderStore } from '@/stores/order-store'
 import { useSettingsStore } from '@/stores/settings-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/page-header'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard } from 'lucide-react'
+import { DollarSign, LayoutDashboard, TrendingDown, TrendingUp } from 'lucide-react'
 
 export function DashboardPage() {
   const { t } = useI18n()
   const { status, account, startPolling, stopPolling, fetchStatus } = useDashboardStore()
+  const { overview, fetchOverview } = useOrderStore()
   const { settings, fetchSettings, error } = useSettingsStore()
   const [isOverlayVisible, setIsOverlayVisible] = React.useState(false)
 
   useEffect(() => {
     void fetchSettings(t('dashboard.errors.backendUnavailable'))
+    void fetchOverview()
     
     let removeVisibilityListener: (() => void) | undefined
     let removeSettingsListener: (() => void) | undefined
@@ -47,7 +50,7 @@ export function DashboardPage() {
       removeSettingsListener?.()
       removeVisibilityListener?.()
     }
-  }, [fetchSettings, t])
+  }, [fetchSettings, fetchOverview, t])
 
   useEffect(() => {
     if (error) {
@@ -87,9 +90,9 @@ export function DashboardPage() {
     <div className="space-y-6">
       <PageHeader title={t('dashboard.title')} icon={LayoutDashboard} />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="group hover:border-primary/50 transition-colors">
-          <CardContent className="pt-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card className="h-full">
+          <CardContent className="flex h-full flex-col justify-center pt-6">
             <div className="text-sm font-medium text-muted-foreground mb-1">{t('dashboard.cards.mt5Status')}</div>
             <div className={cn("text-2xl font-bold", 
               status.is_connected ? "text-green-500" : (status.is_running ? "text-yellow-500" : "text-muted-foreground")
@@ -101,8 +104,8 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="group hover:border-primary/50 transition-colors">
-          <CardContent className="pt-6">
+        <Card className="h-full">
+          <CardContent className="flex h-full flex-col justify-center pt-6">
             <div className="text-sm font-medium text-muted-foreground mb-1">{t('dashboard.cards.balance')}</div>
             <div className="text-2xl font-bold">
               ${account?.balance?.toFixed(2) || '0.00'}
@@ -110,8 +113,8 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="group hover:border-primary/50 transition-colors">
-          <CardContent className="pt-6">
+        <Card className="h-full">
+          <CardContent className="flex h-full flex-col justify-center pt-6">
             <div className="text-sm font-medium text-muted-foreground mb-1">{t('dashboard.cards.equityProfit')}</div>
             <div className={cn("text-2xl font-bold", (account?.profit || 0) >= 0 ? "text-green-500" : "text-red-500")}>
               ${account?.equity?.toFixed(2) || '0.00'} ({(account?.profit || 0) >= 0 ? '+' : ''}{account?.profit?.toFixed(2) || '0.00'})
@@ -119,14 +122,12 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="group hover:border-primary/50 transition-colors">
-          <CardContent className="pt-6">
-            <div className="text-sm font-medium text-muted-foreground mb-1">{t('dashboard.cards.marginLevel')}</div>
-            <div className="text-2xl font-bold font-mono">
-              {account?.margin_level ? `${account.margin_level.toFixed(2)}%` : '--'}
-            </div>
-          </CardContent>
-        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <ProfitCard title={t('orderCenter.today')} value={overview.today} icon={<DollarSign />} />
+        <ProfitCard title={t('orderCenter.week')} value={overview.week} icon={<TrendingUp />} />
+        <ProfitCard title={t('orderCenter.month')} value={overview.month} icon={<TrendingDown />} />
       </div>
 
       <div className="flex gap-4">
@@ -139,5 +140,29 @@ export function DashboardPage() {
         </Button>
       </div>
     </div>
+  )
+}
+
+interface ProfitCardProps {
+  title: string
+  value: number
+  icon: React.ReactNode
+}
+
+function ProfitCard({ title, value, icon }: ProfitCardProps) {
+  const displayValue = Number.isFinite(value) ? value : 0
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <div className="text-muted-foreground">{icon}</div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
+          {displayValue > 0 ? '+' : ''}{displayValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

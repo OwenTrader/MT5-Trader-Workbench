@@ -33,12 +33,14 @@
 - In development, settings come from `storage/settings.local.json` if it exists; otherwise the app falls back to `storage/settings.default.json`.
 - In packaged builds, Electron copies `storage/settings.default.json` into the user data directory as `storage/settings.json` on first run.
 - The backend receives settings paths through `SETTINGS_FILE` and `DEFAULT_SETTINGS_FILE` environment variables from `src/main/python-service.ts`. Keep Electron and backend settings-path behavior aligned when changing config loading.
+- `storage/alerts.json` and `storage/overlay_config.json` are runtime data/config files used by backend features. Treat edits to these files as app-state changes unless the task explicitly targets seeded storage data.
 
 ## Packaging
 
 - Use only `python_service/mt5_service.spec` for backend packaging. `README.md` explicitly marks the root-level spec as deprecated.
 - `npm run package:win` already enforces the required order: `build` -> `build:python` -> `verify:packaging` -> `scripts/package-win.cjs`.
 - `npm run verify:packaging` is not optional busywork: it verifies the packaged backend directory, `mt5_service.exe`, bundled `_internal` runtime files, required awakening scripts, help files, and `package.json` `extraResources` paths.
+- Windows packaging uses a repo-local `electron-builder` cache under `.cache/electron-builder` and may reuse local `winCodeSign`/`nsis` tools from `C:\Users\Administrator\AppData\Local\electron-builder\Cache`.
 - Windows installer build numbers are tracked in `.build-version.json`, which is generated locally and ignored by git.
 
 ## Existing Test Coverage Gaps

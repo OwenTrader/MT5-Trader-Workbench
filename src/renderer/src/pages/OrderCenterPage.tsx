@@ -65,21 +65,18 @@ export const OrderCenterPage: React.FC = () => {
                   title={t('orderCenter.today')} 
                   value={overview.today} 
                   icon={<DollarSign className="w-4 h-4" />} 
-                  sub={t('orderCenter.todaySub')}
                   loading={isOverviewLoading}
                 />
                 <StatCard 
                   title={t('orderCenter.week')} 
                   value={overview.week} 
                   icon={<TrendingUp className="w-4 h-4" />} 
-                  sub={t('orderCenter.weekSub')}
                   loading={isOverviewLoading}
                 />
                 <StatCard 
                   title={t('orderCenter.month')} 
                   value={overview.month} 
                   icon={<TrendingDown className="w-4 h-4" />} 
-                  sub={t('orderCenter.monthSub')}
                   loading={isOverviewLoading}
                 />
               </div>
@@ -192,11 +189,10 @@ interface StatCardProps {
   title: string
   value: number
   icon: React.ReactNode
-  sub: string
   loading?: boolean
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, sub, loading }) => (
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, loading }) => (
   <Card className="overflow-hidden relative group">
     <CardContent className="p-6">
       <div className="flex justify-between items-start">
@@ -212,7 +208,6 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, sub, loading })
               {value > 0 ? '+' : ''}{value.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </h3>
           )}
-          <p className="text-[10px] text-muted-foreground mt-2 opacity-60">{sub}</p>
         </div>
         <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
           {icon}

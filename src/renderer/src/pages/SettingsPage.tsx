@@ -296,10 +296,11 @@ export const SettingsPage: React.FC = () => {
       <PageHeader title={t('settings.title')} icon={Settings} />
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full max-w-sm grid-cols-3">
+        <TabsList className="grid w-full max-w-md grid-cols-4">
           <TabsTrigger value="general">{t('settings.tabs.general')}</TabsTrigger>
           <TabsTrigger value="sound">{t('settings.tabs.sound')}</TabsTrigger>
           <TabsTrigger value="bot">{t('settings.tabs.bot')}</TabsTrigger>
+          <TabsTrigger value="about">{t('settings.tabs.about')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="general" className="space-y-6 pt-4">
@@ -785,6 +786,24 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
+          </div>
+        </TabsContent>
+
+        <TabsContent value="about" className="pt-4 space-y-6">
+          <div className="max-w-2xl rounded-xl border bg-card p-6 shadow-sm">
+            <div className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                {t('settings.about.eyebrow')}
+              </p>
+              <h3 className="text-2xl font-semibold tracking-tight">{t('settings.about.product')}</h3>
+              <p className="text-sm text-muted-foreground">{t('settings.about.description')}</p>
+            </div>
+
+            <div className="mt-6 rounded-lg border bg-muted/30 p-4">
+              <p className="text-sm font-medium">{t('settings.about.copyrightTitle')}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t('settings.about.copyright')}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t('settings.about.notice')}</p>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

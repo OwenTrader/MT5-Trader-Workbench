@@ -30,6 +30,7 @@ export const messages = {
         general: '通用',
         sound: '音效',
         bot: 'Bot预警',
+        about: '关于',
       },
       language: {
         label: '界面语言',
@@ -105,6 +106,14 @@ export const messages = {
         sendTest: '发送测试',
         testFailed: '发送失败，请检查配置或后端服务',
         networkError: '网络错误',
+      },
+      about: {
+        eyebrow: '关于本软件',
+        product: 'MT5 Trader Workbench',
+        description: '面向 Windows 的 MT5 桌面交易辅助工作台。',
+        copyrightTitle: '版权信息',
+        copyright: 'Author telegram owen600',
+        notice: '保留所有权利。未经授权，不得复制、分发或用于未获许可的商业用途。',
       },
       status: {
         mt5PathRequired: '请先填写 MT5 路径',
@@ -348,6 +357,7 @@ export const messages = {
         general: 'General',
         sound: 'Sound',
         bot: 'Bot Alerts',
+        about: 'About',
       },
       language: {
         label: 'Interface Language',
@@ -423,6 +433,14 @@ export const messages = {
         sendTest: 'Send Test',
         testFailed: 'Send failed. Please check configuration or backend service.',
         networkError: 'Network error',
+      },
+      about: {
+        eyebrow: 'About this app',
+        product: 'MT5 Trader Workbench',
+        description: 'A Windows-focused MT5 desktop trading assistant workbench.',
+        copyrightTitle: 'Copyright',
+        copyright: 'Author telegram owen600',
+        notice: 'All rights reserved. Unauthorized copying, distribution, or unlicensed commercial use is prohibited.',
       },
       status: {
         mt5PathRequired: 'Please enter the MT5 path first',
