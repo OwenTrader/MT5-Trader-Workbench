@@ -36,7 +36,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon
 
@@ -48,7 +48,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
                       title={item.label}
                       isActive={activeModule === item.id}
                       onClick={() => onModuleChange(item.id)}
-                      className="h-11 gap-3 [&>svg]:size-5"
+                      className="h-10 min-h-10 gap-3 px-3 transition-[width] group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-10 group-data-[collapsible=icon]:!p-0 [&>svg]:size-5"
                     >
                       <Icon data-testid={`sidebar-icon-${item.id}`} className="size-5 shrink-0" />
                       <span>{item.label}</span>
