@@ -99,6 +99,12 @@ The project also includes a Python backend in `python_service/`. The Electron ma
 - `npm run test:electron`: run Electron smoke tests
 - `npm run test`: run all configured tests
 
+Run Python backend tests directly with:
+
+```bash
+pytest tests/python
+```
+
 Use only `python_service/mt5_service.spec` for backend packaging. Do not build from the deprecated root `mt5_service.spec`.
 The local packaging counter is stored in `.build-version.json` and is ignored by git.
 

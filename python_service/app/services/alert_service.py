@@ -3,6 +3,13 @@ from python_service.app.services.indicator_service import get_indicator_value
 
 # ... (existing evaluate_alerts and evaluate_volatility)
 
+def _append_comment(message: str, comment: str) -> str:
+    trimmed_comment = comment.strip()
+    if not trimmed_comment:
+        return message
+
+    return f"{message}\n备注: {trimmed_comment}"
+
 def evaluate_indicator_alerts(alerts: list[IndicatorAlert]) -> tuple[list[IndicatorAlert], list[str]]:
     triggered = []
     messages = []
@@ -41,11 +48,11 @@ def evaluate_alerts(alerts: list[PriceAlert], prices: dict[str, float]) -> tuple
         if alert.condition == 'above' and current_price >= alert.price:
             alert.is_triggered = True
             triggered.append(alert)
-            messages.append(f"{alert.symbol} reached {current_price} (Target: >= {alert.price})")
+            messages.append(_append_comment(f"{alert.symbol} reached {current_price} (Target: >= {alert.price})", alert.comment))
         elif alert.condition == 'below' and current_price <= alert.price:
             alert.is_triggered = True
             triggered.append(alert)
-            messages.append(f"{alert.symbol} reached {current_price} (Target: <= {alert.price})")
+            messages.append(_append_comment(f"{alert.symbol} reached {current_price} (Target: <= {alert.price})", alert.comment))
             
     return triggered, messages
 

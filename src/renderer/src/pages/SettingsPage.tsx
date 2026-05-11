@@ -34,6 +34,7 @@ export const SettingsPage: React.FC = () => {
   const { theme, setTheme } = useTheme()
   const { settings, fetchSettings, updateSettings, isLoading } = useSettingsStore()
   const [localSettings, setLocalSettings] = useState(settings)
+  const [overlaySymbolsText, setOverlaySymbolsText] = useState((settings.overlay_symbols || []).join(', '))
   const [isVerifying, setIsVerifying] = useState(false)
   const [verifyStatus, setVerifyStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [botDialog, setBotDialog] = useState<{ open: boolean; title: string; message: string }>({
@@ -82,13 +83,17 @@ export const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     setLocalSettings(settings)
+    setOverlaySymbolsText((settings.overlay_symbols || []).join(', '))
     if (settings.theme) {
       setTheme(settings.theme)
     }
   }, [settings])
 
   const handleSave = () => {
-    updateSettings(localSettings)
+    updateSettings({
+      ...localSettings,
+      overlay_symbols: overlaySymbolsText.split(',').map((symbol) => symbol.trim()).filter(Boolean),
+    })
   }
 
   const handleBotSave = async (settingsPatch: Partial<typeof localSettings>) => {
@@ -376,11 +381,8 @@ export const SettingsPage: React.FC = () => {
               <Label htmlFor="overlay-symbols">{t('settings.general.overlaySymbolsLabel')}</Label>
               <Input 
                 id="overlay-symbols" 
-                value={(localSettings.overlay_symbols || []).join(', ')} 
-                onChange={(e) => setLocalSettings({ 
-                  ...localSettings, 
-                  overlay_symbols: e.target.value.split(',').map(s => s.trim()).filter(Boolean) 
-                })}
+                value={overlaySymbolsText}
+                onChange={(e) => setOverlaySymbolsText(e.target.value)}
                 placeholder={t('settings.general.overlaySymbolsPlaceholder')}
               />
             </div>

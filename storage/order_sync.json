@@ -1,0 +1,11 @@
+{
+  "enabled": false,
+  "poll_interval_seconds": 1.0,
+  "block_high_frequency_orders": false,
+  "high_frequency_window_seconds": 5.0,
+  "credentials": [],
+  "mappings": [],
+  "synced_orders": [],
+  "last_error": null,
+  "last_checked_at": "2026-05-11T02:15:24.546812+00:00"
+}

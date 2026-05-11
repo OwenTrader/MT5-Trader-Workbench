@@ -4,6 +4,7 @@
   "description": "Electron MT5 Trader Workbench",
   "main": "out/main/index.js",
   "author": "Antigravity",
+  "developerContact": "Telegram: owen600",
   "scripts": {
     "dev:renderer": "vite",
     "dev:electron": "electron .",
@@ -12,8 +13,10 @@
     "build:electron": "electron-vite build",
     "build": "electron-vite build",
     "build:python": "python -m PyInstaller --noconfirm \"python_service/mt5_service.spec\" --distpath \"python_service/dist\" --workpath \"python_service/build\"",
+    "build:python:debug": "pwsh -NoProfile -Command \"$env:MT5_SERVICE_CONSOLE='1'; python -m PyInstaller --noconfirm 'python_service/mt5_service.spec' --distpath 'python_service/dist' --workpath 'python_service/build'\"",
     "verify:packaging": "pwsh -File scripts/verify-packaging.ps1",
     "package:win": "npm run build && npm run build:python && npm run verify:packaging && node scripts/package-win.cjs",
+    "package:win:debug": "npm run build && npm run build:python:debug && npm run verify:packaging && node scripts/package-win.cjs --debug",
     "test:frontend": "vitest run",
     "test:electron": "playwright test tests/e2e/app-launch.spec.ts",
     "test": "npm run test:frontend && npm run test:electron"

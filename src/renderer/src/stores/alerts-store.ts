@@ -7,6 +7,7 @@ export interface PriceAlert {
   condition: 'above' | 'below'
   is_active: boolean
   is_triggered: boolean
+  comment: string
 }
 
 export interface VolatilityAlert {

@@ -46,7 +46,8 @@ def load_alerts():
             new_alerts = []
             for item in data:
                 alert_type = item.pop('type', None)
-                item['is_active'] = False
+                if alert_type != 'order-broadcast':
+                    item['is_active'] = False
                 item['is_triggered'] = False
                 
                 if alert_type == 'price':

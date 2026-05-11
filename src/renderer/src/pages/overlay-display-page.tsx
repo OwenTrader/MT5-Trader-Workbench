@@ -19,7 +19,6 @@ export const OverlayDisplayPage: React.FC = () => {
 
     if ((window as any).electron?.ipcRenderer) {
       removeSettingsListener = (window as any).electron.ipcRenderer.on('settings:changed', () => {
-        console.log('Settings changed notification received, fetching...')
         fetchSettings()
       })
     }
@@ -136,12 +135,13 @@ export const OverlayDisplayPage: React.FC = () => {
         }}
       >
       {(settings.overlay_symbols || []).map((symbol) => {
-        const quote = quotes[symbol]
+        const normalizedSymbol = symbol.trim().toUpperCase()
+        const quote = quotes[normalizedSymbol]
         return (
-          <React.Fragment key={symbol}>
+          <React.Fragment key={normalizedSymbol}>
             {/* 1. 品种 (Symbol) - 左对齐 */}
             <span className="uppercase font-bold whitespace-nowrap text-left border-b border-white/5 py-1" style={textStyle}>
-              {symbol}
+              {normalizedSymbol}
             </span>
 
             {/* 2. 价格 (Price) - 左对齐 */}

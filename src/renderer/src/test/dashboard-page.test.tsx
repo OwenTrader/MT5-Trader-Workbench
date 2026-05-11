@@ -35,6 +35,7 @@ function getSidebarNav() {
 describe('Dashboard Page', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    window.location.hash = ''
     useSettingsStore.setState({
       settings: useSettingsStore.getInitialState().settings,
       isLoading: false,
@@ -80,6 +81,7 @@ describe('Dashboard Page', () => {
 
     expect(await screen.findByTitle('Price Alerts')).toBeInTheDocument()
     expect(screen.getByTitle('Order Center')).toBeInTheDocument()
+    expect(screen.getByTitle('Support Me')).toBeInTheDocument()
     expect(screen.getByTitle('Settings')).toBeInTheDocument()
   })
 
@@ -106,7 +108,41 @@ describe('Dashboard Page', () => {
     if (!nav) throw new Error('Sidebar navigation not found')
     expect(await within(nav).findByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Technical Analysis' })).toBeInTheDocument()
+    expect(await within(nav).findByRole('button', { name: 'Support Me' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Settings' })).toBeInTheDocument()
+  })
+
+  it('renders support me before settings in the sidebar order', async () => {
+    const user = userEvent.setup()
+    render(<TestRoot />)
+
+    const trigger = await getSidebarTrigger()
+    await user.click(trigger)
+
+    const nav = getSidebarNav()
+    expect(nav).not.toBeNull()
+    if (!nav) throw new Error('Sidebar navigation not found')
+
+    const buttons = within(nav).getAllByRole('button')
+    const labels = buttons.map((button) => button.getAttribute('title'))
+    expect(labels.indexOf('Support Me')).toBeLessThan(labels.indexOf('Settings'))
+  })
+
+  it('switches to the support me page from the sidebar menu', async () => {
+    const user = userEvent.setup()
+    render(<TestRoot />)
+
+    const trigger = await getSidebarTrigger()
+    await user.click(trigger)
+
+    const nav = getSidebarNav()
+    expect(nav).not.toBeNull()
+    if (!nav) throw new Error('Sidebar navigation not found')
+    await user.click(await within(nav).findByRole('button', { name: 'Support Me' }))
+
+    expect(await screen.findByRole('heading', { name: 'Support Me' })).toBeInTheDocument()
+    expect(screen.getByText('Buy TradingView Membership From Me')).toBeInTheDocument()
+    expect(screen.getByText('Sponsorship or Custom Features')).toBeInTheDocument()
   })
 
   it('switches modules from the shadcn sidebar menu', async () => {
@@ -121,6 +157,7 @@ describe('Dashboard Page', () => {
     if (!nav) throw new Error('Sidebar navigation not found')
     await user.click(await within(nav).findByRole('button', { name: 'Technical Analysis' }))
 
+    expect(window.location.hash).toContain('/tech-analysis')
     expect(await screen.findByText('Generate Technical Analysis')).toBeInTheDocument()
   })
 
@@ -129,5 +166,14 @@ describe('Dashboard Page', () => {
 
     const dashboardIcon = await screen.findByTestId('sidebar-icon-dashboard')
     expect(dashboardIcon).toBeInTheDocument()
+  })
+
+  it('does not write debug logs during normal app render', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    render(<TestRoot />)
+
+    expect(logSpy).not.toHaveBeenCalled()
+    logSpy.mockRestore()
   })
 })

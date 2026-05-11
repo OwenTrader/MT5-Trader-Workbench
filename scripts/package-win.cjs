@@ -10,6 +10,7 @@ const localCacheRoot = path.join(repoRoot, '.cache', 'electron-builder')
 const localTempDir = path.join(localCacheRoot, 'temp')
 const systemElectronBuilderCacheRoot = path.join('C:', 'Users', 'Administrator', 'AppData', 'Local', 'electron-builder', 'Cache')
 const isDryRun = process.argv.includes('--dry-run')
+const isDebugPackage = process.argv.includes('--debug')
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
@@ -83,6 +84,61 @@ function seedLocalElectronBuilderCache() {
   }
 }
 
+function escapePowerShellSingleQuotedString(value) {
+  return value.replace(/'/g, "''")
+}
+
+function stopProcessesUsingUnpackedOutput(outputDir) {
+  const unpackedOutputDir = path.join(outputDir, 'win-unpacked')
+
+  if (process.platform !== 'win32' || !fs.existsSync(unpackedOutputDir)) {
+    return
+  }
+
+  const normalizedOutputDir = `${unpackedOutputDir}${path.sep}`.toLowerCase()
+  const command = [
+    `$root = '${escapePowerShellSingleQuotedString(normalizedOutputDir)}';`,
+    'Get-CimInstance Win32_Process |',
+    'Where-Object { $_.ExecutablePath -and $_.ExecutablePath.ToLowerInvariant().StartsWith($root) } |',
+    'ForEach-Object {',
+    '  Write-Host "[package:win] stopping stale packaged process: $($_.ProcessId) $($_.ExecutablePath)";',
+    '  Stop-Process -Id $_.ProcessId -Force',
+    '}'
+  ].join(' ')
+
+  spawnSync('powershell.exe', ['-NoProfile', '-Command', command], {
+    cwd: repoRoot,
+    stdio: 'inherit'
+  })
+}
+
+function removePreviousOutputDirectory(outputDir) {
+  if (!fs.existsSync(outputDir)) {
+    return
+  }
+
+  console.log(`[package:win] removing previous output: ${outputDir}`)
+  try {
+    fs.rmSync(outputDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 1000 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(
+      `Unable to remove ${outputDir}. Close any running copy of the packaged app in that directory, then retry. ${message}`
+    )
+  }
+}
+
+function prepareOutputDirectory(outputDir) {
+  stopProcessesUsingUnpackedOutput(outputDir)
+  removePreviousOutputDirectory(outputDir)
+}
+
+function getOutputDirectory(buildVersion) {
+  return isDebugPackage
+    ? path.join(repoRoot, 'dist', 'debug')
+    : path.join(repoRoot, 'dist', buildVersion)
+}
+
 function main() {
   const packageJson = readJson(packageJsonPath)
   const productName = packageJson.build?.productName ?? packageJson.name
@@ -90,12 +146,14 @@ function main() {
   const nextBuildNumber = lastBuildNumber + 1
   const buildVersion = `${packageJson.version}.${nextBuildNumber}`
   const artifactName = `${productName} Setup ${buildVersion}.exe`
+  const outputDir = getOutputDirectory(buildVersion)
   ensureLocalBuildDirectories()
   seedLocalElectronBuilderCache()
 
   console.log(`[package:win] build number: ${nextBuildNumber}`)
   console.log(`[package:win] build version: ${buildVersion}`)
   console.log(`[package:win] artifact: ${artifactName}`)
+  console.log(`[package:win] output dir: ${outputDir}`)
   console.log(`[package:win] electron-builder cache: ${localCacheRoot}`)
   console.log(`[package:win] temp dir: ${localTempDir}`)
 
@@ -103,11 +161,14 @@ function main() {
     return
   }
 
-  const result = spawnSync(process.execPath, [electronBuilderCliPath, '--win'], {
+  prepareOutputDirectory(outputDir)
+
+  const result = spawnSync(process.execPath, [electronBuilderCliPath, '--win', `--config.directories.output=${outputDir}`], {
     cwd: repoRoot,
     env: {
       ...process.env,
       BUILD_NUMBER: String(nextBuildNumber),
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false',
       ELECTRON_BUILDER_CACHE: localCacheRoot,
       TEMP: localTempDir,
       TMP: localTempDir

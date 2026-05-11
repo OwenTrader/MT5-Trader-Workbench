@@ -40,17 +40,17 @@ def get_mt5_status():
 
 @router.get('/mt5/account')
 def get_mt5_account():
-    return get_account_info()
+    return get_account_info(allow_launch=False)
 
 @router.get('/mt5/positions')
 def get_mt5_positions():
-    return get_positions()
+    return get_positions(allow_launch=False)
 
 @router.post('/mt5/launch')
 def mt5_launch():
     settings = get_settings()
     # init_mt5 now handles the logic: first check open, then try from path
-    success = init_mt5(path=settings.mt5_path)
+    success = init_mt5(path=settings.mt5_path, allow_launch=True)
     
     if success:
         return {'status': 'ok', 'message': 'MT5 connected successfully'}

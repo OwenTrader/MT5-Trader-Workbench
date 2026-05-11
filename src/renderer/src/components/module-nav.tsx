@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen } from 'lucide-react'
+import { LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import {
   Sidebar,
@@ -28,6 +28,8 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
     { id: 'order-center', label: t('nav.orderCenter'), icon: ShoppingBag },
     { id: 'tech-analysis', label: t('nav.technicalAnalysis'), icon: BookOpen },
     { id: 'order-broadcast', label: t('nav.orderBroadcast'), icon: Megaphone },
+    { id: 'order-sync', label: t('nav.orderSync'), icon: Link2 },
+    { id: 'sponsor', label: t('nav.sponsor'), icon: HeartHandshake },
     { id: 'settings', label: t('nav.settings'), icon: Settings },
   ]
 

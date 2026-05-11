@@ -1,6 +1,7 @@
 import MetaTrader5 as mt5
 import subprocess
 import os
+import time
 
 def is_mt5_running() -> bool:
     # This is a naive check, MetaTrader5.initialize() is better but requires the terminal to be open
@@ -23,7 +24,19 @@ def launch_mt5(path: str):
     except:
         return False
 
-def init_mt5(path: str = None) -> bool:
+def _resolve_mt5_executable_path(path: str | None) -> str | None:
+    if not path or not os.path.exists(path):
+        return None
+
+    if os.path.isdir(path):
+        executable_path = f"{path.rstrip('/\\')}/terminal64.exe"
+        if os.path.exists(executable_path):
+            return executable_path
+
+    return path
+
+
+def init_mt5(path: str | None = None, *, allow_launch: bool = True) -> bool:
     # 1. 首先尝试连接已打开的 MT5 (不带路径参数会连接到当前运行的终端)
     try:
         if mt5.initialize():
@@ -31,17 +44,12 @@ def init_mt5(path: str = None) -> bool:
     except Exception as e:
         print(f"Error checking for open MT5: {e}")
     
+    if not allow_launch:
+        return False
+
     # 2. 如果未找到已运行的，尝试从指定路径拉起 (最多尝试4次)
-    import time
     max_retries = 4
-    
-    # 预处理路径：如果是目录，尝试补全可执行文件名
-    actual_path = path
-    if path and os.path.exists(path) and os.path.isdir(path):
-        temp_path = os.path.join(path, "terminal64.exe")
-        if os.path.exists(temp_path):
-            actual_path = temp_path
-            print(f"Path is a directory, using executable: {actual_path}")
+    actual_path = _resolve_mt5_executable_path(path)
 
     for i in range(max_retries):
         if actual_path and os.path.exists(actual_path):
@@ -60,6 +68,13 @@ def init_mt5(path: str = None) -> bool:
     print(f"MT5 initialization failed after {max_retries} attempts.")
     return False
 
+
+def shutdown_mt5() -> None:
+    try:
+        mt5.shutdown()
+    except Exception:
+        pass
+
 def get_settings_path():
     try:
         from python_service.app.routes.settings import get_settings
@@ -67,13 +82,13 @@ def get_settings_path():
     except:
         return None
 
-def get_mt5_client():
-    if init_mt5(get_settings_path()):
+def get_mt5_client(*, allow_launch: bool = True):
+    if init_mt5(get_settings_path(), allow_launch=allow_launch):
         return mt5
     return None
 
-def get_account_info() -> dict:
-    if not init_mt5(get_settings_path()):
+def get_account_info(*, allow_launch: bool = True) -> dict:
+    if not init_mt5(get_settings_path(), allow_launch=allow_launch):
         return {}
     
     info = mt5.account_info()
@@ -82,8 +97,8 @@ def get_account_info() -> dict:
     
     return info._asdict()
 
-def get_positions() -> list[dict]:
-    if not init_mt5(get_settings_path()):
+def get_positions(*, allow_launch: bool = True) -> list[dict]:
+    if not init_mt5(get_settings_path(), allow_launch=allow_launch):
         return []
     
     positions = mt5.positions_get()

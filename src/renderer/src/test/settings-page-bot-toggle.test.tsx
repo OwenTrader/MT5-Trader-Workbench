@@ -103,6 +103,15 @@ describe('SettingsPage bot toggles', () => {
     })
   })
 
+  it('allows editing overlay symbols as comma-separated text', async () => {
+    render(<TestRoot />)
+
+    const symbolsInput = await screen.findByLabelText('在浮窗显示的品种列表 (逗号分隔)')
+    fireEvent.change(symbolsInput, { target: { value: 'XAUUSD, EURUSD,' } })
+
+    expect(symbolsInput).toHaveValue('XAUUSD, EURUSD,')
+  })
+
   it('blocks DingTalk test requests when the token is empty', async () => {
     render(<TestRoot />)
 

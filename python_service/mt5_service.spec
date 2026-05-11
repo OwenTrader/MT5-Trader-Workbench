@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from pathlib import Path
+import os
 
 
 SPEC_DIR = Path(SPEC).resolve().parent
@@ -50,7 +51,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    console=os.environ.get('MT5_SERVICE_CONSOLE') == '1',
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

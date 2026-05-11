@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n'
 import { useAlertsStore, VolatilityAlert } from '@/stores/alerts-store'
 import { useSettingsStore } from '@/stores/settings-store'
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Trash2, Play, Pause, Edit3, RefreshCw, TrendingUp } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
 export const VolatilityPage: React.FC = () => {
   const { t } = useI18n()
@@ -22,7 +23,6 @@ export const VolatilityPage: React.FC = () => {
     isLoading 
   } = useAlertsStore()
   const { settings, fetchSettings } = useSettingsStore()
-  const prevTriggeredRef = useRef<Set<string>>(new Set())
   
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -43,43 +43,18 @@ export const VolatilityPage: React.FC = () => {
     return () => clearInterval(timer)
   }, [settings.api_refresh_interval])
 
-  // Play sound when alert triggers
-  useEffect(() => {
-    const newlyTriggered = volatilityAlerts.filter(a => a.is_triggered && !prevTriggeredRef.current.has(a.id))
-    if (newlyTriggered.length > 0) {
-      if (settings.alert_sound_enabled && settings.alert_sound_path) {
-        const audio = new Audio(`local-file://${settings.alert_sound_path}`)
-        audio.volume = settings.alert_sound_volume || 0.5
-        audio.play().catch(console.error)
-      }
-
-      // Request notification permission and show silent notification
-      if (Notification.permission === 'granted') {
-        new Notification(t('volatility.notificationTitle'), { 
-          body: t('volatility.notificationBody', {
-            symbol: newlyTriggered[0].symbol,
-            threshold: newlyTriggered[0].threshold_points,
-            seconds: newlyTriggered[0].timeframe_seconds,
-          }),
-          silent: true 
-        })
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification(t('volatility.notificationTitle'), { 
-              body: t('volatility.notificationBody', {
-                symbol: newlyTriggered[0].symbol,
-                threshold: newlyTriggered[0].threshold_points,
-                seconds: newlyTriggered[0].timeframe_seconds,
-              }),
-              silent: true 
-            })
-          }
-        })
-      }
-    }
-    prevTriggeredRef.current = new Set(volatilityAlerts.filter(a => a.is_triggered).map(a => a.id))
-  }, [volatilityAlerts])
+  useAlertTriggerEffects({
+    alerts: volatilityAlerts,
+    isSoundEnabled: settings.alert_sound_enabled,
+    soundPath: settings.alert_sound_path,
+    soundVolume: settings.alert_sound_volume,
+    notificationTitle: t('volatility.notificationTitle'),
+    buildBody: (alert) => t('volatility.notificationBody', {
+      symbol: alert.symbol,
+      threshold: alert.threshold_points,
+      seconds: alert.timeframe_seconds,
+    }),
+  })
 
   const handleSubmit = async () => {
     setError(null)

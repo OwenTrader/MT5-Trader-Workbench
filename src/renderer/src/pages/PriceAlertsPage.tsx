@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n'
 import { useAlertsStore, PriceAlert } from '@/stores/alerts-store'
 import { useSettingsStore } from '@/stores/settings-store'
@@ -17,20 +17,26 @@ import {
 } from '@/components/ui/select'
 import { Trash2, Play, Pause, Edit3, Plus, RefreshCw, Bell } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
+import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
 export const PriceAlertsPage: React.FC = () => {
   const { t } = useI18n()
   const { priceAlerts, fetchAlerts, addPriceAlert, updatePriceAlert, deletePriceAlert, isLoading } = useAlertsStore()
   const { settings, fetchSettings } = useSettingsStore()
-  const prevTriggeredRef = useRef<Set<string>>(new Set())
   
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<Omit<PriceAlert, 'id' | 'is_active' | 'is_triggered'>>({
     symbol: 'XAUUSD',
     price: 0,
-    condition: 'above'
+    condition: 'above',
+    comment: ''
   })
+
+  const formatCommentSuffix = (comment: string) => {
+    const trimmedComment = comment.trim()
+    return trimmedComment ? `\n${t('priceAlerts.notePrefix')}: ${trimmedComment}` : ''
+  }
 
   const getConditionText = (condition: 'above' | 'below', display: 'option' | 'badge') => {
     if (display === 'option') {
@@ -51,43 +57,18 @@ export const PriceAlertsPage: React.FC = () => {
     return () => clearInterval(timer)
   }, [settings.api_refresh_interval])
 
-  // Play sound when alert triggers
-  useEffect(() => {
-    const newlyTriggered = priceAlerts.filter(a => a.is_triggered && !prevTriggeredRef.current.has(a.id))
-    if (newlyTriggered.length > 0) {
-      if (settings.alert_sound_enabled && settings.alert_sound_path) {
-        const audio = new Audio(`local-file://${settings.alert_sound_path}`)
-        audio.volume = settings.alert_sound_volume || 0.5
-        audio.play().catch(console.error)
-      }
-      
-      // Request notification permission and show silent notification
-      if (Notification.permission === 'granted') {
-        new Notification(t('priceAlerts.notificationTitle'), { 
-          body: t('priceAlerts.notificationBody', {
-            symbol: newlyTriggered[0].symbol,
-            condition: getConditionText(newlyTriggered[0].condition, 'badge'),
-            price: newlyTriggered[0].price,
-          }),
-          silent: true 
-        })
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification(t('priceAlerts.notificationTitle'), { 
-              body: t('priceAlerts.notificationBody', {
-                symbol: newlyTriggered[0].symbol,
-                condition: getConditionText(newlyTriggered[0].condition, 'badge'),
-                price: newlyTriggered[0].price,
-              }),
-              silent: true 
-            })
-          }
-        })
-      }
-    }
-    prevTriggeredRef.current = new Set(priceAlerts.filter(a => a.is_triggered).map(a => a.id))
-  }, [priceAlerts])
+  useAlertTriggerEffects({
+    alerts: priceAlerts,
+    isSoundEnabled: settings.alert_sound_enabled,
+    soundPath: settings.alert_sound_path,
+    soundVolume: settings.alert_sound_volume,
+    notificationTitle: t('priceAlerts.notificationTitle'),
+    buildBody: (alert) => t('priceAlerts.notificationBody', {
+      symbol: alert.symbol,
+      condition: getConditionText(alert.condition, 'badge'),
+      price: alert.price,
+    }) + formatCommentSuffix(alert.comment),
+  })
 
   const handleSubmit = async () => {
     setError(null)
@@ -116,7 +97,7 @@ export const PriceAlertsPage: React.FC = () => {
     }
 
     // 2. Proceed with submission
-    const finalData = { ...formData, symbol: upperSymbol }
+    const finalData = { ...formData, symbol: upperSymbol, comment: formData.comment.trim() }
 
     if (editingId) {
       const original = priceAlerts.find(a => a.id === editingId)
@@ -132,7 +113,7 @@ export const PriceAlertsPage: React.FC = () => {
       await addPriceAlert({ ...finalData, is_active: true })
     }
     // Reset form
-    setFormData({ symbol: 'XAUUSD', price: 0, condition: 'above' })
+    setFormData({ symbol: 'XAUUSD', price: 0, condition: 'above', comment: '' })
   }
 
   const startEdit = (alert: PriceAlert) => {
@@ -140,7 +121,8 @@ export const PriceAlertsPage: React.FC = () => {
     setFormData({
       symbol: alert.symbol,
       price: alert.price,
-      condition: alert.condition
+      condition: alert.condition,
+      comment: alert.comment
     })
   }
 
@@ -234,6 +216,15 @@ export const PriceAlertsPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="price-alert-comment">{t('priceAlerts.note')}</Label>
+                <Input
+                  id="price-alert-comment"
+                  value={formData.comment}
+                  onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                  placeholder={t('priceAlerts.notePlaceholder')}
+                />
+              </div>
 
               {error && (
                 <div className="p-3 text-xs font-medium bg-destructive/10 text-destructive rounded-lg border border-destructive/20 animate-in fade-in slide-in-from-top-1">
@@ -249,7 +240,7 @@ export const PriceAlertsPage: React.FC = () => {
                   {editingId && (
                     <Button variant="outline" onClick={() => {
                       setEditingId(null)
-                      setFormData({ symbol: 'XAUUSD', price: 0, condition: 'above' })
+                      setFormData({ symbol: 'XAUUSD', price: 0, condition: 'above', comment: '' })
                     }}>
                       {t('priceAlerts.cancel')}
                     </Button>
@@ -312,6 +303,11 @@ export const PriceAlertsPage: React.FC = () => {
                           {getConditionText(alert.condition, 'badge')}
                           <span className="ml-2 text-foreground font-mono text-base">{alert.price}</span>
                         </div>
+                        {alert.comment.trim() && (
+                          <div className="text-xs text-muted-foreground">
+                            {t('priceAlerts.notePrefix')}: {alert.comment}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-1">

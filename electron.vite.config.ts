@@ -23,6 +23,7 @@ export default defineConfig({
   },
   renderer: {
     root: resolve(__dirname, 'src/renderer'),
+    cacheDir: resolve(__dirname, 'node_modules/.vite-electron'),
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src/renderer/src')

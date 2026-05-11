@@ -1,11 +1,11 @@
 from python_service.app.models.alerts import VolatilityAlert
 from python_service.app.services.alert_service import evaluate_volatility
-import pytest
 
 def test_volatility_trigger():
     alert = VolatilityAlert(
+        id='',
         symbol='EURUSD',
-        threshold_pips=50,
+        threshold_points=0.005,
         timeframe_seconds=60,
         is_active=True
     )
@@ -25,8 +25,9 @@ def test_volatility_trigger():
 
 def test_volatility_no_trigger():
     alert = VolatilityAlert(
+        id='',
         symbol='EURUSD',
-        threshold_pips=50,
+        threshold_points=0.005,
         timeframe_seconds=60,
         is_active=True
     )

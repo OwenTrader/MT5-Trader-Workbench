@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useI18n } from '@/i18n'
 import { useAlertsStore, IndicatorAlert } from '@/stores/alerts-store'
 import { useSettingsStore } from '@/stores/settings-store'
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { RefreshCw, Play, Pause, Trash2, Edit3, Plus, LineChart } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
+import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
 export const IndicatorAlertsPage: React.FC = () => {
   const { t } = useI18n()
@@ -29,7 +30,6 @@ export const IndicatorAlertsPage: React.FC = () => {
     isLoading 
   } = useAlertsStore()
   const { settings, fetchSettings } = useSettingsStore()
-  const prevTriggeredRef = useRef<Set<string>>(new Set())
   
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -62,47 +62,20 @@ export const IndicatorAlertsPage: React.FC = () => {
     return () => clearInterval(timer)
   }, [settings.api_refresh_interval])
 
-  // Play sound when alert triggers
-  useEffect(() => {
-    const newlyTriggered = indicatorAlerts.filter(a => a.is_triggered && !prevTriggeredRef.current.has(a.id))
-    if (newlyTriggered.length > 0) {
-      if (settings.alert_sound_enabled && settings.alert_sound_path) {
-        const audio = new Audio(`local-file://${settings.alert_sound_path}`)
-        audio.volume = settings.alert_sound_volume || 0.5
-        audio.play().catch(console.error)
-      }
-
-      // Request notification permission and show silent notification
-      if (Notification.permission === 'granted') {
-        new Notification(t('indicatorAlerts.notificationTitle'), { 
-          body: t('indicatorAlerts.notificationBody', {
-            symbol: newlyTriggered[0].symbol,
-            timeframe: newlyTriggered[0].timeframe,
-            indicator: newlyTriggered[0].indicator_type,
-            condition: getConditionText(newlyTriggered[0].condition, 'badge'),
-            threshold: newlyTriggered[0].threshold,
-          }),
-          silent: true 
-        })
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification(t('indicatorAlerts.notificationTitle'), { 
-              body: t('indicatorAlerts.notificationBody', {
-                symbol: newlyTriggered[0].symbol,
-                timeframe: newlyTriggered[0].timeframe,
-                indicator: newlyTriggered[0].indicator_type,
-                condition: getConditionText(newlyTriggered[0].condition, 'badge'),
-                threshold: newlyTriggered[0].threshold,
-              }),
-              silent: true 
-            })
-          }
-        })
-      }
-    }
-    prevTriggeredRef.current = new Set(indicatorAlerts.filter(a => a.is_triggered).map(a => a.id))
-  }, [indicatorAlerts])
+  useAlertTriggerEffects({
+    alerts: indicatorAlerts,
+    isSoundEnabled: settings.alert_sound_enabled,
+    soundPath: settings.alert_sound_path,
+    soundVolume: settings.alert_sound_volume,
+    notificationTitle: t('indicatorAlerts.notificationTitle'),
+    buildBody: (alert) => t('indicatorAlerts.notificationBody', {
+      symbol: alert.symbol,
+      timeframe: alert.timeframe,
+      indicator: alert.indicator_type,
+      condition: getConditionText(alert.condition, 'badge'),
+      threshold: alert.threshold,
+    }),
+  })
 
   const handleSubmit = async () => {
     setError(null)
