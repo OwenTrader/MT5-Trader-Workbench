@@ -336,7 +336,7 @@ if (!isSingleInstance) {
 
     try {
       if (is.dev) {
-        void stopPythonService({ killPort: true, reason: 'dev-prestart-cleanup' })
+        await stopPythonService({ killPort: true, reason: 'dev-prestart-cleanup' })
         killBackendOnPort()
       }
 
