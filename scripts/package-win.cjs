@@ -11,6 +11,7 @@ const localTempDir = path.join(localCacheRoot, 'temp')
 const systemElectronBuilderCacheRoot = path.join('C:', 'Users', 'Administrator', 'AppData', 'Local', 'electron-builder', 'Cache')
 const isDryRun = process.argv.includes('--dry-run')
 const isDebugPackage = process.argv.includes('--debug')
+const isHardenedPackage = process.argv.includes('--hardened')
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
@@ -134,8 +135,12 @@ function prepareOutputDirectory(outputDir) {
 }
 
 function getOutputDirectory(buildVersion) {
-  return isDebugPackage
-    ? path.join(repoRoot, 'dist', 'debug')
+  if (isDebugPackage) {
+    return path.join(repoRoot, 'dist', 'debug')
+  }
+
+  return isHardenedPackage
+    ? path.join(repoRoot, 'dist', 'hardened')
     : path.join(repoRoot, 'dist', buildVersion)
 }
 
@@ -154,6 +159,7 @@ function main() {
   console.log(`[package:win] build version: ${buildVersion}`)
   console.log(`[package:win] artifact: ${artifactName}`)
   console.log(`[package:win] output dir: ${outputDir}`)
+  console.log(`[package:win] hardened: ${isHardenedPackage ? 'yes' : 'no'}`)
   console.log(`[package:win] electron-builder cache: ${localCacheRoot}`)
   console.log(`[package:win] temp dir: ${localTempDir}`)
 

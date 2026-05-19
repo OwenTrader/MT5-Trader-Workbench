@@ -1,3 +1,5 @@
+$Hardened = $args -contains '-Hardened'
+
 $backendDir = "python_service/dist/mt5_service"
 $exe = Join-Path $backendDir "mt5_service.exe"
 $internalDir = Join-Path $backendDir "_internal"
@@ -35,14 +37,26 @@ if ($internalFileCount -eq 0) {
   throw "Bundled Python runtime directory is empty: $internalDir"
 }
 
-if (-not (Test-Path $awakeningScriptsDir -PathType Container)) {
-  throw "Missing bundled awakening scripts directory: $awakeningScriptsDir"
-}
+if ($Hardened) {
+  $bundledProjectSourceFiles = @(Get-ChildItem $backendDir -Recurse -File -Include '*.py' | Where-Object {
+      $_.FullName -like "*\_internal\app\*" -or
+      $_.FullName -like "*\_internal\external\awakening_system\scripts\*"
+    })
 
-foreach ($scriptName in $requiredAwakeningScripts) {
-  $scriptPath = Join-Path $awakeningScriptsDir $scriptName
-  if (-not (Test-Path $scriptPath -PathType Leaf)) {
-    throw "Missing bundled awakening script: $scriptPath"
+  if ($bundledProjectSourceFiles.Count -gt 0) {
+    $fileList = ($bundledProjectSourceFiles | Select-Object -ExpandProperty FullName) -join "`n"
+    throw "Hardened package contains project Python source files:`n$fileList"
+  }
+} else {
+  if (-not (Test-Path $awakeningScriptsDir -PathType Container)) {
+    throw "Missing bundled awakening scripts directory: $awakeningScriptsDir"
+  }
+
+  foreach ($scriptName in $requiredAwakeningScripts) {
+    $scriptPath = Join-Path $awakeningScriptsDir $scriptName
+    if (-not (Test-Path $scriptPath -PathType Leaf)) {
+      throw "Missing bundled awakening script: $scriptPath"
+    }
   }
 }
 
@@ -83,6 +97,7 @@ if ($helpEntry.from -ne 'resources/help') {
   ExecutableLength = (Get-Item $exe).Length
   ExecutableLastWriteTime = (Get-Item $exe).LastWriteTime
   InternalFileCount = $internalFileCount
-  AwakeningScriptsDirectory = (Resolve-Path $awakeningScriptsDir).Path
+  Hardened = $Hardened
+  AwakeningScriptsDirectory = if (Test-Path $awakeningScriptsDir -PathType Container) { (Resolve-Path $awakeningScriptsDir).Path } else { $null }
   HelpDirectory = (Resolve-Path $helpDir).Path
-} | Select-Object BackendDirectory, ExecutablePath, ExecutableLength, ExecutableLastWriteTime, InternalFileCount, AwakeningScriptsDirectory, HelpDirectory
+} | Select-Object BackendDirectory, ExecutablePath, ExecutableLength, ExecutableLastWriteTime, InternalFileCount, Hardened, AwakeningScriptsDirectory, HelpDirectory

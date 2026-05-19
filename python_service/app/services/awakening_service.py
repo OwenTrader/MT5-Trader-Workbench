@@ -30,10 +30,12 @@ AWAKENING_SCRIPTS_DIR = _get_awakening_scripts_dir()
 
 @lru_cache(maxsize=1)
 def _load_awakening_runtime() -> dict[str, Any]:
-    if not AWAKENING_SCRIPTS_DIR.is_dir():
+    is_frozen = getattr(sys, 'frozen', False)
+
+    if not AWAKENING_SCRIPTS_DIR.is_dir() and not is_frozen:
         raise RuntimeError(f'Awakening scripts directory not found: {AWAKENING_SCRIPTS_DIR}')
 
-    if str(AWAKENING_SCRIPTS_DIR) not in sys.path:
+    if AWAKENING_SCRIPTS_DIR.is_dir() and str(AWAKENING_SCRIPTS_DIR) not in sys.path:
         sys.path.insert(0, str(AWAKENING_SCRIPTS_DIR))
 
     try:
