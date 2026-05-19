@@ -3,6 +3,20 @@ import subprocess
 import os
 import time
 
+
+def _normalize_login(login: str | int | None) -> int | None:
+    if login is None:
+        return None
+
+    if isinstance(login, int):
+        return login
+
+    login_value = str(login).strip()
+    if not login_value:
+        return None
+
+    return int(login_value)
+
 def is_mt5_running() -> bool:
     # This is a naive check, MetaTrader5.initialize() is better but requires the terminal to be open
     # We can check for terminal64.exe process
@@ -67,6 +81,48 @@ def init_mt5(path: str | None = None, *, allow_launch: bool = True) -> bool:
             
     print(f"MT5 initialization failed after {max_retries} attempts.")
     return False
+
+
+def verify_mt5_credentials(path: str, login: str, password: str, server: str) -> tuple[bool, str | None]:
+    actual_path = _resolve_mt5_executable_path(path)
+    if not actual_path or not os.path.exists(actual_path):
+        return False, 'MT5 terminal path is invalid or does not exist'
+
+    if not str(login).strip() or not password or not str(server).strip():
+        return False, 'MT5 login, password, and server are required'
+
+    try:
+        mt5.shutdown()
+    except Exception:
+        pass
+
+    try:
+        normalized_login = _normalize_login(login)
+    except ValueError:
+        return False, 'MT5 login must be numeric'
+
+    try:
+        success = mt5.initialize(
+            path=actual_path,
+            login=normalized_login,
+            password=password,
+            server=server.strip(),
+        )
+        if not success:
+            return False, f'Failed to connect to MT5 with the provided credentials. Error: {mt5.last_error()}'
+
+        account_info = mt5.account_info()
+        if account_info is None:
+            return False, f'MT5 connected but account information is unavailable. Error: {mt5.last_error()}'
+
+        return True, None
+    except Exception as error:
+        return False, f'Failed to connect to MT5 with the provided credentials. Error: {error}'
+    finally:
+        try:
+            mt5.shutdown()
+        except Exception:
+            pass
 
 
 def shutdown_mt5() -> None:

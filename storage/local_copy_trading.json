@@ -1,0 +1,21 @@
+{
+  "enabled": false,
+  "poll_interval_seconds": 1.0,
+  "source_accounts": [],
+  "follower_accounts": [
+    {
+      "id": "fol-1",
+      "name": "Follower A",
+      "connection_type": "mt5_terminal",
+      "terminal_path": "D:/MT5/terminal64.exe",
+      "login": "2001",
+      "server": "demo",
+      "password": "secret",
+      "is_active": true
+    }
+  ],
+  "relationships": [],
+  "events": [],
+  "last_error": null,
+  "last_checked_at": "2026-05-19T09:29:42.859603+00:00"
+}

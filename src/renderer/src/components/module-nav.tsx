@@ -29,6 +29,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
     { id: 'tech-analysis', label: t('nav.technicalAnalysis'), icon: BookOpen },
     { id: 'order-broadcast', label: t('nav.orderBroadcast'), icon: Megaphone },
     { id: 'order-sync', label: t('nav.orderSync'), icon: Link2 },
+    { id: 'local-copy-trading', label: t('nav.localCopyTrading'), icon: Link2 },
     { id: 'sponsor', label: t('nav.sponsor'), icon: HeartHandshake },
     { id: 'settings', label: t('nav.settings'), icon: Settings },
   ]

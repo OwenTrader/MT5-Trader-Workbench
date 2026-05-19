@@ -19,6 +19,9 @@ class FakeMT5:
     def last_error(self):
         return (1, 'failed')
 
+    def account_info(self):
+        return object()
+
 
 def test_init_mt5_without_launch_does_not_use_path(monkeypatch):
     fake_mt5 = FakeMT5([False])
@@ -51,3 +54,26 @@ def test_shutdown_mt5_suppresses_mt5_errors(monkeypatch):
     monkeypatch.setattr(mt5_service, 'mt5', BrokenMT5())
 
     mt5_service.shutdown_mt5()
+
+
+def test_verify_mt5_credentials_uses_terminal_login(monkeypatch):
+    fake_mt5 = FakeMT5([True])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(mt5_service.os.path, 'isdir', lambda path: False)
+
+    success, detail = mt5_service.verify_mt5_credentials('C:/MT5/terminal64.exe', '1001', 'secret', 'Demo-Server')
+
+    assert success is True
+    assert detail is None
+    assert fake_mt5.calls == [{'path': 'C:/MT5/terminal64.exe', 'login': 1001, 'password': 'secret', 'server': 'Demo-Server'}]
+
+
+def test_verify_mt5_credentials_rejects_non_numeric_login(monkeypatch):
+    monkeypatch.setattr(mt5_service.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(mt5_service.os.path, 'isdir', lambda path: False)
+
+    success, detail = mt5_service.verify_mt5_credentials('C:/MT5/terminal64.exe', 'abc', 'secret', 'Demo-Server')
+
+    assert success is False
+    assert detail == 'MT5 login must be numeric'

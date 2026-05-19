@@ -13,6 +13,7 @@ import { TechnicalAnalysisPage } from './pages/TechnicalAnalysisPage'
 import { OrderSyncPage } from './pages/OrderSyncPage'
 import { SponsorPage } from './pages/SponsorPage'
 import { OverlayDisplayPage } from './pages/overlay-display-page'
+import { LocalCopyTradingPage } from './pages/LocalCopyTradingPage'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
 
@@ -20,6 +21,7 @@ const VALID_MODULES = new Set([
   'dashboard',
   'order-broadcast',
   'order-sync',
+  'local-copy-trading',
   'order-center',
   'price-alerts',
   'volatility',
@@ -44,6 +46,7 @@ function ModuleRoute() {
       {activeModule === 'dashboard' && <DashboardPage />}
       {activeModule === 'order-broadcast' && <OrderBroadcastPage />}
       {activeModule === 'order-sync' && <OrderSyncPage />}
+      {activeModule === 'local-copy-trading' && <LocalCopyTradingPage />}
       {activeModule === 'order-center' && <OrderCenterPage />}
       {activeModule === 'price-alerts' && <PriceAlertsPage />}
       {activeModule === 'volatility' && <VolatilityPage />}

@@ -80,6 +80,7 @@ describe('Dashboard Page', () => {
     render(<TestRoot />)
 
     expect(await screen.findByTitle('Price Alerts')).toBeInTheDocument()
+    expect(screen.getByTitle('Local Copy Trading')).toBeInTheDocument()
     expect(screen.getByTitle('Order Center')).toBeInTheDocument()
     expect(screen.getByTitle('Support Me')).toBeInTheDocument()
     expect(screen.getByTitle('Settings')).toBeInTheDocument()
@@ -159,6 +160,22 @@ describe('Dashboard Page', () => {
 
     expect(window.location.hash).toContain('/tech-analysis')
     expect(await screen.findByText('Generate Technical Analysis')).toBeInTheDocument()
+  })
+
+  it('navigates to and renders the local copy trading page from the sidebar', async () => {
+    const user = userEvent.setup()
+    render(<TestRoot />)
+
+    const trigger = await getSidebarTrigger()
+    await user.click(trigger)
+
+    const nav = getSidebarNav()
+    expect(nav).not.toBeNull()
+    if (!nav) throw new Error('Sidebar navigation not found')
+    await user.click(await within(nav).findByRole('button', { name: 'Local Copy Trading' }))
+
+    expect(window.location.hash).toContain('/local-copy-trading')
+    expect(await screen.findByRole('heading', { name: 'Local Copy Trading' })).toBeInTheDocument()
   })
 
   it('renders sidebar icons for navigation items', async () => {
