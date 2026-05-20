@@ -85,7 +85,7 @@ describe('SettingsPage bot toggles', () => {
   it('keeps DingTalk form values when enabling after typing', async () => {
     render(<TestRoot />)
 
-    const botTab = await screen.findByRole('tab', { name: 'Bot预警' })
+    const botTab = await screen.findByRole('tab', { name: '通知' })
     fireEvent.click(botTab)
     fireEvent.keyDown(botTab, { key: 'Enter' })
 
@@ -115,7 +115,7 @@ describe('SettingsPage bot toggles', () => {
   it('blocks DingTalk test requests when the token is empty', async () => {
     render(<TestRoot />)
 
-    const botTab = await screen.findByRole('tab', { name: 'Bot预警' })
+    const botTab = await screen.findByRole('tab', { name: '通知' })
     fireEvent.click(botTab)
     fireEvent.keyDown(botTab, { key: 'Enter' })
 
@@ -134,7 +134,7 @@ describe('SettingsPage bot toggles', () => {
   it('disables test buttons until each bot form is filled', async () => {
     render(<TestRoot />)
 
-    const botTab = await screen.findByRole('tab', { name: 'Bot预警' })
+    const botTab = await screen.findByRole('tab', { name: '通知' })
     fireEvent.click(botTab)
     fireEvent.keyDown(botTab, { key: 'Enter' })
 
@@ -152,5 +152,63 @@ describe('SettingsPage bot toggles', () => {
       expect(screen.getAllByRole('button', { name: '发送测试' })[1]).toBeEnabled()
       expect(screen.getAllByRole('button', { name: '发送测试' })[2]).toBeDisabled()
     })
+  })
+
+  it('shows configured and enabled bot transport statuses', async () => {
+    useSettingsStore.setState({
+      settings: {
+        ...useSettingsStore.getInitialState().settings,
+        dingtalk_enabled: true,
+        dingtalk_token: 'ding-token',
+        wecom_enabled: false,
+        wecom_webhook_url: 'https://example.test/wecom',
+        feishu_enabled: false,
+        feishu_webhook_url: '',
+      },
+      isLoading: false,
+      error: null,
+    })
+
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+
+      if (url.endsWith('/settings') && (!init || init.method === undefined)) {
+        return {
+          ok: true,
+          json: async () => ({
+            ...useSettingsStore.getInitialState().settings,
+            language: 'zh-CN',
+            dingtalk_enabled: true,
+            dingtalk_token: 'ding-token',
+            wecom_enabled: false,
+            wecom_webhook_url: 'https://example.test/wecom',
+            feishu_enabled: false,
+            feishu_webhook_url: '',
+          }),
+        } as Response
+      }
+
+      return {
+        ok: true,
+        json: async () => ({ status: 'ok' }),
+        text: async () => 'ok',
+      } as Response
+    }) as typeof fetch
+
+    render(<TestRoot />)
+
+    const botTab = await screen.findByRole('tab', { name: '通知' })
+    fireEvent.click(botTab)
+    fireEvent.keyDown(botTab, { key: 'Enter' })
+
+    expect(await screen.findByText('通知通道状态')).toBeInTheDocument()
+    expect(screen.getByText('已存在可用通道，开启的推送类别会通过可用 Bot 发送。')).toBeInTheDocument()
+    expect(screen.getByText('钉钉')).toBeInTheDocument()
+    expect(screen.getByText('已启用')).toBeInTheDocument()
+    expect(screen.getByText('企业微信')).toBeInTheDocument()
+    expect(screen.getByText('已配置未启用')).toBeInTheDocument()
+    expect(screen.getByText('飞书')).toBeInTheDocument()
+    expect(screen.getByText('未配置')).toBeInTheDocument()
+    expect(screen.getByText('开启任一推送类别前，请至少配置并启用一个 Bot 通道；否则预警不会发出远程推送。')).toBeInTheDocument()
   })
 })

@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -54,6 +55,26 @@ export const SettingsPage: React.FC = () => {
   const resolvedAlertSoundPath = ['01.mp3', '02.mp3', '03.mp3'].includes(localSettings.alert_sound_path)
     ? `${resourcesPath}\\audio\\${localSettings.alert_sound_path}`
     : localSettings.alert_sound_path
+
+  const botTransportStatuses = [
+    {
+      name: t('settings.bot.dingtalkShortName'),
+      configured: localSettings.dingtalk_token.trim().length > 0,
+      enabled: localSettings.dingtalk_enabled === true,
+    },
+    {
+      name: t('settings.bot.wecomShortName'),
+      configured: localSettings.wecom_webhook_url.trim().length > 0,
+      enabled: localSettings.wecom_enabled === true,
+    },
+    {
+      name: t('settings.bot.feishuShortName'),
+      configured: localSettings.feishu_webhook_url.trim().length > 0,
+      enabled: localSettings.feishu_enabled === true,
+    },
+  ]
+
+  const hasActiveBotTransport = botTransportStatuses.some((transport) => transport.configured && transport.enabled)
 
   const isBuiltInAlertSound = ['01.mp3', '02.mp3', '03.mp3'].some((sound) =>
     localSettings.alert_sound_path?.includes(sound)
@@ -576,9 +597,46 @@ export const SettingsPage: React.FC = () => {
         <TabsContent value="bot" className="pt-4 space-y-6">
           <div className="flex flex-col gap-4">
               <h3 className="font-medium text-sm">{t('settings.bot.title')}</h3>
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">{t('settings.bot.transportStatusTitle')}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {hasActiveBotTransport
+                        ? t('settings.bot.transportStatusReady')
+                        : t('settings.bot.transportStatusRequired')}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {botTransportStatuses.map((transport) => {
+                      const statusKey = transport.configured
+                        ? transport.enabled
+                          ? 'enabled'
+                          : 'configured'
+                        : 'disabled'
+
+                      return (
+                        <Badge
+                          key={transport.name}
+                          variant={transport.configured && transport.enabled ? 'default' : 'outline'}
+                          className={cn(
+                            'gap-1.5',
+                            statusKey === 'configured' && 'border-amber-500/40 text-amber-600 dark:text-amber-400',
+                            statusKey === 'disabled' && 'text-muted-foreground'
+                          )}
+                        >
+                          <span>{transport.name}</span>
+                          <span className="font-normal">{t(`settings.bot.transportStatus.${statusKey}`)}</span>
+                        </Badge>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="flex flex-col gap-4 rounded-lg border p-4 bg-card">
                   <h4 className="text-sm font-semibold">{t('settings.bot.categoriesTitle')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('settings.bot.categoryTransportHint')}</p>
                   <div className="flex items-center justify-between gap-3">
                     <Label htmlFor="push-price-alerts" className="text-sm font-medium">{t('settings.bot.pushPriceAlerts')}</Label>
                     <Switch

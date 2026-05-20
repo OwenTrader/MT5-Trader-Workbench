@@ -105,6 +105,6 @@ describe('Settings language switch', () => {
       expect(screen.getByText('System Settings')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('General')).toBeInTheDocument()
+    expect(screen.getByText('Connection')).toBeInTheDocument()
   })
 })

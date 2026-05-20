@@ -19,6 +19,8 @@ import { Trash2, Play, Pause, Edit3, Plus, RefreshCw, Bell } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
 import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
+type PriceAlertFormData = Omit<PriceAlert, 'id' | 'is_active' | 'is_triggered' | 'price'> & { price: string }
+
 export const PriceAlertsPage: React.FC = () => {
   const { t } = useI18n()
   const { priceAlerts, fetchAlerts, addPriceAlert, updatePriceAlert, deletePriceAlert, isLoading } = useAlertsStore()
@@ -26,12 +28,14 @@ export const PriceAlertsPage: React.FC = () => {
   
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [formData, setFormData] = useState<Omit<PriceAlert, 'id' | 'is_active' | 'is_triggered'>>({
+  const emptyFormData: PriceAlertFormData = {
     symbol: 'XAUUSD',
-    price: 0,
+    price: '',
     condition: 'above',
     comment: ''
-  })
+  }
+
+  const [formData, setFormData] = useState(emptyFormData)
 
   const formatCommentSuffix = (comment: string) => {
     const trimmedComment = comment.trim()
@@ -72,7 +76,18 @@ export const PriceAlertsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     setError(null)
-    const upperSymbol = formData.symbol.toUpperCase()
+    const upperSymbol = formData.symbol.trim().toUpperCase()
+    const targetPrice = Number(formData.price)
+
+    if (!upperSymbol) {
+      setError(t('priceAlerts.symbolRequired'))
+      return
+    }
+
+    if (!Number.isFinite(targetPrice) || targetPrice <= 0) {
+      setError(t('priceAlerts.targetPriceRequired'))
+      return
+    }
     
     // 1. Validate with Backend
     try {
@@ -81,7 +96,7 @@ export const PriceAlertsPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           symbol: upperSymbol, 
-          price: formData.price,
+          price: targetPrice,
           condition: formData.condition
         })
       })
@@ -97,7 +112,7 @@ export const PriceAlertsPage: React.FC = () => {
     }
 
     // 2. Proceed with submission
-    const finalData = { ...formData, symbol: upperSymbol, comment: formData.comment.trim() }
+    const finalData = { ...formData, symbol: upperSymbol, price: targetPrice, comment: formData.comment.trim() }
 
     if (editingId) {
       const original = priceAlerts.find(a => a.id === editingId)
@@ -113,14 +128,14 @@ export const PriceAlertsPage: React.FC = () => {
       await addPriceAlert({ ...finalData, is_active: true })
     }
     // Reset form
-    setFormData({ symbol: 'XAUUSD', price: 0, condition: 'above', comment: '' })
+    setFormData(emptyFormData)
   }
 
   const startEdit = (alert: PriceAlert) => {
     setEditingId(alert.id)
     setFormData({
       symbol: alert.symbol,
-      price: alert.price,
+      price: String(alert.price),
       condition: alert.condition,
       comment: alert.comment
     })
@@ -195,8 +210,9 @@ export const PriceAlertsPage: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>{t('priceAlerts.symbol')}</Label>
+                <Label htmlFor="price-alert-symbol">{t('priceAlerts.symbol')}</Label>
                 <Input 
+                  id="price-alert-symbol"
                   value={formData.symbol} 
                   onChange={(e) => setFormData({...formData, symbol: e.target.value})} 
                   className="uppercase"
@@ -204,13 +220,19 @@ export const PriceAlertsPage: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t('priceAlerts.targetPrice')}</Label>
+                <Label htmlFor="price-alert-target-price">{t('priceAlerts.targetPrice')}</Label>
                 <Input 
+                  id="price-alert-target-price"
                   type="number" 
                   step="0.00001" 
+                  min="0"
                   value={formData.price} 
-                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})} 
+                  onChange={(e) => setFormData({...formData, price: e.target.value})}
+                  placeholder={t('priceAlerts.targetPricePlaceholder')}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {t('priceAlerts.validationAssist')}
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price-alert-condition">{t('priceAlerts.triggerCondition')}</Label>
@@ -240,7 +262,7 @@ export const PriceAlertsPage: React.FC = () => {
               </div>
 
               {error && (
-                <div className="p-3 text-xs font-medium bg-destructive/10 text-destructive rounded-lg border border-destructive/20 animate-in fade-in slide-in-from-top-1">
+                <div role="alert" className="p-3 text-xs font-medium bg-destructive/10 text-destructive rounded-lg border border-destructive/20 animate-in fade-in slide-in-from-top-1">
                   {error}
                 </div>
               )}
@@ -253,7 +275,7 @@ export const PriceAlertsPage: React.FC = () => {
                   {editingId && (
                     <Button variant="outline" onClick={() => {
                       setEditingId(null)
-                      setFormData({ symbol: 'XAUUSD', price: 0, condition: 'above', comment: '' })
+                      setFormData(emptyFormData)
                     }}>
                       {t('priceAlerts.cancel')}
                     </Button>
