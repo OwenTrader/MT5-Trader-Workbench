@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PageHeader } from '@/components/page-header'
@@ -42,6 +43,7 @@ export const OrderSyncPage: React.FC = () => {
   const [editingCredentialId, setEditingCredentialId] = useState<string | null>(null)
   const [editingMappingId, setEditingMappingId] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [pendingEnableSync, setPendingEnableSync] = useState(false)
 
   useEffect(() => {
     fetchConfig()
@@ -142,6 +144,22 @@ export const OrderSyncPage: React.FC = () => {
     })
   }
 
+  const handleRuntimeToggle = (enabled: boolean) => {
+    if (!enabled) {
+      void persist({ enabled: false })
+      return
+    }
+
+    setPendingEnableSync(true)
+  }
+
+  const confirmEnableSync = async () => {
+    const success = await persist({ enabled: true })
+    if (success) {
+      setPendingEnableSync(false)
+    }
+  }
+
   return (
     <div className="p-6 space-y-6 h-full flex flex-col">
       <PageHeader
@@ -161,6 +179,12 @@ export const OrderSyncPage: React.FC = () => {
         )}
       />
 
+      <Card className="border-amber-500/30 bg-amber-500/10">
+        <CardContent className="p-4 text-sm text-amber-700 dark:text-amber-200">
+          {t('orderSync.boundaryNotice')}
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
         <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-1">
           <Card>
@@ -170,17 +194,18 @@ export const OrderSyncPage: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
-                  <Label>{t('orderSync.enabled')}</Label>
+                  <Label htmlFor="order-sync-enabled">{t('orderSync.enabled')}</Label>
                   <div className="text-xs text-muted-foreground">{t('orderSync.enabledHint')}</div>
                 </div>
-                <Switch checked={config.enabled} onCheckedChange={(enabled) => persist({ enabled })} />
+                <Switch id="order-sync-enabled" checked={config.enabled} onCheckedChange={handleRuntimeToggle} />
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
-                  <Label>{t('orderSync.blockHighFrequency')}</Label>
+                  <Label htmlFor="order-sync-block-high-frequency">{t('orderSync.blockHighFrequency')}</Label>
                   <div className="text-xs text-muted-foreground">{t('orderSync.blockHighFrequencyHint')}</div>
                 </div>
                 <Switch
+                  id="order-sync-block-high-frequency"
                   checked={config.block_high_frequency_orders}
                   onCheckedChange={(block_high_frequency_orders) => persist({ block_high_frequency_orders })}
                 />
@@ -331,6 +356,22 @@ export const OrderSyncPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      <Dialog open={pendingEnableSync} onOpenChange={setPendingEnableSync}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('orderSync.confirmEnableTitle')}</DialogTitle>
+            <DialogDescription>{t('orderSync.confirmEnableDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-200">
+            {t('orderSync.boundaryNotice')}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingEnableSync(false)}>{t('priceAlerts.cancel')}</Button>
+            <Button onClick={() => void confirmEnableSync()}>{t('orderSync.confirmEnable')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

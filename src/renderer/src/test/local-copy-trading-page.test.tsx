@@ -134,7 +134,7 @@ describe('Local Copy Trading Page', () => {
     expect(await screen.findByText('Main A')).toBeInTheDocument()
     expect(screen.getByText('Main B')).toBeInTheDocument()
     expect(screen.getByText('Configuration Mode')).toBeInTheDocument()
-    expect(screen.getByText('Local copy trading currently manages accounts, relationships, and events only; live order execution is not wired yet. Do not treat this as real automated trading.')).toBeInTheDocument()
+    expect(screen.getByText('Local copy trading currently manages accounts, relationships, and events only; live order execution may not be wired yet. Do not treat this as real automated trading.')).toBeInTheDocument()
     expect(screen.getByText('10001')).toBeInTheDocument()
     expect(screen.getByText('Broker-A')).toBeInTheDocument()
     expect(screen.getByText('C:/MT5/source-a/terminal64.exe')).toBeInTheDocument()

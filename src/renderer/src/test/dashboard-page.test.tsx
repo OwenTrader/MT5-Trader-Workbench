@@ -2,8 +2,17 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App } from '@/App'
 import { I18nProvider } from '@/i18n'
+import { useAlertsStore } from '@/stores/alerts-store'
+import { useOrderSyncStore } from '@/stores/order-sync-store'
 import { useSettingsStore } from '@/stores/settings-store'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+vi.mock('sonner', () => ({
+  Toaster: () => null,
+  toast: {
+    error: vi.fn(),
+  },
+}))
 
 vi.mock('next-themes', () => ({
   useTheme: () => ({
@@ -41,6 +50,21 @@ describe('Dashboard Page', () => {
       isLoading: false,
       error: null,
     })
+    useAlertsStore.setState(useAlertsStore.getInitialState())
+    useOrderSyncStore.setState(useOrderSyncStore.getInitialState())
+
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      value: {
+        ipcRenderer: {
+          invoke: vi.fn(async (channel: string) => {
+            if (channel === 'overlay:is-visible') return true
+            return undefined
+          }),
+          on: vi.fn(() => () => undefined),
+        },
+      },
+    })
 
     global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
@@ -51,6 +75,8 @@ describe('Dashboard Page', () => {
           json: async () => ({
             ...useSettingsStore.getInitialState().settings,
             language: 'en',
+            dingtalk_enabled: true,
+            dingtalk_token: 'token',
           }),
         } as Response
       }
@@ -66,6 +92,37 @@ describe('Dashboard Page', () => {
         return {
           ok: true,
           json: async () => ({ balance: 0, equity: 0, margin_level: 0, profit: 0 }),
+        } as Response
+      }
+
+      if (url.endsWith('/alerts/price')) {
+        return {
+          ok: true,
+          json: async () => ([{ id: 'price-1', symbol: 'XAUUSD', price: 3000, condition: 'above', is_active: true, is_triggered: false, comment: '' }]),
+        } as Response
+      }
+
+      if (url.endsWith('/alerts/volatility')) {
+        return {
+          ok: true,
+          json: async () => ([]),
+        } as Response
+      }
+
+      if (url.endsWith('/alerts/indicator')) {
+        return {
+          ok: true,
+          json: async () => ([{ id: 'indicator-1', symbol: 'XAUUSD', timeframe: 'M5', indicator_type: 'rsi', period: 14, condition: 'below', threshold: 30, is_active: false, is_triggered: false, comment: '' }]),
+        } as Response
+      }
+
+      if (url.endsWith('/order-sync')) {
+        return {
+          ok: true,
+          json: async () => ({
+            enabled: true,
+            mappings: [{ id: 'map-1', mt5_symbol: 'XAUUSD', topstep_contract_id: 'GC', topstep_display_name: 'Gold', quantity_multiplier: 1, mt5_lots: 0.1, topstep_contracts: 1, is_active: true }],
+          }),
         } as Response
       }
 
@@ -88,13 +145,59 @@ describe('Dashboard Page', () => {
 
   it('shows disconnected backend state on first launch', async () => {
     render(<TestRoot />)
-    expect(await screen.findByText('Stopped')).toBeInTheDocument()
+    expect((await screen.findAllByText('Stopped')).length).toBeGreaterThan(0)
   })
 
   it('renders dashboard heading in English after settings load', async () => {
     render(<TestRoot />)
 
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+  })
+
+  it('surfaces running status center details', async () => {
+    render(<TestRoot />)
+
+    expect(await screen.findByText('Running Status Center')).toBeInTheDocument()
+    expect(screen.getByText('Price Overlay')).toBeInTheDocument()
+    expect(await screen.findByText('Visible')).toBeInTheDocument()
+    expect(await screen.findByText('1 active')).toBeInTheDocument()
+    expect(await screen.findByText('3 push types enabled')).toBeInTheDocument()
+    expect(await screen.findByText('Enabled at 50%')).toBeInTheDocument()
+    expect(await screen.findByText('Enabled with 1 mappings')).toBeInTheDocument()
+  })
+
+  it('shows notifications disabled when no bot transport is configured', async () => {
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+
+      if (url.endsWith('/settings') && (!init || init.method === undefined)) {
+        return {
+          ok: true,
+          json: async () => ({
+            ...useSettingsStore.getInitialState().settings,
+            language: 'en',
+          }),
+        } as Response
+      }
+
+      if (url.endsWith('/mt5/status')) {
+        return { ok: true, json: async () => ({ is_running: false, is_connected: false }) } as Response
+      }
+
+      if (url.endsWith('/mt5/account')) {
+        return { ok: true, json: async () => ({ balance: 0, equity: 0, margin_level: 0, profit: 0 }) } as Response
+      }
+
+      if (url.endsWith('/order-sync')) {
+        return { ok: true, json: async () => ({ enabled: false, mappings: [] }) } as Response
+      }
+
+      return { ok: true, json: async () => [] } as Response
+    }) as any
+
+    render(<TestRoot />)
+
+    expect(await screen.findByText('Push notifications disabled')).toBeInTheDocument()
   })
 
   it('renders shadcn sidebar navigation labels after expanding the menu', async () => {

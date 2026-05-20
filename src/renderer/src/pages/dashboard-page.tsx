@@ -1,24 +1,41 @@
 import React, { useEffect } from 'react'
 import { useI18n } from '@/i18n'
+import { Badge } from '@/components/ui/badge'
 import { useDashboardStore } from '@/stores/dashboard-store'
+import { useAlertsStore } from '@/stores/alerts-store'
 import { useOrderStore } from '@/stores/order-store'
+import { useOrderSyncStore } from '@/stores/order-sync-store'
 import { useSettingsStore } from '@/stores/settings-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/page-header'
 import { cn } from '@/lib/utils'
-import { DollarSign, LayoutDashboard, TrendingDown, TrendingUp } from 'lucide-react'
+import { Bell, DollarSign, Eye, LayoutDashboard, Radio, ShieldCheck, TrendingDown, TrendingUp, Volume2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function DashboardPage() {
   const { t } = useI18n()
   const { status, account, startPolling, stopPolling, fetchStatus } = useDashboardStore()
+  const {
+    priceAlerts,
+    volatilityAlerts,
+    indicatorAlerts,
+    fetchAlerts,
+    fetchVolatilityAlerts,
+    fetchIndicatorAlerts,
+  } = useAlertsStore()
   const { overview, fetchOverview } = useOrderStore()
+  const { config: orderSyncConfig, fetchConfig: fetchOrderSyncConfig } = useOrderSyncStore()
   const { settings, fetchSettings, error } = useSettingsStore()
   const [isOverlayVisible, setIsOverlayVisible] = React.useState(false)
 
   useEffect(() => {
     void fetchSettings(t('dashboard.errors.backendUnavailable'))
     void fetchOverview()
+    void fetchAlerts({ silent: true })
+    void fetchVolatilityAlerts({ silent: true })
+    void fetchIndicatorAlerts({ silent: true })
+    void fetchOrderSyncConfig({ silent: true })
     
     let removeVisibilityListener: (() => void) | undefined
     let removeSettingsListener: (() => void) | undefined
@@ -50,11 +67,11 @@ export function DashboardPage() {
       removeSettingsListener?.()
       removeVisibilityListener?.()
     }
-  }, [fetchSettings, fetchOverview, t])
+  }, [fetchSettings, fetchOverview, fetchAlerts, fetchVolatilityAlerts, fetchIndicatorAlerts, fetchOrderSyncConfig, t])
 
   useEffect(() => {
     if (error) {
-      window.alert(error)
+      toast.error(error)
     }
   }, [error])
 
@@ -69,14 +86,14 @@ export function DashboardPage() {
       const result = await response.json()
       
       if (result.status === 'error') {
-        window.alert(result.message)
+        toast.error(result.message)
       } else {
         // Wait a bit for terminal to fully initialize before fetching status
         setTimeout(fetchStatus, 3000)
       }
     } catch (error) {
       console.error('Reconnect failed:', error)
-      window.alert(t('dashboard.errors.backendUnavailable'))
+      toast.error(t('dashboard.errors.backendUnavailable'))
     }
   }
 
@@ -85,6 +102,27 @@ export function DashboardPage() {
     await (window as any).electron.ipcRenderer.invoke('overlay:toggle-visible', nextVisible)
     setIsOverlayVisible(nextVisible)
   }
+
+  const activeAlertCount = [priceAlerts, volatilityAlerts, indicatorAlerts]
+    .flat()
+    .filter((alert) => alert.is_active).length
+  const hasNotificationTransport = Boolean(
+    (settings.dingtalk_enabled && settings.dingtalk_token.trim())
+      || (settings.wecom_enabled && settings.wecom_webhook_url.trim())
+      || (settings.feishu_enabled && settings.feishu_webhook_url.trim())
+  )
+  const botPushCount = [settings.push_price_alerts, settings.push_volatility_alerts, settings.push_indicator_alerts]
+    .filter(Boolean).length
+  const enabledNotificationCount = hasNotificationTransport ? botPushCount : 0
+  const notificationSummary = enabledNotificationCount > 0
+    ? t('dashboard.statusCenter.notificationsEnabled', { count: enabledNotificationCount })
+    : t('dashboard.statusCenter.notificationsDisabled')
+  const soundSummary = settings.alert_sound_enabled
+    ? t('dashboard.statusCenter.soundEnabled', { volume: Math.round(settings.alert_sound_volume * 100) })
+    : t('dashboard.statusCenter.soundDisabled')
+  const orderSyncSummary = orderSyncConfig.enabled
+    ? t('dashboard.statusCenter.syncEnabled', { count: orderSyncConfig.mappings.filter((mapping) => mapping.is_active).length })
+    : t('dashboard.statusCenter.syncDisabled')
 
   return (
     <div className="space-y-6">
@@ -130,6 +168,64 @@ export function DashboardPage() {
         <ProfitCard title={t('orderCenter.month')} value={overview.month} icon={<TrendingDown />} />
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">{t('dashboard.statusCenter.title')}</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <StatusItem
+            icon={<Radio className="h-4 w-4" />}
+            label={t('dashboard.statusCenter.mt5')}
+            value={status.is_running
+              ? (status.is_connected ? t('dashboard.status.connected') : t('dashboard.status.runningNotLoggedIn'))
+              : t('dashboard.status.stopped')}
+            active={status.is_connected}
+            activeLabel={t('dashboard.statusCenter.on')}
+            inactiveLabel={t('dashboard.statusCenter.off')}
+          />
+          <StatusItem
+            icon={<Eye className="h-4 w-4" />}
+            label={t('dashboard.statusCenter.overlay')}
+            value={isOverlayVisible ? t('dashboard.statusCenter.visible') : t('dashboard.statusCenter.hidden')}
+            active={isOverlayVisible}
+            activeLabel={t('dashboard.statusCenter.on')}
+            inactiveLabel={t('dashboard.statusCenter.off')}
+          />
+          <StatusItem
+            icon={<Bell className="h-4 w-4" />}
+            label={t('dashboard.statusCenter.activeAlerts')}
+            value={t('dashboard.statusCenter.alertCount', { count: activeAlertCount })}
+            active={activeAlertCount > 0}
+            activeLabel={t('dashboard.statusCenter.on')}
+            inactiveLabel={t('dashboard.statusCenter.off')}
+          />
+          <StatusItem
+            icon={<Bell className="h-4 w-4" />}
+            label={t('dashboard.statusCenter.notifications')}
+            value={notificationSummary}
+            active={enabledNotificationCount > 0}
+            activeLabel={t('dashboard.statusCenter.on')}
+            inactiveLabel={t('dashboard.statusCenter.off')}
+          />
+          <StatusItem
+            icon={<Volume2 className="h-4 w-4" />}
+            label={t('dashboard.statusCenter.sound')}
+            value={soundSummary}
+            active={settings.alert_sound_enabled}
+            activeLabel={t('dashboard.statusCenter.on')}
+            inactiveLabel={t('dashboard.statusCenter.off')}
+          />
+          <StatusItem
+            icon={<ShieldCheck className="h-4 w-4" />}
+            label={t('dashboard.statusCenter.orderSync')}
+            value={orderSyncSummary}
+            active={orderSyncConfig.enabled}
+            activeLabel={t('dashboard.statusCenter.on')}
+            inactiveLabel={t('dashboard.statusCenter.off')}
+          />
+        </CardContent>
+      </Card>
+
       <div className="flex gap-4">
         <Button onClick={handleReconnect} variant="outline">{t('dashboard.actions.reconnect')}</Button>
         <Button 
@@ -139,6 +235,34 @@ export function DashboardPage() {
           {isOverlayVisible ? t('dashboard.actions.hideOverlay') : t('dashboard.actions.showOverlay')}
         </Button>
       </div>
+    </div>
+  )
+}
+
+interface StatusItemProps {
+  icon: React.ReactNode
+  label: string
+  value: string
+  active: boolean
+  activeLabel: string
+  inactiveLabel: string
+}
+
+function StatusItem({ icon, label, value, active, activeLabel, inactiveLabel }: StatusItemProps) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className={cn('rounded-full p-2', active ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground')}>
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-medium">{label}</div>
+          <div className="truncate text-sm text-muted-foreground">{value}</div>
+        </div>
+      </div>
+      <Badge variant={active ? 'default' : 'secondary'}>
+        {active ? activeLabel : inactiveLabel}
+      </Badge>
     </div>
   )
 }

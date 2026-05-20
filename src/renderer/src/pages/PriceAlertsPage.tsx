@@ -134,6 +134,19 @@ export const PriceAlertsPage: React.FC = () => {
     await updatePriceAlert({ ...alert, is_triggered: false, is_active: true })
   }
 
+  const confirmDelete = (alert: PriceAlert) => {
+    const message = t('priceAlerts.confirmDelete', {
+      symbol: alert.symbol,
+      price: alert.price,
+    })
+
+    if (!window.confirm(message)) {
+      return
+    }
+
+    void deletePriceAlert(alert.id)
+  }
+
   const handleTestNotification = async () => {
     try {
       await fetch('http://127.0.0.1:8765/notifications/test', {
@@ -361,7 +374,7 @@ export const PriceAlertsPage: React.FC = () => {
                           variant="ghost" 
                           size="icon"
                           className="w-9 h-9 rounded-full text-destructive hover:bg-destructive/10"
-                          onClick={() => deletePriceAlert(alert.id)}
+                          onClick={() => confirmDelete(alert)}
                           title={t('priceAlerts.actionDelete')}
                         >
                           <Trash2 className="w-4 h-4" />
