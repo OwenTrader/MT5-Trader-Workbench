@@ -129,6 +129,24 @@ describe('PriceAlertsPage', () => {
     expect(global.fetch).not.toHaveBeenCalledWith('http://127.0.0.1:8765/mt5/verify_alert', expect.anything())
   })
 
+  it('fills the form from a template without creating an alert', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <I18nProvider language="en">
+        <PriceAlertsPage />
+      </I18nProvider>
+    )
+
+    await user.click(screen.getByRole('button', { name: /xauusd breakout up/i }))
+
+    expect(screen.getByLabelText('Symbol')).toHaveValue('XAUUSD')
+    expect(screen.getByLabelText('Target Price')).toHaveValue(3335)
+    expect(screen.getByLabelText('Note')).toHaveValue('Example price, adjust before saving')
+    expect(global.fetch).not.toHaveBeenCalledWith('http://127.0.0.1:8765/mt5/verify_alert', expect.anything())
+    expect(useAlertsStore.getState().addPriceAlert).not.toHaveBeenCalled()
+  })
+
   it('keeps the backend verification flow for valid input', async () => {
     const user = userEvent.setup()
     const addPriceAlert = useAlertsStore.getState().addPriceAlert

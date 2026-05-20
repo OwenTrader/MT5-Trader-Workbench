@@ -864,6 +864,27 @@ export const SettingsPage: React.FC = () => {
               <p className="mt-2 text-sm text-muted-foreground">{t('settings.about.copyright')}</p>
               <p className="mt-1 text-xs text-muted-foreground">{t('settings.about.notice')}</p>
             </div>
+
+            <div className="mt-6 rounded-lg border bg-muted/30 p-4">
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium">{t('settings.about.configMigrationTitle')}</p>
+                <p className="text-sm text-muted-foreground">{t('settings.about.configMigrationDescription')}</p>
+                <p className="text-xs text-muted-foreground">{t('settings.about.configMigrationLocation')}</p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Button variant="outline" size="sm" disabled>
+                    {t('settings.about.exportConfig')}
+                  </Button>
+                  <Button variant="outline" size="sm" disabled>
+                    {t('settings.about.importConfig')}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-lg border bg-muted/30 p-4">
+              <p className="text-sm font-medium">{t('settings.about.sensitiveInfoTitle')}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t('settings.about.sensitiveInfoDescription')}</p>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

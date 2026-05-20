@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { App } from '@/App'
 import { I18nProvider } from '@/i18n'
 import { useAlertsStore } from '@/stores/alerts-store'
+import { useLocalCopyTradingStore } from '@/stores/local-copy-trading-store'
 import { useOrderSyncStore } from '@/stores/order-sync-store'
 import { useSettingsStore } from '@/stores/settings-store'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
@@ -51,6 +52,7 @@ describe('Dashboard Page', () => {
       error: null,
     })
     useAlertsStore.setState(useAlertsStore.getInitialState())
+    useLocalCopyTradingStore.setState(useLocalCopyTradingStore.getInitialState())
     useOrderSyncStore.setState(useOrderSyncStore.getInitialState())
 
     Object.defineProperty(window, 'electron', {
@@ -122,6 +124,16 @@ describe('Dashboard Page', () => {
           json: async () => ({
             enabled: true,
             mappings: [{ id: 'map-1', mt5_symbol: 'XAUUSD', topstep_contract_id: 'GC', topstep_display_name: 'Gold', quantity_multiplier: 1, mt5_lots: 0.1, topstep_contracts: 1, is_active: true }],
+            synced_orders: [{ mt5_ticket: 91001, mt5_symbol: 'XAUUSD', mt5_volume: 0.1, topstep_account_id: 100, topstep_contract_id: 'GC', topstep_order_id: 7001, side: 'buy', size: 1, status: 'open', opened_at: '2026-05-20T10:00:00Z', closed_at: null, last_error: null, blocked_reason: null }],
+          }),
+        } as Response
+      }
+
+      if (url.endsWith('/local-copy-trading')) {
+        return {
+          ok: true,
+          json: async () => ({
+            events: [{ id: 'evt-1', relationship_id: 'rel-1', source_account_id: 'source-1', follower_account_id: 'follower-1', position_id: 'pos-1', symbol: 'EURUSD', status: 'copied', message: 'Follower order copied', created_at: '2026-05-20T10:01:00Z' }],
           }),
         } as Response
       }
@@ -138,6 +150,7 @@ describe('Dashboard Page', () => {
 
     expect(await screen.findByTitle('Price Alerts')).toBeInTheDocument()
     expect(screen.getByTitle('Local Copy Trading')).toBeInTheDocument()
+    expect(screen.getByTitle('Event Log')).toBeInTheDocument()
     expect(screen.getByTitle('Order Center')).toBeInTheDocument()
     expect(screen.getByTitle('Support Me')).toBeInTheDocument()
     expect(screen.getByTitle('Settings')).toBeInTheDocument()
@@ -211,7 +224,12 @@ describe('Dashboard Page', () => {
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
     expect(await within(nav).findByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
+    expect(await within(nav).findByText('Monitoring / Alerts')).toBeInTheDocument()
+    expect(await within(nav).findByText('Trading Review')).toBeInTheDocument()
+    expect(await within(nav).findByText('Automation / Sync')).toBeInTheDocument()
+    expect(await within(nav).findByText('System / Support')).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Technical Analysis' })).toBeInTheDocument()
+    expect(await within(nav).findByRole('button', { name: 'Event Log' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Support Me' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Settings' })).toBeInTheDocument()
   })
@@ -230,6 +248,7 @@ describe('Dashboard Page', () => {
     const buttons = within(nav).getAllByRole('button')
     const labels = buttons.map((button) => button.getAttribute('title'))
     expect(labels.indexOf('Support Me')).toBeLessThan(labels.indexOf('Settings'))
+    expect(screen.getByText('Monitoring / Alerts')).toBeInTheDocument()
   })
 
   it('switches to the support me page from the sidebar menu', async () => {
@@ -279,6 +298,25 @@ describe('Dashboard Page', () => {
 
     expect(window.location.hash).toContain('/local-copy-trading')
     expect(await screen.findByRole('heading', { name: 'Local Copy Trading' })).toBeInTheDocument()
+  })
+
+  it('navigates to and renders available recent events from the sidebar', async () => {
+    const user = userEvent.setup()
+    render(<TestRoot />)
+
+    const trigger = await getSidebarTrigger()
+    await user.click(trigger)
+
+    const nav = getSidebarNav()
+    expect(nav).not.toBeNull()
+    if (!nav) throw new Error('Sidebar navigation not found')
+    await user.click(await within(nav).findByRole('button', { name: 'Event Log' }))
+
+    expect(window.location.hash).toContain('/event-log')
+    expect(await screen.findByRole('heading', { name: 'Event Log' })).toBeInTheDocument()
+    expect(await screen.findByText('This lightweight event log only aggregates local copy trading events, order sync records, and the latest errors currently available to the renderer. It is not a complete audit history.')).toBeInTheDocument()
+    expect(await screen.findByText('Follower order copied')).toBeInTheDocument()
+    expect(await screen.findByText('TopStep #7001')).toBeInTheDocument()
   })
 
   it('renders sidebar icons for navigation items', async () => {

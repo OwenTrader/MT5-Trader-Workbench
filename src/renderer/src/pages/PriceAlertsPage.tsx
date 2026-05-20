@@ -21,6 +21,12 @@ import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
 type PriceAlertFormData = Omit<PriceAlert, 'id' | 'is_active' | 'is_triggered' | 'price'> & { price: string }
 
+type PriceAlertTemplate = {
+  label: string
+  description: string
+  value: PriceAlertFormData
+}
+
 export const PriceAlertsPage: React.FC = () => {
   const { t } = useI18n()
   const { priceAlerts, fetchAlerts, addPriceAlert, updatePriceAlert, deletePriceAlert, isLoading } = useAlertsStore()
@@ -36,6 +42,39 @@ export const PriceAlertsPage: React.FC = () => {
   }
 
   const [formData, setFormData] = useState(emptyFormData)
+
+  const templates: PriceAlertTemplate[] = [
+    {
+      label: t('priceAlerts.templates.breakoutUpLabel'),
+      description: t('priceAlerts.templates.breakoutUpDescription'),
+      value: {
+        symbol: 'XAUUSD',
+        price: '3335',
+        condition: 'above',
+        comment: t('priceAlerts.templates.adjustBeforeSave'),
+      },
+    },
+    {
+      label: t('priceAlerts.templates.breakoutDownLabel'),
+      description: t('priceAlerts.templates.breakoutDownDescription'),
+      value: {
+        symbol: 'XAUUSD',
+        price: '3320',
+        condition: 'below',
+        comment: t('priceAlerts.templates.adjustBeforeSave'),
+      },
+    },
+    {
+      label: t('priceAlerts.templates.retestLabel'),
+      description: t('priceAlerts.templates.retestDescription'),
+      value: {
+        symbol: 'EURUSD',
+        price: '1.0850',
+        condition: 'above',
+        comment: t('priceAlerts.templates.adjustBeforeSave'),
+      },
+    },
+  ]
 
   const formatCommentSuffix = (comment: string) => {
     const trimmedComment = comment.trim()
@@ -173,6 +212,12 @@ export const PriceAlertsPage: React.FC = () => {
     }
   }
 
+  const applyTemplate = (template: PriceAlertTemplate) => {
+    setEditingId(null)
+    setError(null)
+    setFormData(template.value)
+  }
+
   const debouncedRefresh = React.useMemo(
     () => debounce(() => {
       void fetchAlerts()
@@ -259,6 +304,31 @@ export const PriceAlertsPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
                   placeholder={t('priceAlerts.notePlaceholder')}
                 />
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-dashed bg-muted/30 p-3">
+                <div className="space-y-1">
+                  <div className="text-sm font-medium">{t('priceAlerts.templatesTitle')}</div>
+                  <p className="text-xs text-muted-foreground">{t('priceAlerts.templatesHint')}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {templates.map((template) => (
+                    <Button
+                      key={template.label}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-auto flex-col items-start gap-1 border-border/70 px-3 py-2 text-left"
+                      onClick={() => applyTemplate(template)}
+                    >
+                      <span className="text-xs font-semibold uppercase tracking-wide text-primary">{template.label}</span>
+                      <span className="text-[11px] leading-tight text-muted-foreground">{template.description}</span>
+                    </Button>
+                  ))}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {t('priceAlerts.templatesAdjustNotice')}
+                </div>
               </div>
 
               {error && (
