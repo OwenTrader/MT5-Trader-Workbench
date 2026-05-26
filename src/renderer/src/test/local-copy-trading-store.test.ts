@@ -35,7 +35,7 @@ describe('Local Copy Trading Store', () => {
           runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: '2026-05-11T00:00:00+00:00' },
           source_accounts: [{ id: 'src-1', name: 'Main A', connection_type: 'simulated', terminal_path: '', login: '', server: '', password: '', is_active: true }],
           follower_accounts: [{ id: 'fol-1', name: 'Follower A', connection_type: 'simulated', terminal_path: '', login: '', server: '', password: '', is_active: true }],
-          relationships: [{ id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', lot_multiplier: 1, is_active: true }],
+          relationships: [{ id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true }],
           events: [{ id: 'evt-1', relationship_id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', position_id: 'ticket-1', symbol: 'XAUUSD', status: 'copied', message: '', created_at: '2026-05-11T00:00:00+00:00' }],
         }),
       } as Response
@@ -120,17 +120,18 @@ describe('Local Copy Trading Store', () => {
           runtime: { enabled: false, poll_interval_seconds: 1, last_error: null, last_checked_at: null },
           source_accounts: [],
           follower_accounts: [],
-          relationships: [{ id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', lot_multiplier: 1, is_active: true }],
+          relationships: [{ id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true }],
           events: [],
         }),
       } as Response
     })
 
     const { result } = renderHook(() => useLocalCopyTradingStore())
-    const success = await result.current.createRelationship({ source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', lot_multiplier: 1, is_active: true })
+    const success = await result.current.createRelationship({ source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true })
 
     expect(success).toBe(true)
     expect(result.current.overview.relationships[0]?.symbol).toBe('XAUUSD')
+    expect(result.current.overview.relationships[0]?.follower_symbol).toBe('XAUUSD.m')
   })
 
   it('surfaces backend validation detail for invalid relationships', async () => {
@@ -140,7 +141,7 @@ describe('Local Copy Trading Store', () => {
     })
 
     const { result } = renderHook(() => useLocalCopyTradingStore())
-    const success = await result.current.createRelationship({ source_account_id: 'missing', follower_account_id: 'missing', symbol: 'XAUUSD', lot_multiplier: 1, is_active: true })
+    const success = await result.current.createRelationship({ source_account_id: 'missing', follower_account_id: 'missing', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true })
 
     expect(success).toBe(false)
     expect(result.current.error).toContain('Relationship must reference existing source and follower accounts')

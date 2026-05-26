@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 from fastapi import WebSocket
-from python_service.app.services.mt5_service import get_mt5_client, get_positions
+from python_service.app.services.mt5_service import get_mt5_client, get_positions, mt5_connection_lock
 from python_service.app.services.alert_dispatch_service import dispatch_price_alerts
 from python_service.app.services.quote_snapshot_service import append_quote_to_history, trim_price_history
 from python_service.app.models.alerts import PriceAlert, VolatilityAlert, IndicatorAlert, OrderBroadcastRule
@@ -251,75 +251,84 @@ async def streaming_loop():
                 await asyncio.sleep(1.0)
                 continue
 
-            client = get_mt5_client(allow_launch=True)
-            if client and mt5.terminal_info():
-                # Get current prices for symbols from settings
-                settings = get_settings()
-                from python_service.app.routes.alerts import active_alerts
-                from python_service.app.services.notifier_service import notify_all
-                symbols = settings.overlay_symbols or ["XAUUSD"]
-                quotes = get_symbol_quotes(symbols)
-                
-                # Broadcast quote update
-                if quotes:
-                    await manager.broadcast({
-                        "type": "quotes",
-                        "data": quotes,
-                        "timestamp": datetime.now().isoformat()
-                    })
-                    
-                    # Update price history for volatility
-                    now_ts = datetime.now().timestamp()
-                    for symbol, q in quotes.items():
-                        append_quote_to_history(price_history, symbol, q['bid'], now_ts)
-                    trim_price_history(price_history, now_ts, MAX_HISTORY_SECONDS)
+            quote_broadcast = None
+            account_broadcast = None
+            price_rules = []
+            current_prices = {}
+            notifications: list[tuple[str, str]] = []
+            client_available = False
 
-                    # 1. Price Alerts
-                    price_rules = [a for a in active_alerts if isinstance(a, PriceAlert)]
-                    if price_rules:
-                        current_prices = {s: q['bid'] for s, q in quotes.items()}
-                        await dispatch_price_alerts(price_rules, current_prices)
-
-                    # 2. Volatility Alerts
-                    from python_service.app.services.alert_service import evaluate_volatility
-                    vol_rules = [a for a in active_alerts if isinstance(a, VolatilityAlert)]
-                    if vol_rules:
-                        triggered_vol, messages = evaluate_volatility(vol_rules, price_history)
-                        for msg in messages:
-                            await notify_all("波动预警触发", msg)
-                
-                # Check account state too
-                account = mt5.account_info()
-                if account:
-                    await manager.broadcast({
-                        "type": "account",
-                        "data": {
-                            "balance": account.balance,
-                            "equity": account.equity,
-                            "profit": account.profit
-                        }
-                    })
-
-                # Check indicator alerts
-                from python_service.app.services.alert_service import evaluate_indicator_alerts
-                indicator_rules = [a for a in active_alerts if isinstance(a, IndicatorAlert)]
-                if indicator_rules:
-                    triggered_indicators, messages = evaluate_indicator_alerts(indicator_rules)
-                    for msg in messages:
-                        await notify_all("指标预警触发", msg)
-
-                order_broadcast_rules = [a for a in active_alerts if isinstance(a, OrderBroadcastRule) and a.is_active]
-                if order_broadcast_rules:
-                    watched_symbols = {rule.symbol.upper() for rule in order_broadcast_rules}
-                    order_broadcast_items = get_current_order_broadcast_items()
-                    if order_broadcast_items is not None:
-                        for message in collect_order_broadcast_messages(order_broadcast_items, watched_symbols):
-                            await notify_all(
-                                "订单广播",
-                                message
-                            )
+            with mt5_connection_lock():
+                client = get_mt5_client(allow_launch=False)
+                client_available = bool(client and mt5.terminal_info())
+                if not client_available:
+                    pass
                 else:
-                    order_broadcast_snapshots.clear()
+                    settings = get_settings()
+                    from python_service.app.routes.alerts import active_alerts
+                    symbols = settings.overlay_symbols or ["XAUUSD"]
+                    quotes = get_symbol_quotes(symbols)
+
+                    if quotes:
+                        quote_broadcast = {
+                            "type": "quotes",
+                            "data": quotes,
+                            "timestamp": datetime.now().isoformat()
+                        }
+
+                        now_ts = datetime.now().timestamp()
+                        for symbol, q in quotes.items():
+                            append_quote_to_history(price_history, symbol, q['bid'], now_ts)
+                        trim_price_history(price_history, now_ts, MAX_HISTORY_SECONDS)
+
+                        price_rules = [a for a in active_alerts if isinstance(a, PriceAlert)]
+                        current_prices = {s: q['bid'] for s, q in quotes.items()}
+
+                        from python_service.app.services.alert_service import evaluate_volatility
+                        vol_rules = [a for a in active_alerts if isinstance(a, VolatilityAlert)]
+                        if vol_rules:
+                            triggered_vol, messages = evaluate_volatility(vol_rules, price_history)
+                            notifications.extend(("波动预警触发", message) for message in messages)
+
+                    account = mt5.account_info()
+                    if account:
+                        account_broadcast = {
+                            "type": "account",
+                            "data": {
+                                "balance": account.balance,
+                                "equity": account.equity,
+                                "profit": account.profit
+                            }
+                        }
+
+                    from python_service.app.services.alert_service import evaluate_indicator_alerts
+                    indicator_rules = [a for a in active_alerts if isinstance(a, IndicatorAlert)]
+                    if indicator_rules:
+                        triggered_indicators, messages = evaluate_indicator_alerts(indicator_rules)
+                        notifications.extend(("指标预警触发", message) for message in messages)
+
+                    order_broadcast_rules = [a for a in active_alerts if isinstance(a, OrderBroadcastRule) and a.is_active]
+                    if order_broadcast_rules:
+                        watched_symbols = {rule.symbol.upper() for rule in order_broadcast_rules}
+                        order_broadcast_items = get_current_order_broadcast_items()
+                        if order_broadcast_items is not None:
+                            notifications.extend(("订单广播", message) for message in collect_order_broadcast_messages(order_broadcast_items, watched_symbols))
+                    else:
+                        order_broadcast_snapshots.clear()
+
+            if not client_available:
+                await asyncio.sleep(1.0)
+                continue
+
+            from python_service.app.services.notifier_service import notify_all
+            if quote_broadcast:
+                await manager.broadcast(quote_broadcast)
+            if price_rules:
+                await dispatch_price_alerts(price_rules, current_prices)
+            if account_broadcast:
+                await manager.broadcast(account_broadcast)
+            for title, message in notifications:
+                await notify_all(title, message)
 
             await asyncio.sleep(1.0)
         except asyncio.CancelledError:

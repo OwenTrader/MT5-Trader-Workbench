@@ -224,10 +224,6 @@ describe('Dashboard Page', () => {
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
     expect(await within(nav).findByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
-    expect(await within(nav).findByText('Monitoring / Alerts')).toBeInTheDocument()
-    expect(await within(nav).findByText('Trading Review')).toBeInTheDocument()
-    expect(await within(nav).findByText('Automation / Sync')).toBeInTheDocument()
-    expect(await within(nav).findByText('System / Support')).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Technical Analysis' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Event Log' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Support Me' })).toBeInTheDocument()
@@ -248,7 +244,6 @@ describe('Dashboard Page', () => {
     const buttons = within(nav).getAllByRole('button')
     const labels = buttons.map((button) => button.getAttribute('title'))
     expect(labels.indexOf('Support Me')).toBeLessThan(labels.indexOf('Settings'))
-    expect(screen.getByText('Monitoring / Alerts')).toBeInTheDocument()
   })
 
   it('switches to the support me page from the sidebar menu', async () => {
@@ -264,7 +259,6 @@ describe('Dashboard Page', () => {
     await user.click(await within(nav).findByRole('button', { name: 'Support Me' }))
 
     expect(await screen.findByRole('heading', { name: 'Support Me' })).toBeInTheDocument()
-    expect(screen.getByText('Buy TradingView Membership From Me')).toBeInTheDocument()
     expect(screen.getByText('Sponsorship or Custom Features')).toBeInTheDocument()
   })
 

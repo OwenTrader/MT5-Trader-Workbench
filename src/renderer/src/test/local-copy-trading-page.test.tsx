@@ -108,7 +108,7 @@ describe('Local Copy Trading Page', () => {
           { id: 'fol-2', name: 'Follower B', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-b/terminal64.exe', login: '20002', server: 'Broker-D', password: '', is_active: true },
         ],
         relationships: [
-          { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', lot_multiplier: 1, is_active: true },
+          { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true },
         ],
         events: [
           { id: 'evt-1', relationship_id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', position_id: 'ticket-1', symbol: 'XAUUSD', status: 'copied', message: 'Copied successfully', created_at: '2026-05-11T00:00:00+00:00' },
@@ -133,8 +133,8 @@ describe('Local Copy Trading Page', () => {
 
     expect(await screen.findByText('Main A')).toBeInTheDocument()
     expect(screen.getByText('Main B')).toBeInTheDocument()
-    expect(screen.getByText('Configuration Mode')).toBeInTheDocument()
-    expect(screen.getByText('Local copy trading currently manages accounts, relationships, and events only; live order execution may not be wired yet. Do not treat this as real automated trading.')).toBeInTheDocument()
+    expect(screen.getByText('Live Copy Trading')).toBeInTheDocument()
+    expect(screen.getByText('When enabled, local copy trading reads source positions and sends MT5 market orders to follower accounts using the configured mappings. Validate accounts, symbols, and lot multipliers with small size first.')).toBeInTheDocument()
     expect(screen.getByText('10001')).toBeInTheDocument()
     expect(screen.getByText('Broker-A')).toBeInTheDocument()
     expect(screen.getByText('C:/MT5/source-a/terminal64.exe')).toBeInTheDocument()
@@ -148,6 +148,7 @@ describe('Local Copy Trading Page', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Relationships' }))
     expect(await screen.findByText('XAUUSD')).toBeInTheDocument()
+    expect(screen.getByText('XAUUSD.m')).toBeInTheDocument()
     expect(screen.getByText('Main A (10001)')).toBeInTheDocument()
     expect(screen.getByText('Follower A (20001)')).toBeInTheDocument()
     expect(screen.getByText('Lot Multiplier')).toBeInTheDocument()
@@ -271,6 +272,175 @@ describe('Local Copy Trading Page', () => {
     expect(await screen.findByLabelText('Follower Account Name')).toHaveValue('')
   })
 
+  it('edits an existing source account from the table', async () => {
+    const user = userEvent.setup()
+    let updatedPayload: Record<string, unknown> | null = null
+
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/source-accounts/src-1') {
+        updatedPayload = JSON.parse(String(init?.body ?? '{}'))
+        return {
+          ok: true,
+          json: async () => ({
+            runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+            source_accounts: [
+              { id: 'src-1', name: 'Main A Updated', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-a-updated/terminal64.exe', login: '10011', server: 'Broker-A2', password: 'secret-1', is_active: true },
+              { id: 'src-2', name: 'Main B', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-b/terminal64.exe', login: '10002', server: 'Broker-B', password: '', is_active: true },
+            ],
+            follower_accounts: [
+              { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-a/terminal64.exe', login: '20001', server: 'Broker-C', password: '', is_active: true },
+            ],
+            relationships: [],
+            events: [],
+          }),
+        } as Response
+      }
+
+      return {
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+          source_accounts: [
+            { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-a/terminal64.exe', login: '10001', server: 'Broker-A', password: 'secret-0', is_active: true },
+            { id: 'src-2', name: 'Main B', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-b/terminal64.exe', login: '10002', server: 'Broker-B', password: '', is_active: true },
+          ],
+          follower_accounts: [
+            { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-a/terminal64.exe', login: '20001', server: 'Broker-C', password: '', is_active: true },
+          ],
+          relationships: [],
+          events: [],
+        }),
+      } as Response
+    }) as any
+
+    renderPage()
+
+    expect(await screen.findByText('Main A')).toBeInTheDocument()
+    const sourcePanel = screen.getByRole('tabpanel', { name: 'Source Accounts' })
+    const buttons = sourcePanel.querySelectorAll('button')
+    await user.click(buttons[0] as HTMLButtonElement)
+
+    expect(await screen.findByRole('heading', { name: 'Edit Source Account' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Source Account Name')).toHaveValue('Main A')
+    await user.clear(screen.getByLabelText('Source Account Name'))
+    await user.type(screen.getByLabelText('Source Account Name'), 'Main A Updated')
+    await user.clear(screen.getByLabelText('MT5 Terminal Path'))
+    await user.type(screen.getByLabelText('MT5 Terminal Path'), 'C:/MT5/source-a-updated/terminal64.exe')
+    await user.clear(screen.getByLabelText('Login'))
+    await user.type(screen.getByLabelText('Login'), '10011')
+    await user.clear(screen.getByLabelText('Password'))
+    await user.type(screen.getByLabelText('Password'), 'secret-1')
+    await user.clear(screen.getByLabelText('Server'))
+    await user.type(screen.getByLabelText('Server'), 'Broker-A2')
+    await user.click(screen.getByRole('button', { name: 'Update Source Account' }))
+
+    await waitFor(() => {
+      expect(updatedPayload).toMatchObject({
+        name: 'Main A Updated',
+        terminal_path: 'C:/MT5/source-a-updated/terminal64.exe',
+        login: '10011',
+        password: 'secret-1',
+        server: 'Broker-A2',
+      })
+    })
+  })
+
+  it('edits an existing follower account from the table', async () => {
+    const user = userEvent.setup()
+    let updatedPayload: Record<string, unknown> | null = null
+
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/follower-accounts/fol-1') {
+        updatedPayload = JSON.parse(String(init?.body ?? '{}'))
+        return {
+          ok: true,
+          json: async () => ({
+            runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+            source_accounts: [
+              { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-a/terminal64.exe', login: '10001', server: 'Broker-A', password: '', is_active: true },
+            ],
+            follower_accounts: [
+              { id: 'fol-1', name: 'Follower A Updated', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-a-updated/terminal64.exe', login: '20011', server: 'Broker-C2', password: 'secret-2', is_active: true },
+            ],
+            relationships: [],
+            events: [],
+          }),
+        } as Response
+      }
+
+      return {
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+          source_accounts: [
+            { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-a/terminal64.exe', login: '10001', server: 'Broker-A', password: '', is_active: true },
+          ],
+          follower_accounts: [
+            { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-a/terminal64.exe', login: '20001', server: 'Broker-C', password: 'secret-0', is_active: true },
+          ],
+          relationships: [],
+          events: [],
+        }),
+      } as Response
+    }) as any
+
+    renderPage()
+    await user.click(screen.getByRole('tab', { name: 'Follower Accounts' }))
+    expect(await screen.findByText('Follower A')).toBeInTheDocument()
+
+    const followerPanel = screen.getByRole('tabpanel', { name: 'Follower Accounts' })
+    const buttons = followerPanel.querySelectorAll('button')
+    await user.click(buttons[0] as HTMLButtonElement)
+
+    expect(await screen.findByRole('heading', { name: 'Edit Follower Account' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Follower Account Name')).toHaveValue('Follower A')
+    await user.clear(screen.getByLabelText('Follower Account Name'))
+    await user.type(screen.getByLabelText('Follower Account Name'), 'Follower A Updated')
+    await user.clear(screen.getByLabelText('MT5 Terminal Path'))
+    await user.type(screen.getByLabelText('MT5 Terminal Path'), 'D:/MT5/follower-a-updated/terminal64.exe')
+    await user.clear(screen.getByLabelText('Login'))
+    await user.type(screen.getByLabelText('Login'), '20011')
+    await user.clear(screen.getByLabelText('Password'))
+    await user.type(screen.getByLabelText('Password'), 'secret-2')
+    await user.clear(screen.getByLabelText('Server'))
+    await user.type(screen.getByLabelText('Server'), 'Broker-C2')
+    await user.click(screen.getByRole('button', { name: 'Update Follower Account' }))
+
+    await waitFor(() => {
+      expect(updatedPayload).toMatchObject({
+        name: 'Follower A Updated',
+        terminal_path: 'D:/MT5/follower-a-updated/terminal64.exe',
+        login: '20011',
+        password: 'secret-2',
+        server: 'Broker-C2',
+      })
+    })
+  })
+
+  it('allows closing the relationship dialog without completing the form and resets partial input', async () => {
+    const user = userEvent.setup()
+
+    renderPage()
+
+    await user.click(await screen.findByRole('button', { name: 'Add Relationship' }))
+    await user.clear(screen.getByLabelText('Follower Symbol'))
+    await user.type(screen.getByLabelText('Follower Symbol'), 'XAUUSD.PRO')
+    expect(screen.getByLabelText('Follower Symbol')).toHaveValue('XAUUSD.PRO')
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Follower Symbol')).not.toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Add Relationship' }))
+    expect(await screen.findByLabelText('Follower Symbol')).toHaveValue('XAUUSD')
+  })
+
   it('submits source-account, follower-account, and relationship dialogs and refreshes the page', async () => {
     const user = userEvent.setup()
     let sourceCreated = false
@@ -359,11 +529,13 @@ describe('Local Copy Trading Page', () => {
     await user.click(screen.getByRole('button', { name: 'Save Follower Account' }))
 
     await user.click(screen.getByRole('button', { name: 'Add Relationship' }))
-    expect(screen.getByText('Choose the source account and follower account to map, then enter the symbol that should be synchronized.')).toBeInTheDocument()
+    expect(screen.getByText('Choose the source account and follower account, then map the source symbol to the follower symbol. Different broker suffixes are supported.')).toBeInTheDocument()
     await user.selectOptions(await screen.findByLabelText('Source Account'), 'src-1')
     await user.selectOptions(screen.getByLabelText('Follower Account'), 'fol-1')
-    await user.clear(screen.getByLabelText('Relationship Symbol'))
-    await user.type(screen.getByLabelText('Relationship Symbol'), 'XAUUSD')
+    await user.clear(screen.getByLabelText('Source Symbol'))
+    await user.type(screen.getByLabelText('Source Symbol'), 'XAUUSD')
+    await user.clear(screen.getByLabelText('Follower Symbol'))
+    await user.type(screen.getByLabelText('Follower Symbol'), 'XAUUSD.m')
     await user.clear(screen.getByLabelText('Lot Multiplier'))
     await user.type(screen.getByLabelText('Lot Multiplier'), '0.5')
     await user.click(screen.getByRole('button', { name: 'Save Relationship' }))
@@ -394,6 +566,8 @@ describe('Local Copy Trading Page', () => {
       source_account_id: 'src-1',
       follower_account_id: 'fol-1',
       symbol: 'XAUUSD',
+      source_symbol: 'XAUUSD',
+      follower_symbol: 'XAUUSD.m',
       lot_multiplier: 0.5,
     })
   })
@@ -533,7 +707,7 @@ describe('Local Copy Trading Page', () => {
     expect(await screen.findByText('Main A')).toBeInTheDocument()
     const sourcePanel = screen.getByRole('tabpanel', { name: 'Source Accounts' })
     const deleteButtons = sourcePanel.querySelectorAll('button')
-    await user.click(deleteButtons[0] as HTMLButtonElement)
+    await user.click(deleteButtons[1] as HTMLButtonElement)
     expect(await screen.findByText('Delete source account Main A (10001)? Related relationships and events will also be removed.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Delete' }))
 

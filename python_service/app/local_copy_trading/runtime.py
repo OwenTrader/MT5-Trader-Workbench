@@ -67,6 +67,22 @@ def add_follower_account(state: LocalCopyTradingState, account: FollowerAccount)
     return state
 
 
+def update_source_account(state: LocalCopyTradingState, account_id: str, account: SourceAccount) -> LocalCopyTradingState:
+    for index, current in enumerate(state.source_accounts):
+        if current.id == account_id:
+            state.source_accounts[index] = account.model_copy(update={'id': account_id})
+            return state
+    raise ValueError('Source account not found')
+
+
+def update_follower_account(state: LocalCopyTradingState, account_id: str, account: FollowerAccount) -> LocalCopyTradingState:
+    for index, current in enumerate(state.follower_accounts):
+        if current.id == account_id:
+            state.follower_accounts[index] = account.model_copy(update={'id': account_id})
+            return state
+    raise ValueError('Follower account not found')
+
+
 def add_relationship(state: LocalCopyTradingState, relationship: CopyRelationship) -> LocalCopyTradingState:
     source_exists = any(account.id == relationship.source_account_id for account in state.source_accounts)
     follower_exists = any(account.id == relationship.follower_account_id for account in state.follower_accounts)
@@ -75,11 +91,12 @@ def add_relationship(state: LocalCopyTradingState, relationship: CopyRelationshi
     duplicate_exists = any(
         item.source_account_id == relationship.source_account_id
         and item.follower_account_id == relationship.follower_account_id
-        and item.symbol == relationship.symbol
+        and item.source_symbol == relationship.source_symbol
+        and item.follower_symbol == relationship.follower_symbol
         for item in state.relationships
     )
     if duplicate_exists:
-        raise ValueError('Relationship already exists for this source, follower, and symbol')
+        raise ValueError('Relationship already exists for this source, follower, and symbol mapping')
     state.relationships.append(relationship.model_copy(update={'id': _ensure_id(relationship.id)}))
     return state
 
@@ -143,6 +160,20 @@ def has_copied_position(
         and event.status == 'copied'
         for event in state.events
     )
+
+
+def get_open_copied_events(state: LocalCopyTradingState) -> list[SyncEvent]:
+    closed_keys = {
+        (event.relationship_id, event.source_account_id, event.follower_account_id, event.position_id)
+        for event in state.events
+        if event.status == 'closed'
+    }
+    return [
+        event
+        for event in state.events
+        if event.status == 'copied'
+        and (event.relationship_id, event.source_account_id, event.follower_account_id, event.position_id) not in closed_keys
+    ]
 
 
 def build_overview(state: LocalCopyTradingState) -> dict:
