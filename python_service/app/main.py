@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import asyncio
+import os
+import subprocess
 from contextlib import asynccontextmanager, suppress
 
 from python_service.app.routes.health import router as health_router
@@ -23,6 +25,66 @@ from python_service.app.local_copy_trading.loop import local_copy_trading_loop
 from python_service.app.local_copy_trading.runtime import set_state as set_local_copy_trading_state
 from python_service.app.local_copy_trading.storage import load_state as load_local_copy_trading_state
 
+PARENT_CHECK_INTERVAL_SECONDS = 2.0
+
+
+def create_hidden_startupinfo():
+    if os.name != 'nt':
+        return None
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    return startupinfo
+
+
+def get_parent_pid_from_env() -> int | None:
+    raw_value = os.environ.get('PARENT_PID', '').strip()
+    if not raw_value:
+        return None
+    try:
+        parent_pid = int(raw_value)
+    except ValueError:
+        return None
+    return parent_pid if parent_pid > 0 else None
+
+
+def is_parent_process_alive(parent_pid: int) -> bool:
+    if parent_pid <= 0:
+        return False
+
+    if os.name == 'nt':
+        try:
+            output = subprocess.check_output(
+                ['tasklist', '/FI', f'PID eq {parent_pid}', '/FO', 'CSV', '/NH'],
+                text=True,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+                startupinfo=create_hidden_startupinfo(),
+            )
+        except Exception:
+            return False
+
+        normalized = output.strip()
+        return bool(normalized) and 'No tasks are running' not in normalized
+
+    try:
+        os.kill(parent_pid, 0)
+    except OSError:
+        return False
+    return True
+
+
+def exit_backend_process(code: int = 0) -> None:
+    os._exit(code)
+
+
+async def parent_process_watchdog(parent_pid: int, interval_seconds: float = PARENT_CHECK_INTERVAL_SECONDS) -> None:
+    while True:
+        await asyncio.sleep(interval_seconds)
+        if is_parent_process_alive(parent_pid):
+            continue
+        print(f'Parent process {parent_pid} is gone, shutting down backend.')
+        shutdown_mt5()
+        exit_backend_process(0)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     set_local_copy_trading_state(load_local_copy_trading_state())
@@ -31,6 +93,9 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(order_sync_loop()),
         asyncio.create_task(local_copy_trading_loop()),
     ]
+    parent_pid = get_parent_pid_from_env()
+    if parent_pid is not None:
+        background_tasks.append(asyncio.create_task(parent_process_watchdog(parent_pid)))
     try:
         yield
     finally:

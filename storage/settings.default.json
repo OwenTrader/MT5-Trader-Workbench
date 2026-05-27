@@ -1,5 +1,12 @@
 {
   "mt5_path": "",
+  "ai_base_url": "",
+  "ai_api_key": "",
+  "ai_model": "gpt-4.1-mini",
+  "ai_timeframe": "M15",
+  "ai_candles_count": 100,
+  "ai_temperature": 0.2,
+  "ai_system_prompt": "",
   "auto_connect": false,
   "price_alerts_path": "",
   "account_monitoring_interval": 5,

@@ -227,6 +227,7 @@ export function startPythonService(): ChildProcess {
     env: {
       ...process.env,
       PYTHONPATH: pythonPath,
+      PARENT_PID: String(process.pid),
       SETTINGS_FILE: getBackendSettingsPath(),
       DEFAULT_SETTINGS_FILE: getBackendDefaultSettingsPath()
     },

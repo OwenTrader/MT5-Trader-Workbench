@@ -2,7 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from typing import Literal, Any
 import MetaTrader5 as mt5
-from python_service.app.services.mt5_service import is_mt5_running, launch_mt5, init_mt5, get_account_info, get_positions
+from python_service.app.services.mt5_service import is_mt5_running, launch_mt5, init_mt5, get_account_info, get_positions, verify_mt5_path_connection
 from python_service.app.routes.settings import get_settings
 
 router = APIRouter()
@@ -15,20 +15,17 @@ def verify_mt5_path(req: VerifyPathRequest):
     if not req.path:
         raise HTTPException(status_code=400, detail="Path is required")
     
-    success = init_mt5(path=req.path)
+    success, message, terminal_info = verify_mt5_path_connection(req.path)
     if success:
-        # If successful, we can get basic info to confirm
-        terminal_info = mt5.terminal_info()
-        if terminal_info:
-            return {
-                'status': 'ok', 
-                'message': 'Connected successfully',
-                'terminal_info': terminal_info._asdict()
-            }
-    
+        return {
+            'status': 'ok',
+            'message': 'Connected successfully',
+            'terminal_info': terminal_info,
+        }
+
     return {
-        'status': 'error', 
-        'message': f'Failed to connect to MT5 at the specified path. Error code: {mt5.last_error()}'
+        'status': 'error',
+        'message': message,
     }
 
 @router.get('/mt5/status')
@@ -50,7 +47,7 @@ def get_mt5_positions():
 def mt5_launch():
     settings = get_settings()
     # init_mt5 now handles the logic: first check open, then try from path
-    success = init_mt5(path=settings.mt5_path, allow_launch=True)
+    success = init_mt5(path=settings.mt5_path, allow_launch=True, prefer_existing=False)
     
     if success:
         return {'status': 'ok', 'message': 'MT5 connected successfully'}

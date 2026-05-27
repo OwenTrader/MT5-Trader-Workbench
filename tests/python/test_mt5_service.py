@@ -1,9 +1,15 @@
+from collections import namedtuple
+
 from python_service.app.services import mt5_service
 
 
+Rate = namedtuple('Rate', ['time', 'open', 'high', 'low', 'close', 'tick_volume'])
+
+
 class FakeMT5:
-    def __init__(self, initialize_results):
+    def __init__(self, initialize_results, account_info_results=None):
         self.initialize_results = list(initialize_results)
+        self.account_info_results = list(account_info_results or [])
         self.calls = []
         self.shutdown_calls = 0
 
@@ -20,30 +26,84 @@ class FakeMT5:
         return (1, 'failed')
 
     def account_info(self):
+        if self.account_info_results:
+            return self.account_info_results.pop(0)
         return object()
+
+    def terminal_info(self):
+        class TerminalInfo:
+            def _asdict(self):
+                return {}
+
+        return TerminalInfo()
+
+    def copy_rates_from_pos(self, symbol, timeframe, start_pos, count):
+        return []
 
 
 def test_init_mt5_without_launch_does_not_use_path(monkeypatch):
     fake_mt5 = FakeMT5([False])
     monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service, 'list_running_mt5_paths', lambda: [])
 
     result = mt5_service.init_mt5('C:/MetaTrader 5/terminal64.exe', allow_launch=False)
 
     assert result is False
-    assert fake_mt5.calls == [{}]
+    assert fake_mt5.calls == []
 
 
 def test_init_mt5_with_launch_uses_existing_directory_terminal(monkeypatch):
-    fake_mt5 = FakeMT5([False, True])
+    fake_mt5 = FakeMT5([True], [object()])
     monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
     monkeypatch.setattr(mt5_service.os.path, 'exists', lambda path: True)
     monkeypatch.setattr(mt5_service.os.path, 'isdir', lambda path: path == 'C:/MetaTrader 5')
     monkeypatch.setattr(mt5_service.time, 'sleep', lambda seconds: None)
+    monkeypatch.setattr(mt5_service, 'list_running_mt5_paths', lambda: ['C:/MetaTrader 5/terminal64.exe'])
 
     result = mt5_service.init_mt5('C:/MetaTrader 5', allow_launch=True)
 
     assert result is True
-    assert fake_mt5.calls == [{}, {'path': 'C:/MetaTrader 5/terminal64.exe'}]
+    assert fake_mt5.calls == [{'path': 'C:/MetaTrader 5/terminal64.exe'}]
+
+
+def test_init_mt5_without_prefer_existing_uses_requested_terminal_first(monkeypatch):
+    fake_mt5 = FakeMT5([True])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(mt5_service.os.path, 'isdir', lambda path: False)
+
+    result = mt5_service.init_mt5('C:/MetaTrader 5/terminal64.exe', allow_launch=True, prefer_existing=False)
+
+    assert result is True
+    assert fake_mt5.calls == [{'path': 'C:/MetaTrader 5/terminal64.exe'}]
+
+
+def test_init_mt5_tries_multiple_running_terminals_until_one_has_account(monkeypatch):
+    fake_mt5 = FakeMT5([True, True], [None, object()])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service, 'list_running_mt5_paths', lambda: ['C:/MT5/A/terminal64.exe', 'C:/MT5/B/terminal64.exe'])
+
+    result = mt5_service.init_mt5(allow_launch=False)
+
+    assert result is True
+    assert fake_mt5.calls == [
+        {'path': 'C:/MT5/A/terminal64.exe'},
+        {'path': 'C:/MT5/B/terminal64.exe'},
+    ]
+
+
+def test_init_mt5_returns_false_when_running_terminals_are_unusable_and_launch_disallowed(monkeypatch):
+    fake_mt5 = FakeMT5([True, False], [None])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service, 'list_running_mt5_paths', lambda: ['C:/MT5/A/terminal64.exe', 'C:/MT5/B/terminal64.exe'])
+
+    result = mt5_service.init_mt5(allow_launch=False)
+
+    assert result is False
+    assert fake_mt5.calls == [
+        {'path': 'C:/MT5/A/terminal64.exe'},
+        {'path': 'C:/MT5/B/terminal64.exe'},
+    ]
 
 
 def test_shutdown_mt5_suppresses_mt5_errors(monkeypatch):
@@ -77,3 +137,55 @@ def test_verify_mt5_credentials_rejects_non_numeric_login(monkeypatch):
 
     assert success is False
     assert detail == 'MT5 login must be numeric'
+
+
+def test_init_mt5_account_always_uses_requested_terminal_and_credentials(monkeypatch):
+    fake_mt5 = FakeMT5([True])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(mt5_service.os.path, 'isdir', lambda path: False)
+
+    success, detail = mt5_service.init_mt5_account('C:/MT5/terminal64.exe', '1001', 'secret', 'Demo-Server')
+
+    assert success is True
+    assert detail is None
+    assert fake_mt5.shutdown_calls == 1
+    assert fake_mt5.calls == [{'path': 'C:/MT5/terminal64.exe', 'login': 1001, 'password': 'secret', 'server': 'Demo-Server'}]
+
+
+def test_verify_mt5_path_connection_uses_requested_terminal_and_shuts_down(monkeypatch):
+    fake_mt5 = FakeMT5([True])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(mt5_service.os.path, 'isdir', lambda path: False)
+
+    success, detail, terminal_info = mt5_service.verify_mt5_path_connection('C:/MT5/terminal64.exe')
+
+    assert success is True
+    assert detail is None
+    assert terminal_info == {}
+    assert fake_mt5.shutdown_calls == 2
+    assert fake_mt5.calls == [{'path': 'C:/MT5/terminal64.exe'}]
+
+
+def test_get_recent_candles_returns_normalized_candle_dicts(monkeypatch):
+    fake_mt5 = FakeMT5([])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service, 'get_settings_path', lambda: 'C:/MT5/terminal64.exe')
+    monkeypatch.setattr(mt5_service, '_init_mt5_unlocked', lambda path, allow_launch=True, prefer_existing=True: True)
+    fake_mt5.copy_rates_from_pos = lambda symbol, timeframe, start_pos, count: [
+        Rate(time=1710000000, open=1.1, high=1.2, low=1.0, close=1.15, tick_volume=123),
+        Rate(time=1710000060, open=1.15, high=1.25, low=1.05, close=1.2, tick_volume=124),
+    ]
+
+    candles = mt5_service.get_recent_candles('XAUUSD', timeframe=15, count=2)
+
+    assert len(candles) == 2
+    assert candles[0] == {
+        'time': '2024-03-09T16:00:00+00:00',
+        'open': 1.1,
+        'high': 1.2,
+        'low': 1.0,
+        'close': 1.15,
+        'volume': 123.0,
+    }

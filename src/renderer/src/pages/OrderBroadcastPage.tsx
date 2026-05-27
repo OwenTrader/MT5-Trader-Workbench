@@ -110,6 +110,12 @@ export const OrderBroadcastPage: React.FC = () => {
         )}
       />
 
+      <Card className="border-amber-500/30 bg-amber-500/10">
+        <CardContent className="p-4 text-sm text-amber-700 dark:text-amber-200">
+          {t('orderBroadcast.boundaryNotice')}
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
         <div className="lg:col-span-1 space-y-4">
           <Card>

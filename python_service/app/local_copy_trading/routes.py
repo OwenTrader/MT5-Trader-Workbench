@@ -11,7 +11,9 @@ from python_service.app.local_copy_trading.runtime import (
     remove_relationship,
     remove_source_account,
     reset_state,
+    update_follower_account,
     update_runtime_settings,
+    update_source_account,
 )
 from python_service.app.local_copy_trading.storage import save_state
 from python_service.app.services.mt5_service import verify_mt5_credentials
@@ -57,6 +59,28 @@ def create_source_account(account: SourceAccount):
 def create_follower_account(account: FollowerAccount):
     _validate_account_connection(account)
     state = add_follower_account(get_state(), account)
+    save_state(state)
+    return build_overview(state)
+
+
+@router.put('/source-accounts/{account_id}')
+def edit_source_account(account_id: str, account: SourceAccount):
+    _validate_account_connection(account)
+    try:
+        state = update_source_account(get_state(), account_id, account)
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    save_state(state)
+    return build_overview(state)
+
+
+@router.put('/follower-accounts/{account_id}')
+def edit_follower_account(account_id: str, account: FollowerAccount):
+    _validate_account_connection(account)
+    try:
+        state = update_follower_account(get_state(), account_id, account)
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
     save_state(state)
     return build_overview(state)
 

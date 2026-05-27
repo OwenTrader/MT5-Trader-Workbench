@@ -9,6 +9,8 @@ from html import escape
 from pathlib import Path
 from typing import Any, Callable
 
+from python_service.app.services.ai_technical_analysis_service import generate_ai_analysis
+
 
 def _get_awakening_scripts_dir() -> Path:
     current_file = Path(__file__).resolve()
@@ -223,47 +225,4 @@ def _persist_combined_report(html: str, report_dir: Path) -> str:
 
 
 def generate_report(symbol: str):
-    normalized_symbol = (symbol or '').strip().upper() or 'XAUUSD'
-    if normalized_symbol != 'XAUUSD':
-        return {'error': '当前综合报告仅支持 XAUUSD'}
-
-    runtime = _load_awakening_runtime()
-    report_dir = Path(runtime['report_dir'])
-    run_gold_analysis = runtime['run_gold_analysis']
-    fetch_data_mt5_first = runtime['fetch_data_mt5_first']
-    run_analysis = runtime['run_analysis']
-    run_elliott_analysis = runtime['run_elliott_analysis']
-    run_fusion_analysis = runtime['run_fusion_analysis']
-    run_snapshot = runtime['run_snapshot']
-    run_playbook = runtime['run_playbook']
-
-    sections_config: list[tuple[str, str, Callable[[], str | None], str]] = [
-        ('gold', '1. 指标分析', lambda: run_gold_analysis(open_browser=False), '技术指标与多周期交易设定'),
-        ('wave', '2. 价格行为分析', lambda: run_analysis(fetch_fn=fetch_data_mt5_first, report_prefix='wave_mt5', report_subdir='mt5', system_label='MT5 系统', open_browser=False), '市场结构、通道、BOS 与 CHoCH'),
-        ('elliott', '3. 艾略特波浪', lambda: run_elliott_analysis(fetch_fn=fetch_data_mt5_first, report_prefix='elliott_mt5', report_subdir='elliott', system_label='MT5 系统', open_browser=False), '波浪计数、阶段状态与 Fib 投影'),
-        ('fusion', '4. PA x Elliott 融合', lambda: run_fusion_analysis(fetch_fn=fetch_data_mt5_first, report_prefix='fusion_mt5', report_subdir='fusion', system_label='MT5 系统', open_browser=False), '价格行为与波浪共振视角'),
-        ('snapshot', '5. SMC 快照', lambda: run_snapshot(fetch_fn=fetch_data_mt5_first, report_prefix='snapshot_mt5', report_subdir='snapshot', system_label='MT5 系统', htf_key='h4', htf_label='H4', ltf_key='m15', ltf_label='M15', open_browser=False), '订单块、FVG、流动性与行动计划'),
-        ('playbook', '6. 场景剧本', lambda: run_playbook(fetch_fn=fetch_data_mt5_first, report_prefix='playbook_mt5', report_subdir='playbook', system_label='MT5 系统', htf_key='h4', htf_label='H4', ltf_key='m15', ltf_label='M15', open_browser=False), '分支情景推演与执行清单'),
-    ]
-
-    sections: list[dict[str, str]] = []
-    for anchor, title, runner, summary in sections_config:
-        report_path = runner()
-        sections.append({
-            'anchor': anchor,
-            'title': title,
-            'summary': summary,
-            'html': _read_report_html(report_path),
-        })
-
-    generated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    combined_html = _build_combined_html(normalized_symbol, sections, generated_at)
-    latest_path = _persist_combined_report(combined_html, report_dir)
-
-    return {
-        'symbol': normalized_symbol,
-        'generated_at': generated_at,
-        'report_path': latest_path,
-        'sections': [{'anchor': section['anchor'], 'title': section['title']} for section in sections],
-        'html': combined_html,
-    }
+    return generate_ai_analysis(symbol).model_dump()

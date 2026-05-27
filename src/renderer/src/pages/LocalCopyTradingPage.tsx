@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -46,8 +46,16 @@ function isAccountFormComplete(form: AccountFormState) {
   )
 }
 
-function isRelationshipFormComplete(sourceId: string, followerId: string, symbol: string, lotMultiplier: string) {
-  return Boolean(sourceId.trim() && followerId.trim() && symbol.trim() && Number(lotMultiplier) > 0)
+function isRelationshipFormComplete(sourceId: string, followerId: string, sourceSymbol: string, followerSymbol: string, lotMultiplier: string) {
+  return Boolean(sourceId.trim() && followerId.trim() && sourceSymbol.trim() && followerSymbol.trim() && Number(lotMultiplier) > 0)
+}
+
+function getRelationshipSourceSymbol(relationship: { symbol: string; source_symbol?: string }) {
+  return (relationship.source_symbol || relationship.symbol).trim()
+}
+
+function getRelationshipFollowerSymbol(relationship: { symbol: string; source_symbol?: string; follower_symbol?: string }) {
+  return (relationship.follower_symbol || relationship.source_symbol || relationship.symbol).trim()
 }
 
 function getAccountOptionLabel(account: { name: string; login: string; id: string }) {
@@ -89,6 +97,8 @@ export function LocalCopyTradingPage() {
     updateRuntime,
     createSourceAccount,
     createFollowerAccount,
+    updateSourceAccount,
+    updateFollowerAccount,
     createRelationship,
     deleteSourceAccount,
     deleteFollowerAccount,
@@ -102,13 +112,16 @@ export function LocalCopyTradingPage() {
   const [followerForm, setFollowerForm] = React.useState<AccountFormState>(EMPTY_ACCOUNT_FORM)
   const [sourceSubmitError, setSourceSubmitError] = React.useState<string | null>(null)
   const [followerSubmitError, setFollowerSubmitError] = React.useState<string | null>(null)
+  const [editingSourceId, setEditingSourceId] = React.useState<string | null>(null)
+  const [editingFollowerId, setEditingFollowerId] = React.useState<string | null>(null)
   const [isSubmittingSource, setIsSubmittingSource] = React.useState(false)
   const [isSubmittingFollower, setIsSubmittingFollower] = React.useState(false)
   const [pendingDelete, setPendingDelete] = React.useState<DeleteTarget | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [pendingRuntimeEnabled, setPendingRuntimeEnabled] = React.useState(false)
   const [runtimeSubmitError, setRuntimeSubmitError] = React.useState<string | null>(null)
-  const [relationshipSymbol, setRelationshipSymbol] = React.useState('XAUUSD')
+  const [relationshipSourceSymbol, setRelationshipSourceSymbol] = React.useState('XAUUSD')
+  const [relationshipFollowerSymbol, setRelationshipFollowerSymbol] = React.useState('XAUUSD')
   const [relationshipLotMultiplier, setRelationshipLotMultiplier] = React.useState('1')
   const [selectedSourceId, setSelectedSourceId] = React.useState('')
   const [selectedFollowerId, setSelectedFollowerId] = React.useState('')
@@ -124,6 +137,7 @@ export function LocalCopyTradingPage() {
     setSourceForm(EMPTY_ACCOUNT_FORM)
     setSourceSubmitError(null)
     setIsSubmittingSource(false)
+    setEditingSourceId(null)
   }, [])
 
   const closeFollowerDialog = React.useCallback(() => {
@@ -131,6 +145,16 @@ export function LocalCopyTradingPage() {
     setFollowerForm(EMPTY_ACCOUNT_FORM)
     setFollowerSubmitError(null)
     setIsSubmittingFollower(false)
+    setEditingFollowerId(null)
+  }, [])
+
+  const closeRelationshipDialog = React.useCallback(() => {
+    setRelationshipDialogOpen(false)
+    setRelationshipSourceSymbol('XAUUSD')
+    setRelationshipFollowerSymbol('XAUUSD')
+    setRelationshipLotMultiplier('1')
+    setSelectedSourceId('')
+    setSelectedFollowerId('')
   }, [])
 
   useEffect(() => {
@@ -140,7 +164,7 @@ export function LocalCopyTradingPage() {
   const handleCreateSource = async () => {
     setSourceSubmitError(null)
     setIsSubmittingSource(true)
-    const success = await createSourceAccount({
+    const payload = {
       name: sourceForm.name.trim(),
       connection_type: 'mt5_terminal',
       terminal_path: sourceForm.terminalPath.trim(),
@@ -148,7 +172,10 @@ export function LocalCopyTradingPage() {
       server: sourceForm.server.trim(),
       password: sourceForm.password,
       is_active: true,
-    })
+    }
+    const success = editingSourceId
+      ? await updateSourceAccount(editingSourceId, payload)
+      : await createSourceAccount(payload)
     if (success) {
       closeSourceDialog()
       return
@@ -160,7 +187,7 @@ export function LocalCopyTradingPage() {
   const handleCreateFollower = async () => {
     setFollowerSubmitError(null)
     setIsSubmittingFollower(true)
-    const success = await createFollowerAccount({
+    const payload = {
       name: followerForm.name.trim(),
       connection_type: 'mt5_terminal',
       terminal_path: followerForm.terminalPath.trim(),
@@ -168,13 +195,42 @@ export function LocalCopyTradingPage() {
       server: followerForm.server.trim(),
       password: followerForm.password,
       is_active: true,
-    })
+    }
+    const success = editingFollowerId
+      ? await updateFollowerAccount(editingFollowerId, payload)
+      : await createFollowerAccount(payload)
     if (success) {
       closeFollowerDialog()
       return
     }
     setFollowerSubmitError(useLocalCopyTradingStore.getState().error)
     setIsSubmittingFollower(false)
+  }
+
+  const startEditSource = (account: typeof overview.source_accounts[number]) => {
+    setEditingSourceId(account.id)
+    setSourceForm({
+      name: account.name,
+      terminalPath: account.terminal_path,
+      login: account.login,
+      password: account.password,
+      server: account.server,
+    })
+    setSourceSubmitError(null)
+    setSourceDialogOpen(true)
+  }
+
+  const startEditFollower = (account: typeof overview.follower_accounts[number]) => {
+    setEditingFollowerId(account.id)
+    setFollowerForm({
+      name: account.name,
+      terminalPath: account.terminal_path,
+      login: account.login,
+      password: account.password,
+      server: account.server,
+    })
+    setFollowerSubmitError(null)
+    setFollowerDialogOpen(true)
   }
 
   const handleCreateRelationship = async () => {
@@ -186,16 +242,14 @@ export function LocalCopyTradingPage() {
     const success = await createRelationship({
       source_account_id: sourceId,
       follower_account_id: followerId,
-      symbol: relationshipSymbol,
+      symbol: relationshipSourceSymbol,
+      source_symbol: relationshipSourceSymbol,
+      follower_symbol: relationshipFollowerSymbol,
       lot_multiplier: Number(relationshipLotMultiplier),
       is_active: true,
     })
     if (success) {
-      setRelationshipDialogOpen(false)
-      setRelationshipSymbol('XAUUSD')
-      setRelationshipLotMultiplier('1')
-      setSelectedSourceId('')
-      setSelectedFollowerId('')
+      closeRelationshipDialog()
     }
   }
 
@@ -335,6 +389,9 @@ export function LocalCopyTradingPage() {
                       <TableCell>{account.server || '-'}</TableCell>
                       <TableCell className="max-w-[22rem] truncate">{account.terminal_path || '-'}</TableCell>
                       <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => startEditSource(account)}>
+                          <Pencil />
+                        </Button>
                         <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setPendingDelete({ type: 'source', id: account.id })}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -378,6 +435,9 @@ export function LocalCopyTradingPage() {
                       <TableCell>{account.server || '-'}</TableCell>
                       <TableCell className="max-w-[22rem] truncate">{account.terminal_path || '-'}</TableCell>
                       <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => startEditFollower(account)}>
+                          <Pencil />
+                        </Button>
                         <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setPendingDelete({ type: 'follower', id: account.id })}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -406,7 +466,8 @@ export function LocalCopyTradingPage() {
                   <TableRow>
                     <TableHead>{t('localCopyTrading.columns.source')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.follower')}</TableHead>
-                    <TableHead>{t('localCopyTrading.columns.symbol')}</TableHead>
+                    <TableHead>{t('localCopyTrading.columns.sourceSymbol')}</TableHead>
+                    <TableHead>{t('localCopyTrading.columns.followerSymbol')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.lotMultiplier')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.status')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.actions')}</TableHead>
@@ -417,7 +478,8 @@ export function LocalCopyTradingPage() {
                     <TableRow key={relationship.id}>
                       <TableCell>{getAccountLabelById(overview.source_accounts, relationship.source_account_id)}</TableCell>
                       <TableCell>{getAccountLabelById(overview.follower_accounts, relationship.follower_account_id)}</TableCell>
-                      <TableCell>{relationship.symbol}</TableCell>
+                      <TableCell>{getRelationshipSourceSymbol(relationship)}</TableCell>
+                      <TableCell>{getRelationshipFollowerSymbol(relationship)}</TableCell>
                       <TableCell>{relationship.lot_multiplier}</TableCell>
                       <TableCell>{relationship.is_active ? t('localCopyTrading.active') : t('localCopyTrading.inactive')}</TableCell>
                       <TableCell>
@@ -429,7 +491,7 @@ export function LocalCopyTradingPage() {
                   ))}
                   {!hasRelationships ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">{canCreateRelationship ? t('localCopyTrading.emptyRelationships') : t('localCopyTrading.emptyRelationshipsNeedsAccounts')}</TableCell>
+                      <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">{canCreateRelationship ? t('localCopyTrading.emptyRelationships') : t('localCopyTrading.emptyRelationshipsNeedsAccounts')}</TableCell>
                     </TableRow>
                   ) : null}
                 </TableBody>
@@ -491,8 +553,8 @@ export function LocalCopyTradingPage() {
         }}
       >
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('localCopyTrading.addSource')}</DialogTitle>
+            <DialogHeader>
+            <DialogTitle>{editingSourceId ? t('localCopyTrading.editSource') : t('localCopyTrading.addSource')}</DialogTitle>
             <DialogDescription>{t('localCopyTrading.sourceDescription')}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4">
@@ -528,7 +590,7 @@ export function LocalCopyTradingPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" disabled={isSubmittingSource} onClick={closeSourceDialog}>{t('priceAlerts.cancel')}</Button>
-            <Button disabled={isSubmittingSource || !isAccountFormComplete(sourceForm)} onClick={() => void handleCreateSource()}>{isSubmittingSource ? t('localCopyTrading.savingSource') : t('localCopyTrading.saveSource')}</Button>
+            <Button disabled={isSubmittingSource || !isAccountFormComplete(sourceForm)} onClick={() => void handleCreateSource()}>{isSubmittingSource ? t('localCopyTrading.savingSource') : editingSourceId ? t('localCopyTrading.updateSource') : t('localCopyTrading.saveSource')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -545,7 +607,7 @@ export function LocalCopyTradingPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('localCopyTrading.addFollower')}</DialogTitle>
+            <DialogTitle>{editingFollowerId ? t('localCopyTrading.editFollower') : t('localCopyTrading.addFollower')}</DialogTitle>
             <DialogDescription>{t('localCopyTrading.followerDescription')}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4">
@@ -581,12 +643,21 @@ export function LocalCopyTradingPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" disabled={isSubmittingFollower} onClick={closeFollowerDialog}>{t('priceAlerts.cancel')}</Button>
-            <Button disabled={isSubmittingFollower || !isAccountFormComplete(followerForm)} onClick={() => void handleCreateFollower()}>{isSubmittingFollower ? t('localCopyTrading.savingFollower') : t('localCopyTrading.saveFollower')}</Button>
+            <Button disabled={isSubmittingFollower || !isAccountFormComplete(followerForm)} onClick={() => void handleCreateFollower()}>{isSubmittingFollower ? t('localCopyTrading.savingFollower') : editingFollowerId ? t('localCopyTrading.updateFollower') : t('localCopyTrading.saveFollower')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={relationshipDialogOpen} onOpenChange={setRelationshipDialogOpen}>
+      <Dialog
+        open={relationshipDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeRelationshipDialog()
+            return
+          }
+          setRelationshipDialogOpen(true)
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('localCopyTrading.addRelationship')}</DialogTitle>
@@ -623,15 +694,20 @@ export function LocalCopyTradingPage() {
             </Select>
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span>{t('localCopyTrading.relationshipSymbol')}</span>
-            <Input aria-label={t('localCopyTrading.relationshipSymbol')} value={relationshipSymbol} onChange={(event) => setRelationshipSymbol(event.target.value)} />
+            <span>{t('localCopyTrading.relationshipSourceSymbol')}</span>
+            <Input aria-label={t('localCopyTrading.relationshipSourceSymbol')} value={relationshipSourceSymbol} onChange={(event) => setRelationshipSourceSymbol(event.target.value)} />
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            <span>{t('localCopyTrading.relationshipFollowerSymbol')}</span>
+            <Input aria-label={t('localCopyTrading.relationshipFollowerSymbol')} value={relationshipFollowerSymbol} onChange={(event) => setRelationshipFollowerSymbol(event.target.value)} />
           </label>
           <label className="flex flex-col gap-2 text-sm">
             <span>{t('localCopyTrading.lotMultiplier')}</span>
             <Input type="number" min="0.01" step="0.01" aria-label={t('localCopyTrading.lotMultiplier')} value={relationshipLotMultiplier} onChange={(event) => setRelationshipLotMultiplier(event.target.value)} />
           </label>
           <DialogFooter>
-            <Button disabled={!isRelationshipFormComplete(selectedSourceId, selectedFollowerId, relationshipSymbol, relationshipLotMultiplier)} onClick={() => void handleCreateRelationship()}>{t('localCopyTrading.saveRelationship')}</Button>
+            <Button variant="outline" onClick={closeRelationshipDialog}>{t('priceAlerts.cancel')}</Button>
+            <Button disabled={!isRelationshipFormComplete(selectedSourceId, selectedFollowerId, relationshipSourceSymbol, relationshipFollowerSymbol, relationshipLotMultiplier)} onClick={() => void handleCreateRelationship()}>{t('localCopyTrading.saveRelationship')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

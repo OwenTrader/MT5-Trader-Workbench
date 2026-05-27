@@ -36,6 +36,8 @@ export interface LocalCopyTradingRelationship {
   source_account_id: string
   follower_account_id: string
   symbol: string
+  source_symbol?: string
+  follower_symbol?: string
   lot_multiplier: number
   is_active: boolean
 }
@@ -46,6 +48,8 @@ export interface LocalCopyTradingEvent {
   source_account_id: string
   follower_account_id: string
   position_id: string
+  follower_position_id?: string
+  follower_order_id?: string
   symbol: string
   status: string
   message: string
@@ -68,6 +72,8 @@ interface LocalCopyTradingStore {
   updateRuntime: (payload: { enabled?: boolean; poll_interval_seconds?: number }) => Promise<boolean>
   createSourceAccount: (payload: Omit<LocalCopyTradingSourceAccount, 'id'> & { id?: string }) => Promise<boolean>
   createFollowerAccount: (payload: Omit<LocalCopyTradingFollowerAccount, 'id'> & { id?: string }) => Promise<boolean>
+  updateSourceAccount: (accountId: string, payload: Omit<LocalCopyTradingSourceAccount, 'id'>) => Promise<boolean>
+  updateFollowerAccount: (accountId: string, payload: Omit<LocalCopyTradingFollowerAccount, 'id'>) => Promise<boolean>
   createRelationship: (payload: Omit<LocalCopyTradingRelationship, 'id'> & { id?: string }) => Promise<boolean>
   deleteSourceAccount: (accountId: string) => Promise<boolean>
   deleteFollowerAccount: (accountId: string) => Promise<boolean>
@@ -157,6 +163,38 @@ export const useLocalCopyTradingStore = create<LocalCopyTradingStore>((set) => (
     try {
       const response = await fetch(`${API_BASE}/follower-accounts`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const overview = await handleOverviewResponse(response)
+      set({ overview, isLoading: false })
+      return true
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : String(error), isLoading: false })
+      return false
+    }
+  },
+  updateSourceAccount: async (accountId, payload) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await fetch(`${API_BASE}/source-accounts/${accountId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const overview = await handleOverviewResponse(response)
+      set({ overview, isLoading: false })
+      return true
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : String(error), isLoading: false })
+      return false
+    }
+  },
+  updateFollowerAccount: async (accountId, payload) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await fetch(`${API_BASE}/follower-accounts/${accountId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake } from 'lucide-react'
+import { Activity, LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import {
   Sidebar,
@@ -30,9 +30,12 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
     { id: 'order-broadcast', label: t('nav.orderBroadcast'), icon: Megaphone },
     { id: 'order-sync', label: t('nav.orderSync'), icon: Link2 },
     { id: 'local-copy-trading', label: t('nav.localCopyTrading'), icon: Link2 },
+    { id: 'event-log', label: t('nav.eventLog'), icon: Activity },
     { id: 'sponsor', label: t('nav.sponsor'), icon: HeartHandshake },
     { id: 'settings', label: t('nav.settings'), icon: Settings },
   ]
+
+  const menuItems = navItems
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -40,7 +43,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {menuItems.map((item) => {
                 const Icon = item.icon
 
                 return (

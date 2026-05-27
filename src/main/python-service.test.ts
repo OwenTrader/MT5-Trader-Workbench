@@ -168,6 +168,17 @@ describe('python-service startup health checks', () => {
     expect(execFileSyncMock).not.toHaveBeenCalled()
   })
 
+  it('passes the electron parent pid to the backend process', () => {
+    const childProcess = createChildProcess(2468)
+    spawnMock.mockReturnValue(childProcess)
+
+    startPythonService()
+
+    expect(spawnMock).toHaveBeenCalledTimes(1)
+    const spawnOptions = spawnMock.mock.calls[0]?.[2]
+    expect(spawnOptions?.env?.PARENT_PID).toBe(String(process.pid))
+  })
+
   it('force-kills the backend process tree when graceful shutdown stalls', async () => {
     vi.useFakeTimers()
     const childProcess = createChildProcess(5678)

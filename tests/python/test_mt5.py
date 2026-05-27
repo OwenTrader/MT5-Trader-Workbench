@@ -52,3 +52,21 @@ def test_positions_endpoint_does_not_allow_launch_by_default(monkeypatch):
 
     assert response.status_code == 200
     assert seen['allow_launch'] is False
+
+
+def test_verify_path_endpoint_uses_dedicated_path_verification(monkeypatch):
+    seen = {}
+
+    def fake_verify_mt5_path_connection(path: str):
+        seen['path'] = path
+        return True, None, {'path': path}
+
+    monkeypatch.setattr('python_service.app.routes.mt5.verify_mt5_path_connection', fake_verify_mt5_path_connection)
+    client = TestClient(app)
+
+    response = client.post('/mt5/verify_path', json={'path': 'C:/MT5/terminal64.exe'})
+
+    assert response.status_code == 200
+    assert response.json()['status'] == 'ok'
+    assert response.json()['terminal_info'] == {'path': 'C:/MT5/terminal64.exe'}
+    assert seen['path'] == 'C:/MT5/terminal64.exe'

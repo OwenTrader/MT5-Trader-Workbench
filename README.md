@@ -11,14 +11,18 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - Real-time overlay window with live symbol quotes streamed over WebSocket
 - Overlay customization for symbol list, font size, font color, pinning, and visibility
 - Price alert management with create, edit, pause, resume, reset, and delete actions
+- Common price alert templates that prefill the form without creating rules automatically
 - Backend-side alert validation against current MT5 market price before saving price rules
 - Volatility monitoring with configurable symbol, threshold, and time window
 - Indicator alerts for technical conditions, including RSI-based rules
 - Desktop notification and alert sound support for triggered monitoring events
-- Order center with today, week, and month P&L summaries
+- Order center with today, week, month, and daily review metrics
 - Historical daily order statistics with selectable date ranges
+- Lightweight Event Log that aggregates currently available local copy trading and order sync events
+- Order Broadcast, Order Sync, and Local Copy Trading screens with explicit safety boundaries before enabling high-risk workflows
 - Technical analysis entry that generates a report and opens it in the default browser
-- Settings management for MT5 path, theme, interface language, auto-connect, refresh interval, overlay options, sound options, and DingTalk bot credentials
+- Settings management for MT5 path, theme, interface language, auto-connect, refresh interval, overlay options, sound options, DingTalk, WeCom, and Feishu bot credentials
+- Configuration migration guidance and sensitive-information handling notes for local settings, API keys, and webhook tokens
 - System tray integration with quick actions for showing the main window, toggling the overlay, and quitting the app
 - Single-instance desktop behavior with hide-to-tray window lifecycle
 - Local FastAPI backend for health checks, settings persistence, MT5 integration, alerts, notifications, history, overlay state, and streaming
@@ -33,8 +37,11 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - `Risk Control`: account and threshold form area
 - `Order Center`: performance overview and daily statistics
 - `Technical Analysis`: one-click report generation flow
-- `Settings`: application, overlay, sound, and bot configuration
-- `Order Broadcast`: reserved in the UI and currently marked as in progress
+- `Order Broadcast`: notification-only order broadcast rules
+- `Order Sync`: MT5 to TopStep synchronization configuration and sync records
+- `Local Copy Trading`: source/follower account relationships and recent copy events
+- `Event Log`: currently available recent event context from sync-related modules
+- `Settings`: connection, display, notifications, and product information
 
 ## Tech Stack
 
@@ -121,9 +128,12 @@ The bundled local backend currently exposes routes for:
 - overlay status and import/export
 - technical analysis report generation
 - overlay quote streaming over WebSocket
+- order sync configuration and runtime records
+- local copy trading configuration and recent events
 
 ## Notes
 
 - The application is designed around a local MT5 environment and Windows desktop usage.
-- Some sections in the UI are intentionally lightweight at this stage, such as `Risk Control`.
-- `Order Broadcast` is visible in the navigation but is not finished yet.
+- Trading-related automation screens include safety notices because notification and sync behavior can be misunderstood as execution guarantees.
+- `Event Log` is a lightweight view of currently available renderer/backend data, not a complete persisted audit log.
+- Settings import/export for full application configuration is not implemented yet; the Settings page documents manual migration paths instead of exposing inactive behavior.

@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/page-header'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ShoppingBag, Calendar, TrendingUp, TrendingDown, DollarSign, Loader2 } from 'lucide-react'
+import { ShoppingBag, Calendar, TrendingUp, TrendingDown, DollarSign, Loader2, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { 
@@ -34,6 +34,31 @@ export const OrderCenterPage: React.FC = () => {
   
   const [localFrom, setLocalFrom] = useState(dateRange.from)
   const [localTo, setLocalTo] = useState(dateRange.to)
+
+  const reviewMetrics = dailyStats.reduce(
+    (metrics, stat) => {
+      metrics.totalProfit += stat.profit
+      metrics.totalTrades += stat.trades_count
+
+      if (stat.profit > 0) metrics.profitableDays += 1
+      if (stat.profit < 0) metrics.losingDays += 1
+      if (!metrics.bestDay || stat.profit > metrics.bestDay.profit) metrics.bestDay = stat
+      if (!metrics.worstDay || stat.profit < metrics.worstDay.profit) metrics.worstDay = stat
+
+      return metrics
+    },
+    {
+      totalProfit: 0,
+      profitableDays: 0,
+      losingDays: 0,
+      totalTrades: 0,
+      bestDay: null as typeof dailyStats[number] | null,
+      worstDay: null as typeof dailyStats[number] | null,
+    }
+  )
+  const winDayRate = dailyStats.length > 0 ? (reviewMetrics.profitableDays / dailyStats.length) * 100 : null
+  const averageProfitPerTrade = reviewMetrics.totalTrades > 0 ? reviewMetrics.totalProfit / reviewMetrics.totalTrades : null
+  const averageProfitPerDay = dailyStats.length > 0 ? reviewMetrics.totalProfit / dailyStats.length : null
 
   useEffect(() => {
     fetchOverview()
@@ -102,6 +127,26 @@ export const OrderCenterPage: React.FC = () => {
                       {t('orderCenter.query')}
                     </Button>
                   </form>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                    {t('orderCenter.reviewTitle')}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <MetricItem label={t('orderCenter.totalProfit')} value={formatMoney(reviewMetrics.totalProfit)} valueClassName={profitClass(reviewMetrics.totalProfit)} />
+                    <MetricItem label={t('orderCenter.totalTrades')} value={reviewMetrics.totalTrades.toLocaleString('en-US')} />
+                    <MetricItem label={t('orderCenter.profitableDays')} value={reviewMetrics.profitableDays.toLocaleString('en-US')} valueClassName="text-green-500" />
+                    <MetricItem label={t('orderCenter.losingDays')} value={reviewMetrics.losingDays.toLocaleString('en-US')} valueClassName="text-red-500" />
+                    <MetricItem label={t('orderCenter.winDayRate')} value={winDayRate === null ? '--' : `${winDayRate.toFixed(1)}%`} />
+                    <MetricItem label={t('orderCenter.averageProfitPerTrade')} value={averageProfitPerTrade === null ? '--' : formatMoney(averageProfitPerTrade)} valueClassName={averageProfitPerTrade === null ? undefined : profitClass(averageProfitPerTrade)} />
+                    <MetricItem label={t('orderCenter.averageProfitPerDay')} value={averageProfitPerDay === null ? '--' : formatMoney(averageProfitPerDay)} valueClassName={averageProfitPerDay === null ? undefined : profitClass(averageProfitPerDay)} />
+                    <MetricItem label={t('orderCenter.bestDay')} value={reviewMetrics.bestDay ? `${reviewMetrics.bestDay.date} ${formatMoney(reviewMetrics.bestDay.profit)}` : '--'} valueClassName="text-green-500" />
+                    <MetricItem label={t('orderCenter.worstDay')} value={reviewMetrics.worstDay ? `${reviewMetrics.worstDay.date} ${formatMoney(reviewMetrics.worstDay.profit)}` : '--'} valueClassName="text-red-500" />
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -220,3 +265,20 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, loading }) => (
     )} />
   </Card>
 )
+
+interface MetricItemProps {
+  label: string
+  value: string
+  valueClassName?: string
+}
+
+const MetricItem: React.FC<MetricItemProps> = ({ label, value, valueClassName }) => (
+  <div className="rounded-lg border bg-muted/20 p-3">
+    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+    <p className={cn('mt-1 text-sm font-bold font-mono', valueClassName)}>{value}</p>
+  </div>
+)
+
+const formatMoney = (value: number) => `${value > 0 ? '+' : ''}${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+
+const profitClass = (value: number) => value >= 0 ? 'text-green-500' : 'text-red-500'

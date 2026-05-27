@@ -9,6 +9,7 @@ from python_service.app.services import streaming_service
 
 def test_should_poll_mt5_returns_false_when_auto_connect_disabled(monkeypatch):
     streaming_service.manager.active_connections = []
+    alerts.active_alerts = []
     monkeypatch.setattr(
         streaming_service,
         'get_settings',
@@ -85,6 +86,35 @@ def test_streaming_loop_does_not_initialize_mt5_when_auto_connect_disabled(monke
         raise AssertionError('streaming_loop did not propagate cancellation')
 
     assert calls['get_mt5_client'] == 0
+
+
+def test_streaming_loop_does_not_launch_mt5_from_background_polling(monkeypatch):
+    calls = {'allow_launch': None}
+    streaming_service.manager.active_connections = [object()]
+
+    monkeypatch.setattr(streaming_service, 'should_poll_mt5', lambda: True)
+    monkeypatch.setattr(streaming_service, 'mt5_connection_lock', lambda: __import__('contextlib').nullcontext())
+
+    def fake_get_mt5_client(*, allow_launch=True):
+        calls['allow_launch'] = allow_launch
+        return None
+
+    async def fake_sleep(seconds):
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr(streaming_service, 'get_mt5_client', fake_get_mt5_client)
+    monkeypatch.setattr(streaming_service.asyncio, 'sleep', fake_sleep)
+
+    try:
+        asyncio.run(streaming_service.streaming_loop())
+    except asyncio.CancelledError:
+        pass
+    else:
+        raise AssertionError('streaming_loop did not propagate cancellation')
+    finally:
+        streaming_service.manager.active_connections = []
+
+    assert calls['allow_launch'] is False
 
 
 def test_get_symbol_quote_selects_symbol_before_reading_tick(monkeypatch):

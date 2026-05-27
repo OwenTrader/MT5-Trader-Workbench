@@ -2,6 +2,13 @@ from pydantic import BaseModel
 
 class Settings(BaseModel):
     mt5_path: str = ''
+    ai_base_url: str = ''
+    ai_api_key: str = ''
+    ai_model: str = 'gpt-4.1-mini'
+    ai_timeframe: str = 'M15'
+    ai_candles_count: int = 100
+    ai_temperature: float = 0.2
+    ai_system_prompt: str = ''
     auto_connect: bool = False
     price_alerts_path: str = ''
     account_monitoring_interval: int = 5

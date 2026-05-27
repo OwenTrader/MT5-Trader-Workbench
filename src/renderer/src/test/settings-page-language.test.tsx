@@ -105,6 +105,23 @@ describe('Settings language switch', () => {
       expect(screen.getByText('System Settings')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('General')).toBeInTheDocument()
+    expect(screen.getByText('Connection')).toBeInTheDocument()
+  })
+
+  it('shows planned config migration and sensitive information guidance', async () => {
+    render(<TestRoot />)
+
+    fireEvent.click(await screen.findByTitle('设置'))
+    const aboutTab = await screen.findByRole('tab', { name: '关于' })
+    fireEvent.click(aboutTab)
+    fireEvent.keyDown(aboutTab, { key: 'Enter' })
+
+    expect(await screen.findByText('配置迁移')).toBeInTheDocument()
+    expect(screen.getByText('当前版本尚未提供设置导入/导出接口；配置迁移请先按手动流程处理。')).toBeInTheDocument()
+    expect(screen.getByText(/storage\/settings\.local\.json/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '导出配置' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '导入配置' })).toBeDisabled()
+    expect(screen.getByText('敏感信息保护')).toBeInTheDocument()
+    expect(screen.getByText(/MT5 路径和账户凭据、TopStep API Key，以及 Bot webhook\/token/)).toBeInTheDocument()
   })
 })

@@ -4,6 +4,7 @@ from python_service.app.local_copy_trading.models import (
     LocalCopyTradingState,
     SourceAccount,
 )
+import pytest
 
 
 def test_local_copy_trading_state_supports_multiple_sources_and_followers():
@@ -24,5 +25,45 @@ def test_local_copy_trading_state_supports_multiple_sources_and_followers():
 
     assert len(state.source_accounts) == 2
     assert len(state.follower_accounts) == 2
-    assert state.relationships[0].symbol == 'XAUUSD'
-    assert state.relationships[1].symbol == 'NAS100'
+    assert state.relationships[0].symbol == 'xauusd'
+    assert state.relationships[1].symbol == 'nas100'
+
+
+def test_copy_relationship_supports_different_follower_symbol_mapping():
+    relationship = CopyRelationship(
+        id='rel-1',
+        source_account_id='src-1',
+        follower_account_id='fol-1',
+        symbol='xauusd',
+        follower_symbol='xauusd.m',
+    )
+
+    assert relationship.symbol == 'xauusd'
+    assert relationship.source_symbol == 'xauusd'
+    assert relationship.follower_symbol == 'xauusd.m'
+
+
+def test_copy_relationship_accepts_new_symbol_mapping_fields_without_legacy_symbol():
+    relationship = CopyRelationship(
+        id='rel-1',
+        source_account_id='src-1',
+        follower_account_id='fol-1',
+        source_symbol='xauusd',
+        follower_symbol='xauusd.m',
+    )
+
+    assert relationship.symbol == 'xauusd'
+    assert relationship.source_symbol == 'xauusd'
+    assert relationship.follower_symbol == 'xauusd.m'
+
+
+def test_copy_relationship_rejects_non_positive_lot_multiplier():
+    with pytest.raises(ValueError, match='lot_multiplier must be greater than 0'):
+        CopyRelationship(
+            id='rel-1',
+            source_account_id='src-1',
+            follower_account_id='fol-1',
+            source_symbol='XAUUSD',
+            follower_symbol='XAUUSD.m',
+            lot_multiplier=0,
+        )

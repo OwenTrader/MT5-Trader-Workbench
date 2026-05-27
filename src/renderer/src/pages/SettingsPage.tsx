@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -54,6 +55,26 @@ export const SettingsPage: React.FC = () => {
   const resolvedAlertSoundPath = ['01.mp3', '02.mp3', '03.mp3'].includes(localSettings.alert_sound_path)
     ? `${resourcesPath}\\audio\\${localSettings.alert_sound_path}`
     : localSettings.alert_sound_path
+
+  const botTransportStatuses = [
+    {
+      name: t('settings.bot.dingtalkShortName'),
+      configured: localSettings.dingtalk_token.trim().length > 0,
+      enabled: localSettings.dingtalk_enabled === true,
+    },
+    {
+      name: t('settings.bot.wecomShortName'),
+      configured: localSettings.wecom_webhook_url.trim().length > 0,
+      enabled: localSettings.wecom_enabled === true,
+    },
+    {
+      name: t('settings.bot.feishuShortName'),
+      configured: localSettings.feishu_webhook_url.trim().length > 0,
+      enabled: localSettings.feishu_enabled === true,
+    },
+  ]
+
+  const hasActiveBotTransport = botTransportStatuses.some((transport) => transport.configured && transport.enabled)
 
   const isBuiltInAlertSound = ['01.mp3', '02.mp3', '03.mp3'].some((sound) =>
     localSettings.alert_sound_path?.includes(sound)
@@ -359,6 +380,81 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="ai-base-url">{t('settings.general.aiBaseUrlLabel')}</Label>
+              <Input
+                id="ai-base-url"
+                value={localSettings.ai_base_url}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_base_url: e.target.value })}
+                placeholder={t('settings.general.aiBaseUrlPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-api-key">{t('settings.general.aiApiKeyLabel')}</Label>
+              <Input
+                id="ai-api-key"
+                type="password"
+                value={localSettings.ai_api_key}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_api_key: e.target.value })}
+                placeholder={t('settings.general.aiApiKeyPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-model">{t('settings.general.aiModelLabel')}</Label>
+              <Input
+                id="ai-model"
+                value={localSettings.ai_model}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_model: e.target.value })}
+                placeholder={t('settings.general.aiModelPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-timeframe">{t('settings.general.aiTimeframeLabel')}</Label>
+              <Input
+                id="ai-timeframe"
+                value={localSettings.ai_timeframe}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_timeframe: e.target.value })}
+                placeholder="M15"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-candles-count">{t('settings.general.aiCandlesCountLabel')}</Label>
+              <Input
+                id="ai-candles-count"
+                type="number"
+                min="10"
+                value={localSettings.ai_candles_count}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_candles_count: parseInt(e.target.value || '0', 10) })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-temperature">{t('settings.general.aiTemperatureLabel')}</Label>
+              <Input
+                id="ai-temperature"
+                type="number"
+                min="0"
+                max="2"
+                step="0.1"
+                value={localSettings.ai_temperature}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_temperature: Number(e.target.value) })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-system-prompt">{t('settings.general.aiSystemPromptLabel')}</Label>
+              <Input
+                id="ai-system-prompt"
+                value={localSettings.ai_system_prompt}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_system_prompt: e.target.value })}
+                placeholder={t('settings.general.aiSystemPromptPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="theme-select">{t('settings.theme.label')}</Label>
               <Select 
                 value={localSettings.theme || 'light'}
@@ -576,9 +672,46 @@ export const SettingsPage: React.FC = () => {
         <TabsContent value="bot" className="pt-4 space-y-6">
           <div className="flex flex-col gap-4">
               <h3 className="font-medium text-sm">{t('settings.bot.title')}</h3>
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">{t('settings.bot.transportStatusTitle')}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {hasActiveBotTransport
+                        ? t('settings.bot.transportStatusReady')
+                        : t('settings.bot.transportStatusRequired')}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {botTransportStatuses.map((transport) => {
+                      const statusKey = transport.configured
+                        ? transport.enabled
+                          ? 'enabled'
+                          : 'configured'
+                        : 'disabled'
+
+                      return (
+                        <Badge
+                          key={transport.name}
+                          variant={transport.configured && transport.enabled ? 'default' : 'outline'}
+                          className={cn(
+                            'gap-1.5',
+                            statusKey === 'configured' && 'border-amber-500/40 text-amber-600 dark:text-amber-400',
+                            statusKey === 'disabled' && 'text-muted-foreground'
+                          )}
+                        >
+                          <span>{transport.name}</span>
+                          <span className="font-normal">{t(`settings.bot.transportStatus.${statusKey}`)}</span>
+                        </Badge>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="flex flex-col gap-4 rounded-lg border p-4 bg-card">
                   <h4 className="text-sm font-semibold">{t('settings.bot.categoriesTitle')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('settings.bot.categoryTransportHint')}</p>
                   <div className="flex items-center justify-between gap-3">
                     <Label htmlFor="push-price-alerts" className="text-sm font-medium">{t('settings.bot.pushPriceAlerts')}</Label>
                     <Switch
@@ -805,6 +938,27 @@ export const SettingsPage: React.FC = () => {
               <p className="text-sm font-medium">{t('settings.about.copyrightTitle')}</p>
               <p className="mt-2 text-sm text-muted-foreground">{t('settings.about.copyright')}</p>
               <p className="mt-1 text-xs text-muted-foreground">{t('settings.about.notice')}</p>
+            </div>
+
+            <div className="mt-6 rounded-lg border bg-muted/30 p-4">
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium">{t('settings.about.configMigrationTitle')}</p>
+                <p className="text-sm text-muted-foreground">{t('settings.about.configMigrationDescription')}</p>
+                <p className="text-xs text-muted-foreground">{t('settings.about.configMigrationLocation')}</p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Button variant="outline" size="sm" disabled>
+                    {t('settings.about.exportConfig')}
+                  </Button>
+                  <Button variant="outline" size="sm" disabled>
+                    {t('settings.about.importConfig')}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-lg border bg-muted/30 p-4">
+              <p className="text-sm font-medium">{t('settings.about.sensitiveInfoTitle')}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t('settings.about.sensitiveInfoDescription')}</p>
             </div>
           </div>
         </TabsContent>
