@@ -68,6 +68,13 @@ async function buildBackendUnavailableMessage(defaultMessage: string, error: unk
 
 export interface Settings {
   mt5_path: string
+  ai_base_url: string
+  ai_api_key: string
+  ai_model: string
+  ai_timeframe: string
+  ai_candles_count: number
+  ai_temperature: number
+  ai_system_prompt: string
   auto_connect: boolean
   price_alerts_path: string
   account_monitoring_interval: number
@@ -105,6 +112,13 @@ interface SettingsState {
 
 const DEFAULT_SETTINGS: Settings = {
   mt5_path: '',
+  ai_base_url: '',
+  ai_api_key: '',
+  ai_model: 'gpt-4.1-mini',
+  ai_timeframe: 'M15',
+  ai_candles_count: 100,
+  ai_temperature: 0.2,
+  ai_system_prompt: '',
   auto_connect: false,
   price_alerts_path: '',
   account_monitoring_interval: 5,

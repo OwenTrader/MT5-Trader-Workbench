@@ -4,6 +4,7 @@ import os
 import time
 import threading
 from contextlib import contextmanager
+from datetime import datetime, timezone
 
 
 _mt5_lock = threading.RLock()
@@ -328,3 +329,33 @@ def get_positions(*, allow_launch: bool = True) -> list[dict]:
             return []
         
         return [p._asdict() for p in positions]
+
+
+def get_recent_candles(
+    symbol: str,
+    *,
+    timeframe=None,
+    count: int = 100,
+    allow_launch: bool = False,
+) -> list[dict]:
+    with _mt5_lock:
+        if not _init_mt5_unlocked(get_settings_path(), allow_launch=allow_launch):
+            return []
+
+        resolved_timeframe = timeframe if timeframe is not None else mt5.TIMEFRAME_M15
+        rates = mt5.copy_rates_from_pos(symbol, resolved_timeframe, 0, count)
+        if rates is None:
+            return []
+
+        candles: list[dict] = []
+        for rate in rates:
+            payload = rate._asdict() if hasattr(rate, '_asdict') else dict(rate)
+            candles.append({
+                'time': datetime.fromtimestamp(int(payload['time']), timezone.utc).isoformat(),
+                'open': float(payload['open']),
+                'high': float(payload['high']),
+                'low': float(payload['low']),
+                'close': float(payload['close']),
+                'volume': float(payload.get('tick_volume') or payload.get('real_volume') or 0),
+            })
+        return candles

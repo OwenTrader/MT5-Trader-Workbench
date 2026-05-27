@@ -275,7 +275,7 @@ describe('Dashboard Page', () => {
     await user.click(await within(nav).findByRole('button', { name: 'Technical Analysis' }))
 
     expect(window.location.hash).toContain('/tech-analysis')
-    expect(await screen.findByText('Generate Technical Analysis')).toBeInTheDocument()
+    expect(await screen.findByText('Generate AI Analysis')).toBeInTheDocument()
   })
 
   it('navigates to and renders the local copy trading page from the sidebar', async () => {

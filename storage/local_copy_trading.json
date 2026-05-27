@@ -1,6 +1,6 @@
 {
   "enabled": false,
-  "poll_interval_seconds": 1.0,
+  "poll_interval_seconds": 1,
   "source_accounts": [],
   "follower_accounts": [
     {
@@ -17,5 +17,5 @@
   "relationships": [],
   "events": [],
   "last_error": null,
-  "last_checked_at": "2026-05-26T16:12:24.116610+00:00"
+  "last_checked_at": null
 }

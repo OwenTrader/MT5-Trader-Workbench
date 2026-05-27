@@ -380,6 +380,81 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="ai-base-url">{t('settings.general.aiBaseUrlLabel')}</Label>
+              <Input
+                id="ai-base-url"
+                value={localSettings.ai_base_url}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_base_url: e.target.value })}
+                placeholder={t('settings.general.aiBaseUrlPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-api-key">{t('settings.general.aiApiKeyLabel')}</Label>
+              <Input
+                id="ai-api-key"
+                type="password"
+                value={localSettings.ai_api_key}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_api_key: e.target.value })}
+                placeholder={t('settings.general.aiApiKeyPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-model">{t('settings.general.aiModelLabel')}</Label>
+              <Input
+                id="ai-model"
+                value={localSettings.ai_model}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_model: e.target.value })}
+                placeholder={t('settings.general.aiModelPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-timeframe">{t('settings.general.aiTimeframeLabel')}</Label>
+              <Input
+                id="ai-timeframe"
+                value={localSettings.ai_timeframe}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_timeframe: e.target.value })}
+                placeholder="M15"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-candles-count">{t('settings.general.aiCandlesCountLabel')}</Label>
+              <Input
+                id="ai-candles-count"
+                type="number"
+                min="10"
+                value={localSettings.ai_candles_count}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_candles_count: parseInt(e.target.value || '0', 10) })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-temperature">{t('settings.general.aiTemperatureLabel')}</Label>
+              <Input
+                id="ai-temperature"
+                type="number"
+                min="0"
+                max="2"
+                step="0.1"
+                value={localSettings.ai_temperature}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_temperature: Number(e.target.value) })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-system-prompt">{t('settings.general.aiSystemPromptLabel')}</Label>
+              <Input
+                id="ai-system-prompt"
+                value={localSettings.ai_system_prompt}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_system_prompt: e.target.value })}
+                placeholder={t('settings.general.aiSystemPromptPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="theme-select">{t('settings.theme.label')}</Label>
               <Select 
                 value={localSettings.theme || 'light'}

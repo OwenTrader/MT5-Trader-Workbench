@@ -1,4 +1,9 @@
+from collections import namedtuple
+
 from python_service.app.services import mt5_service
+
+
+Rate = namedtuple('Rate', ['time', 'open', 'high', 'low', 'close', 'tick_volume'])
 
 
 class FakeMT5:
@@ -31,6 +36,9 @@ class FakeMT5:
                 return {}
 
         return TerminalInfo()
+
+    def copy_rates_from_pos(self, symbol, timeframe, start_pos, count):
+        return []
 
 
 def test_init_mt5_without_launch_does_not_use_path(monkeypatch):
@@ -158,3 +166,26 @@ def test_verify_mt5_path_connection_uses_requested_terminal_and_shuts_down(monke
     assert terminal_info == {}
     assert fake_mt5.shutdown_calls == 2
     assert fake_mt5.calls == [{'path': 'C:/MT5/terminal64.exe'}]
+
+
+def test_get_recent_candles_returns_normalized_candle_dicts(monkeypatch):
+    fake_mt5 = FakeMT5([])
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+    monkeypatch.setattr(mt5_service, 'get_settings_path', lambda: 'C:/MT5/terminal64.exe')
+    monkeypatch.setattr(mt5_service, '_init_mt5_unlocked', lambda path, allow_launch=True, prefer_existing=True: True)
+    fake_mt5.copy_rates_from_pos = lambda symbol, timeframe, start_pos, count: [
+        Rate(time=1710000000, open=1.1, high=1.2, low=1.0, close=1.15, tick_volume=123),
+        Rate(time=1710000060, open=1.15, high=1.25, low=1.05, close=1.2, tick_volume=124),
+    ]
+
+    candles = mt5_service.get_recent_candles('XAUUSD', timeframe=15, count=2)
+
+    assert len(candles) == 2
+    assert candles[0] == {
+        'time': '2024-03-09T16:00:00+00:00',
+        'open': 1.1,
+        'high': 1.2,
+        'low': 1.0,
+        'close': 1.15,
+        'volume': 123.0,
+    }

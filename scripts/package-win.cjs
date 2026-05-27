@@ -169,7 +169,13 @@ function main() {
 
   prepareOutputDirectory(outputDir)
 
-  const result = spawnSync(process.execPath, [electronBuilderCliPath, '--win', `--config.directories.output=${outputDir}`], {
+  const builderArgs = [electronBuilderCliPath, '--win', `--config.directories.output=${outputDir}`]
+  if (!process.env.GH_TOKEN) {
+    builderArgs.push('--publish', 'never')
+    console.log('[package:win] GH_TOKEN not set, disabling publish for local packaging')
+  }
+
+  const result = spawnSync(process.execPath, builderArgs, {
     cwd: repoRoot,
     env: {
       ...process.env,
