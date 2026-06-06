@@ -3,6 +3,7 @@ import { HashRouter, Navigate, Route, Routes, useNavigate, useParams } from 'rea
 import { WorkbenchShell } from '@/layouts/workbench-shell'
 import { DashboardPage } from '@/pages/dashboard-page'
 import { PythonQuantPage } from '@/pages/PythonQuantPage'
+import { QuantBacktestPage } from '@/pages/QuantBacktestPage'
 import { OrderBroadcastPage } from './pages/OrderBroadcastPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { PriceAlertsPage } from './pages/PriceAlertsPage'
@@ -23,6 +24,7 @@ import { ThemeProvider } from 'next-themes'
 const VALID_MODULES = new Set([
   'dashboard',
   'python-quant',
+  'quant-backtest',
   'order-broadcast',
   'order-sync',
   'account-list',
@@ -51,6 +53,7 @@ function ModuleRoute() {
     <WorkbenchShell activeModule={activeModule} onModuleChange={(nextModule) => navigate(`/${nextModule}`)}>
       {activeModule === 'dashboard' && <DashboardPage />}
       {activeModule === 'python-quant' && <PythonQuantPage />}
+      {activeModule === 'quant-backtest' && <QuantBacktestPage />}
       {activeModule === 'order-broadcast' && <OrderBroadcastPage />}
       {activeModule === 'order-sync' && <OrderSyncPage />}
       {activeModule === 'account-list' && <AccountListPage />}

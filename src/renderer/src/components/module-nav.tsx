@@ -22,7 +22,6 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
 
   const primaryNavItems = [
     { id: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
-    { id: 'python-quant', label: t('nav.pythonQuant'), icon: LineChart },
     { id: 'price-alerts', label: t('nav.priceAlerts'), icon: Bell },
     { id: 'volatility', label: t('nav.volatility'), icon: TrendingUp },
     { id: 'indicator-alerts', label: t('nav.indicatorAlerts'), icon: LineChart },
@@ -35,6 +34,8 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
 
   const copyTradingNavItems = [
     { id: 'account-list', label: t('nav.accountList'), icon: Users },
+    { id: 'python-quant', label: t('nav.pythonQuant'), icon: LineChart },
+    { id: 'quant-backtest', label: t('nav.quantBacktest'), icon: LineChart },
     { id: 'local-copy-trading', label: t('nav.localCopyTrading'), icon: Link2 },
   ]
 

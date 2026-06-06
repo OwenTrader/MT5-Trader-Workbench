@@ -412,21 +412,25 @@ export function PythonQuantPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('pythonQuant.title')} icon={LineChart} />
+      <PageHeader
+        title={t('pythonQuant.title')}
+        description="Assign live strategies to accounts from Account List, monitor runtime status, and backfill market data manually."
+        icon={LineChart}
+      />
 
       <Card>
         <CardHeader>
           <CardTitle>Create Job</CardTitle>
-          <p className="text-sm text-muted-foreground">{t('pythonQuant.description')}</p>
+          <p className="text-sm text-muted-foreground">Create or update live MT5 strategy assignments for accounts maintained in Account List.</p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
-            Python Quant uses MT5 accounts already configured in Local Copy Trading.
+            Python Quant uses MT5 accounts already configured in Account List.
           </p>
 
           {!hasAccounts || !hasStrategies ? (
             <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              {!hasAccounts ? 'Add at least one Local Copy Trading MT5 account before creating a quant job.' : null}
+              {!hasAccounts ? 'Add at least one MT5 account in Account List before creating a live quant job.' : null}
               {!hasAccounts && !hasStrategies ? ' ' : null}
               {!hasStrategies ? 'No Python strategies are currently available.' : null}
             </div>
@@ -492,7 +496,7 @@ export function PythonQuantPage() {
       <Card>
         <CardHeader>
           <CardTitle>Jobs</CardTitle>
-          <p className="text-sm text-muted-foreground">Start, stop, edit, or remove strategy jobs without leaving the page.</p>
+          <p className="text-sm text-muted-foreground">Start, stop, edit, or remove live strategy jobs without leaving the page.</p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {jobsError ? (

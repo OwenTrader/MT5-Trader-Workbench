@@ -5,17 +5,25 @@ import type { ChildProcess } from 'node:child_process'
 import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { httpGetMock, execFileSyncMock, spawnMock } = vi.hoisted(() => ({
+const { electronAppMock, httpGetMock, execFileSyncMock, spawnMock } = vi.hoisted(() => ({
+  electronAppMock: {
+    isPackaged: false,
+    getAppPath: vi.fn(() => 'E:/ai/tradingtoolByElec'),
+    getPath: vi.fn((name: string) => {
+      if (name === 'userData') {
+        return 'C:/Users/Test/AppData/Roaming/MT5 Trader Workbench'
+      }
+
+      return ''
+    })
+  },
   httpGetMock: vi.fn(),
   execFileSyncMock: vi.fn(),
   spawnMock: vi.fn()
 }))
 
 vi.mock('electron', () => ({
-  app: {
-    isPackaged: false,
-    getAppPath: () => 'E:/ai/tradingtoolByElec'
-  }
+  app: electronAppMock
 }))
 
 vi.mock('node:http', () => ({
@@ -109,6 +117,21 @@ describe('python-service startup health checks', () => {
     execFileSyncMock.mockReset()
     spawnMock.mockReset()
     vi.restoreAllMocks()
+    electronAppMock.isPackaged = false
+    electronAppMock.getAppPath.mockReset()
+    electronAppMock.getAppPath.mockReturnValue('E:/ai/tradingtoolByElec')
+    electronAppMock.getPath.mockReset()
+    electronAppMock.getPath.mockImplementation((name: string) => {
+      if (name === 'userData') {
+        return 'C:/Users/Test/AppData/Roaming/MT5 Trader Workbench'
+      }
+
+      return ''
+    })
+    Object.defineProperty(process, 'resourcesPath', {
+      value: 'C:/Program Files/MT5 Trader Workbench/resources',
+      configurable: true
+    })
   })
 
   it('treats a 200 health response as healthy', async () => {
@@ -177,6 +200,49 @@ describe('python-service startup health checks', () => {
     expect(spawnMock).toHaveBeenCalledTimes(1)
     const spawnOptions = spawnMock.mock.calls[0]?.[2]
     expect(spawnOptions?.env?.PARENT_PID).toBe(String(process.pid))
+  })
+
+  it('passes development quant paths to the backend process environment', () => {
+    const childProcess = createChildProcess(9753)
+    spawnMock.mockReturnValue(childProcess)
+
+    startPythonService()
+
+    const spawnOptions = spawnMock.mock.calls[0]?.[2]
+    expect(spawnOptions?.env?.PYTHON_QUANT_DATA_DIR).toBe(
+      path.join('E:/ai/tradingtoolByElec', 'storage', 'python_quant')
+    )
+    expect(spawnOptions?.env?.PYTHON_QUANT_STRATEGIES_DIR).toBe(
+      path.join('E:/ai/tradingtoolByElec', 'storage', 'python_quant', 'strategies')
+    )
+    expect(spawnOptions?.env?.PYTHON_QUANT_JOBS_PATH).toBe(
+      path.join('E:/ai/tradingtoolByElec', 'storage', 'python_quant', 'jobs.json')
+    )
+    expect(spawnOptions?.env?.PYTHON_QUANT_MARKET_DATA_PATH).toBe(
+      path.join('E:/ai/tradingtoolByElec', 'storage', 'python_quant', 'market_data.sqlite3')
+    )
+  })
+
+  it('passes packaged quant paths to the backend process environment', () => {
+    electronAppMock.isPackaged = true
+    const childProcess = createChildProcess(8642)
+    spawnMock.mockReturnValue(childProcess)
+
+    startPythonService()
+
+    const spawnOptions = spawnMock.mock.calls[0]?.[2]
+    expect(spawnOptions?.env?.PYTHON_QUANT_DATA_DIR).toBe(
+      path.join('C:/Users/Test/AppData/Roaming/MT5 Trader Workbench', 'storage', 'python_quant')
+    )
+    expect(spawnOptions?.env?.PYTHON_QUANT_STRATEGIES_DIR).toBe(
+      path.join('C:/Users/Test/AppData/Roaming/MT5 Trader Workbench', 'storage', 'python_quant', 'strategies')
+    )
+    expect(spawnOptions?.env?.PYTHON_QUANT_JOBS_PATH).toBe(
+      path.join('C:/Users/Test/AppData/Roaming/MT5 Trader Workbench', 'storage', 'python_quant', 'jobs.json')
+    )
+    expect(spawnOptions?.env?.PYTHON_QUANT_MARKET_DATA_PATH).toBe(
+      path.join('C:/Users/Test/AppData/Roaming/MT5 Trader Workbench', 'storage', 'python_quant', 'market_data.sqlite3')
+    )
   })
 
   it('force-kills the backend process tree when graceful shutdown stalls', async () => {

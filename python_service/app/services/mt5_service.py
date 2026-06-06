@@ -389,18 +389,53 @@ def fetch_account_bars(
         if rates is None:
             return []
 
-        bars: list[dict] = []
-        for rate in rates:
-            payload = rate._asdict() if hasattr(rate, '_asdict') else dict(rate)
-            bars.append({
-                'time': datetime.fromtimestamp(int(payload['time']), timezone.utc).isoformat(),
-                'open': float(payload['open']),
-                'high': float(payload['high']),
-                'low': float(payload['low']),
-                'close': float(payload['close']),
-                'tick_volume': int(payload['tick_volume']),
-            })
-        return bars
+        return _normalize_mt5_rates(rates)
+
+
+def fetch_account_bars_range(
+    path: str,
+    login: str,
+    password: str,
+    server: str,
+    symbol: str,
+    timeframe,
+    start_at: str,
+    end_at: str,
+) -> list[dict]:
+    with _mt5_lock:
+        ok, detail = _init_mt5_account_unlocked(path, login, password, server)
+        if not ok:
+            raise RuntimeError(detail or 'Failed to connect account')
+
+        rates = mt5.copy_rates_range(
+            symbol,
+            _resolve_mt5_timeframe(timeframe),
+            _parse_iso_datetime(start_at),
+            _parse_iso_datetime(end_at),
+        )
+        if rates is None:
+            return []
+
+        return _normalize_mt5_rates(rates)
+
+
+def _parse_iso_datetime(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
+
+
+def _normalize_mt5_rates(rates) -> list[dict]:
+    bars: list[dict] = []
+    for rate in rates:
+        payload = rate._asdict() if hasattr(rate, '_asdict') else dict(rate)
+        bars.append({
+            'time': datetime.fromtimestamp(int(payload['time']), timezone.utc).isoformat(),
+            'open': float(payload['open']),
+            'high': float(payload['high']),
+            'low': float(payload['low']),
+            'close': float(payload['close']),
+            'tick_volume': int(payload['tick_volume']),
+        })
+    return bars
 
 
 def _submit_market_order_unlocked(

@@ -51,6 +51,34 @@ function getDevelopmentDefaultSettingsPath(): string {
   return path.join(app.getAppPath(), 'storage', 'settings.default.json')
 }
 
+function getDevelopmentQuantDataDir(): string {
+  return path.join(app.getAppPath(), 'storage', 'python_quant')
+}
+
+function getPackagedQuantDataDir(): string {
+  return path.join(app.getPath('userData'), 'storage', 'python_quant')
+}
+
+function getBackendQuantDataDir(): string {
+  if (app.isPackaged) {
+    return getPackagedQuantDataDir()
+  }
+
+  return getDevelopmentQuantDataDir()
+}
+
+function getBackendQuantStrategiesDir(): string {
+  return path.join(getBackendQuantDataDir(), 'strategies')
+}
+
+function getBackendQuantJobsPath(): string {
+  return path.join(getBackendQuantDataDir(), 'jobs.json')
+}
+
+function getBackendQuantMarketDataPath(): string {
+  return path.join(getBackendQuantDataDir(), 'market_data.sqlite3')
+}
+
 function getBackendSettingsPath(): string {
   if (app.isPackaged) {
     return getUserSettingsPath()
@@ -229,7 +257,11 @@ export function startPythonService(): ChildProcess {
       PYTHONPATH: pythonPath,
       PARENT_PID: String(process.pid),
       SETTINGS_FILE: getBackendSettingsPath(),
-      DEFAULT_SETTINGS_FILE: getBackendDefaultSettingsPath()
+      DEFAULT_SETTINGS_FILE: getBackendDefaultSettingsPath(),
+      PYTHON_QUANT_DATA_DIR: getBackendQuantDataDir(),
+      PYTHON_QUANT_STRATEGIES_DIR: getBackendQuantStrategiesDir(),
+      PYTHON_QUANT_JOBS_PATH: getBackendQuantJobsPath(),
+      PYTHON_QUANT_MARKET_DATA_PATH: getBackendQuantMarketDataPath()
     },
     windowsHide: true
   })

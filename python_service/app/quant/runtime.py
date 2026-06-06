@@ -31,7 +31,7 @@ def _list_runtime_accounts() -> list[dict]:
     accounts: list[dict] = []
     seen_ids: set[str] = set()
 
-    for account in [*state.source_accounts, *state.follower_accounts]:
+    for account in state.accounts:
         if not account.is_active or not account.id or account.id in seen_ids:
             continue
         seen_ids.add(account.id)

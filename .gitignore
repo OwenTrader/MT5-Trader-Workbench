@@ -19,6 +19,7 @@ releases
 /docs/
 storage/settings.local.json
 storage/python_quant/
+storage/python_quant/strategies/
 /build/
 test-results/
 .build-version.json

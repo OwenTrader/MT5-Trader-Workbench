@@ -16,6 +16,7 @@ export const messages = {
     nav: {
       dashboard: '工作台总览',
       pythonQuant: 'Python Quant',
+      quantBacktest: 'Quant Backtest',
       priceAlerts: '价格预警',
       volatility: '波动检测',
       indicatorAlerts: '指标预警',
@@ -59,6 +60,11 @@ export const messages = {
       createJob: '创建任务',
       start: '启动',
       stop: '停止',
+    },
+    quantBacktest: {
+      title: 'Quant Backtest',
+      description: '使用本地缓存的 MT5 市场数据运行历史回测。',
+      run: '运行回测',
     },
     localCopyTrading: {
       title: '本地跟单',
@@ -636,6 +642,7 @@ export const messages = {
     nav: {
       dashboard: 'Dashboard',
       pythonQuant: 'Python Quant',
+      quantBacktest: 'Quant Backtest',
       priceAlerts: 'Price Alerts',
       volatility: 'Volatility',
       indicatorAlerts: 'Indicator Alerts',
@@ -679,6 +686,11 @@ export const messages = {
       createJob: 'Create Job',
       start: 'Start',
       stop: 'Stop',
+    },
+    quantBacktest: {
+      title: 'Quant Backtest',
+      description: 'Run historical backtests with local cached MT5 market data.',
+      run: 'Run Backtest',
     },
     localCopyTrading: {
       title: 'Local Copy Trading',

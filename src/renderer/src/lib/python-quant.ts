@@ -65,7 +65,7 @@ export interface PythonQuantBackfillPayload {
   account_id: string
   symbol: string
   timeframe: PythonQuantTimeframe
-  bars?: number
+  bars: number
 }
 
 export function createEmptyPythonQuantOverview(): PythonQuantOverview {
