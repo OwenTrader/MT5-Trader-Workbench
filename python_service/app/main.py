@@ -18,12 +18,14 @@ from python_service.app.routes.awakening import router as awakening_router
 from python_service.app.routes.order_sync import router as order_sync_router
 from python_service.app.routes.risk_control import router as risk_control_router
 from python_service.app.local_copy_trading.routes import router as local_copy_trading_router
+from python_service.app.quant.routes import router as python_quant_router
 from python_service.app.services.mt5_service import shutdown_mt5
 from python_service.app.services.order_sync_service import order_sync_loop
 from python_service.app.services.streaming_service import streaming_loop
 from python_service.app.local_copy_trading.loop import local_copy_trading_loop
 from python_service.app.local_copy_trading.runtime import set_state as set_local_copy_trading_state
 from python_service.app.local_copy_trading.storage import load_state as load_local_copy_trading_state
+from python_service.app.quant.loop import quant_loop
 
 PARENT_CHECK_INTERVAL_SECONDS = 2.0
 
@@ -92,6 +94,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(streaming_loop()),
         asyncio.create_task(order_sync_loop()),
         asyncio.create_task(local_copy_trading_loop()),
+        asyncio.create_task(quant_loop()),
     ]
     parent_pid = get_parent_pid_from_env()
     if parent_pid is not None:
@@ -128,6 +131,7 @@ app.include_router(order_sync_router)
 app.include_router(risk_control_router)
 app.include_router(stream_router)
 app.include_router(local_copy_trading_router)
+app.include_router(python_quant_router)
 
 if __name__ == '__main__':
     uvicorn.run(app, host='127.0.0.1', port=8765)

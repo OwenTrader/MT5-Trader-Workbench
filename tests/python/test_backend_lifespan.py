@@ -20,11 +20,19 @@ def test_lifespan_cancels_background_tasks_and_shutdowns_mt5(monkeypatch):
         async def fake_order_sync_loop():
             await asyncio.Event().wait()
 
+        async def fake_local_copy_trading_loop():
+            await asyncio.Event().wait()
+
+        async def fake_quant_loop():
+            await asyncio.Event().wait()
+
         def fake_shutdown_mt5():
             shutdown_calls['count'] += 1
 
         monkeypatch.setattr(backend_main, 'streaming_loop', fake_streaming_loop)
         monkeypatch.setattr(backend_main, 'order_sync_loop', fake_order_sync_loop)
+        monkeypatch.setattr(backend_main, 'local_copy_trading_loop', fake_local_copy_trading_loop)
+        monkeypatch.setattr(backend_main, 'quant_loop', fake_quant_loop)
         monkeypatch.setattr(backend_main, 'shutdown_mt5', fake_shutdown_mt5, raising=False)
 
         async with backend_main.lifespan(backend_main.app):
@@ -49,6 +57,9 @@ def test_lifespan_registers_parent_watchdog_when_parent_pid_present(monkeypatch)
         async def fake_local_copy_trading_loop():
             await asyncio.Event().wait()
 
+        async def fake_quant_loop():
+            await asyncio.Event().wait()
+
         async def fake_parent_process_watchdog(parent_pid: int, interval_seconds: float = 2.0):
             started['watchdog'] = parent_pid == 4321
             await asyncio.Event().wait()
@@ -56,6 +67,7 @@ def test_lifespan_registers_parent_watchdog_when_parent_pid_present(monkeypatch)
         monkeypatch.setattr(backend_main, 'streaming_loop', fake_streaming_loop)
         monkeypatch.setattr(backend_main, 'order_sync_loop', fake_order_sync_loop)
         monkeypatch.setattr(backend_main, 'local_copy_trading_loop', fake_local_copy_trading_loop)
+        monkeypatch.setattr(backend_main, 'quant_loop', fake_quant_loop)
         monkeypatch.setattr(backend_main, 'parent_process_watchdog', fake_parent_process_watchdog)
         monkeypatch.setenv('PARENT_PID', '4321')
 

@@ -2,6 +2,7 @@ import React from 'react'
 import { HashRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { WorkbenchShell } from '@/layouts/workbench-shell'
 import { DashboardPage } from '@/pages/dashboard-page'
+import { PythonQuantPage } from '@/pages/PythonQuantPage'
 import { OrderBroadcastPage } from './pages/OrderBroadcastPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { PriceAlertsPage } from './pages/PriceAlertsPage'
@@ -20,6 +21,7 @@ import { ThemeProvider } from 'next-themes'
 
 const VALID_MODULES = new Set([
   'dashboard',
+  'python-quant',
   'order-broadcast',
   'order-sync',
   'local-copy-trading',
@@ -46,6 +48,7 @@ function ModuleRoute() {
   return (
     <WorkbenchShell activeModule={activeModule} onModuleChange={(nextModule) => navigate(`/${nextModule}`)}>
       {activeModule === 'dashboard' && <DashboardPage />}
+      {activeModule === 'python-quant' && <PythonQuantPage />}
       {activeModule === 'order-broadcast' && <OrderBroadcastPage />}
       {activeModule === 'order-sync' && <OrderSyncPage />}
       {activeModule === 'local-copy-trading' && <LocalCopyTradingPage />}
