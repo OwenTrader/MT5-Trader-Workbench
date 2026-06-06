@@ -22,6 +22,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
 
   const primaryNavItems = [
     { id: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { id: 'python-quant', label: t('nav.pythonQuant'), icon: LineChart },
     { id: 'price-alerts', label: t('nav.priceAlerts'), icon: Bell },
     { id: 'volatility', label: t('nav.volatility'), icon: TrendingUp },
     { id: 'indicator-alerts', label: t('nav.indicatorAlerts'), icon: LineChart },

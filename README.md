@@ -20,6 +20,7 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - Historical daily order statistics with selectable date ranges
 - Lightweight Event Log that aggregates currently available local copy trading and order sync events
 - Order Broadcast, Order Sync, and Local Copy Trading screens with explicit safety boundaries before enabling high-risk workflows
+- Python Quant module for creating MT5-backed strategy jobs, managing local market-data backfill, and starting/stopping Python strategy execution
 - Technical analysis entry that generates a report and opens it in the default browser
 - Settings management for MT5 path, theme, interface language, auto-connect, refresh interval, overlay options, sound options, DingTalk, WeCom, and Feishu bot credentials
 - Configuration migration guidance and sensitive-information handling notes for local settings, API keys, and webhook tokens
@@ -40,6 +41,7 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - `Order Broadcast`: notification-only order broadcast rules
 - `Order Sync`: MT5 to TopStep synchronization configuration and sync records
 - `Local Copy Trading`: source/follower account relationships and recent copy events
+- `Python Quant`: Python strategy jobs bound to configured MT5 accounts with local SQLite market-data cache
 - `Event Log`: currently available recent event context from sync-related modules
 - `Settings`: connection, display, notifications, and product information
 
@@ -130,6 +132,15 @@ The bundled local backend currently exposes routes for:
 - overlay quote streaming over WebSocket
 - order sync configuration and runtime records
 - local copy trading configuration and recent events
+- python quant overview, job lifecycle control, and local market-data backfill
+
+## Python Quant Notes
+
+- Python Quant reuses MT5 accounts already configured in Local Copy Trading.
+- Local market data is cached in `storage/python_quant/market_data.sqlite3`.
+- Quant jobs are persisted in `storage/python_quant/jobs.json`.
+- The first built-in strategy is `sma_cross`, and the packaged backend includes the built-in strategy module.
+- Python tests remain `pytest tests/python` even after adding the quant module.
 
 ## Notes
 

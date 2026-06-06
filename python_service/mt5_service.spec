@@ -23,6 +23,8 @@ a = Analysis(
         'pandas',
         'pydantic',
         'MetaTrader5',
+        'backtrader',
+        'python_service.app.quant.strategies.sma_cross',
         'gold_analysis',
         'wave_analysis',
         'elliott_wave',

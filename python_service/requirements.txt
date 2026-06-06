@@ -7,3 +7,4 @@ httpx
 pandas
 numpy
 pyinstaller
+backtrader

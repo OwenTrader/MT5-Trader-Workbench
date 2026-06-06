@@ -18,6 +18,7 @@ python_service/dist/
 releases
 /docs/
 storage/settings.local.json
+storage/python_quant/
 /build/
 test-results/
 .build-version.json

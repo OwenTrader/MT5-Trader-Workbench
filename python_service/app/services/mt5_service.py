@@ -29,6 +29,16 @@ def _normalize_login(login: str | int | None) -> int | None:
 
     return int(login_value)
 
+
+def _resolve_mt5_timeframe(timeframe) -> int:
+    if isinstance(timeframe, str):
+        resolved = getattr(mt5, f'TIMEFRAME_{timeframe}', None)
+        if resolved is None:
+            raise ValueError(f'Unsupported MT5 timeframe: {timeframe}')
+        return resolved
+
+    return timeframe
+
 def is_mt5_running() -> bool:
     # This is a naive check, MetaTrader5.initialize() is better but requires the terminal to be open
     # We can check for terminal64.exe process
@@ -359,3 +369,136 @@ def get_recent_candles(
                 'volume': float(payload.get('tick_volume') or payload.get('real_volume') or 0),
             })
         return candles
+
+
+def fetch_account_bars(
+    path: str,
+    login: str,
+    password: str,
+    server: str,
+    symbol: str,
+    timeframe,
+    count: int,
+) -> list[dict]:
+    with _mt5_lock:
+        ok, detail = _init_mt5_account_unlocked(path, login, password, server)
+        if not ok:
+            raise RuntimeError(detail or 'Failed to connect account')
+
+        rates = mt5.copy_rates_from_pos(symbol, _resolve_mt5_timeframe(timeframe), 0, count)
+        if rates is None:
+            return []
+
+        bars: list[dict] = []
+        for rate in rates:
+            payload = rate._asdict() if hasattr(rate, '_asdict') else dict(rate)
+            bars.append({
+                'time': datetime.fromtimestamp(int(payload['time']), timezone.utc).isoformat(),
+                'open': float(payload['open']),
+                'high': float(payload['high']),
+                'low': float(payload['low']),
+                'close': float(payload['close']),
+                'tick_volume': int(payload['tick_volume']),
+            })
+        return bars
+
+
+def _submit_market_order_unlocked(
+    *,
+    symbol: str,
+    lot: float,
+    side: str,
+    position_ticket: int | None = None,
+) -> dict:
+    if not mt5.symbol_select(symbol, True):
+        raise RuntimeError(f'Failed to select symbol: {symbol}')
+
+    tick = mt5.symbol_info_tick(symbol)
+    if tick is None:
+        raise RuntimeError(f'Failed to fetch latest tick for {symbol}')
+
+    is_buy = side == 'buy'
+    price = float(getattr(tick, 'ask', 0) if is_buy else getattr(tick, 'bid', 0))
+    if price <= 0:
+        raise RuntimeError(f'Failed to fetch executable price for {symbol}')
+
+    request = {
+        'action': getattr(mt5, 'TRADE_ACTION_DEAL', 1),
+        'symbol': symbol,
+        'volume': float(lot),
+        'type': getattr(mt5, 'ORDER_TYPE_BUY', 0) if is_buy else getattr(mt5, 'ORDER_TYPE_SELL', 1),
+        'price': price,
+        'type_time': getattr(mt5, 'ORDER_TIME_GTC', 0),
+        'type_filling': getattr(mt5, 'ORDER_FILLING_IOC', 1),
+    }
+    if position_ticket is not None:
+        request['position'] = int(position_ticket)
+
+    result = mt5.order_send(request)
+    if result is None:
+        raise RuntimeError(f'MT5 order_send returned no result. Error: {mt5.last_error()}')
+
+    result_code = getattr(result, 'retcode', None)
+    done_codes = {
+        getattr(mt5, 'TRADE_RETCODE_DONE', 10009),
+        getattr(mt5, 'TRADE_RETCODE_PLACED', 10008),
+    }
+    if result_code not in done_codes:
+        comment = getattr(result, 'comment', '')
+        raise RuntimeError(f'MT5 order_send failed. Retcode: {result_code}. {comment}')
+
+    return result._asdict() if hasattr(result, '_asdict') else {'retcode': result_code}
+
+
+def place_market_order(path: str, login: str, password: str, server: str, symbol: str, lot: float, side: str) -> dict:
+    with _mt5_lock:
+        ok, detail = _init_mt5_account_unlocked(path, login, password, server)
+        if not ok:
+            raise RuntimeError(detail or 'Failed to connect MT5 account')
+
+        try:
+            return _submit_market_order_unlocked(symbol=symbol, lot=lot, side=side)
+        finally:
+            try:
+                mt5.shutdown()
+            except Exception:
+                pass
+
+
+def close_open_positions(path: str, login: str, password: str, server: str, symbol: str) -> None:
+    with _mt5_lock:
+        ok, detail = _init_mt5_account_unlocked(path, login, password, server)
+        if not ok:
+            raise RuntimeError(detail or 'Failed to connect MT5 account')
+
+        try:
+            try:
+                positions = mt5.positions_get(symbol=symbol) or []
+            except TypeError:
+                positions = [
+                    position
+                    for position in (mt5.positions_get() or [])
+                    if (
+                        (position._asdict() if hasattr(position, '_asdict') else dict(position)).get('symbol') == symbol
+                    )
+                ]
+
+            for position in positions:
+                payload = position._asdict() if hasattr(position, '_asdict') else dict(position)
+                position_type = int(payload.get('type') or 0)
+                close_side = 'sell' if position_type == getattr(mt5, 'POSITION_TYPE_BUY', 0) else 'buy'
+                position_ticket = int(payload.get('ticket') or payload.get('identifier') or 0)
+                volume = float(payload.get('volume') or 0)
+                if position_ticket <= 0 or volume <= 0:
+                    continue
+                _submit_market_order_unlocked(
+                    symbol=symbol,
+                    lot=volume,
+                    side=close_side,
+                    position_ticket=position_ticket,
+                )
+        finally:
+            try:
+                mt5.shutdown()
+            except Exception:
+                pass

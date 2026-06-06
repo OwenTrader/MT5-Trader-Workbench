@@ -15,6 +15,7 @@ export const messages = {
     },
     nav: {
       dashboard: '工作台总览',
+      pythonQuant: 'Python Quant',
       priceAlerts: '价格预警',
       volatility: '波动检测',
       indicatorAlerts: '指标预警',
@@ -51,6 +52,13 @@ export const messages = {
       accountCount: '账户数: {count}',
       assignmentHint: '这里不再区分主账户或跟单账户。请先维护账户，再到“本地跟单”页面里自由选择源账户和目标账户。',
       confirmDelete: '确定要删除账户 {name} 吗？相关的关系映射和事件也会一并移除。',
+    },
+    pythonQuant: {
+      title: 'Python Quant',
+      description: '使用本地缓存的市场数据，在选定的 MT5 账户上运行 Python 策略。',
+      createJob: '创建任务',
+      start: '启动',
+      stop: '停止',
     },
     localCopyTrading: {
       title: '本地跟单',
@@ -627,6 +635,7 @@ export const messages = {
     },
     nav: {
       dashboard: 'Dashboard',
+      pythonQuant: 'Python Quant',
       priceAlerts: 'Price Alerts',
       volatility: 'Volatility',
       indicatorAlerts: 'Indicator Alerts',
@@ -663,6 +672,13 @@ export const messages = {
       accountCount: 'Accounts: {count}',
       assignmentHint: 'This page no longer separates source and follower accounts. Maintain the account pool here, then assign source and target roles freely on the Local Copy Trading page.',
       confirmDelete: 'Delete account {name}? Related relationships and events will also be removed.',
+    },
+    pythonQuant: {
+      title: 'Python Quant',
+      description: 'Run Python strategies against a selected MT5 account using locally cached market data.',
+      createJob: 'Create Job',
+      start: 'Start',
+      stop: 'Stop',
     },
     localCopyTrading: {
       title: 'Local Copy Trading',
