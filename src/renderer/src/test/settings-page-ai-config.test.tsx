@@ -89,8 +89,25 @@ describe('SettingsPage AI config', () => {
     }) as typeof fetch
   })
 
+  it('keeps the existing settings tab order with AI config before About', async () => {
+    render(<TestRoot />)
+
+    const tabs = await screen.findAllByRole('tab')
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      'Connection',
+      'Display',
+      'Notifications',
+      'AI Config',
+      'About',
+    ])
+  })
+
   it('renders and saves AI base URL and API key settings', async () => {
     render(<TestRoot />)
+
+    const aiConfigTab = await screen.findByRole('tab', { name: 'AI Config' })
+    fireEvent.click(aiConfigTab)
+    fireEvent.keyDown(aiConfigTab, { key: 'Enter' })
 
     const baseUrlInput = await screen.findByLabelText('AI Base URL')
     const apiKeyInput = screen.getByLabelText('AI API Key')

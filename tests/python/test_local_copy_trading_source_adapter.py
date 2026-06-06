@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from python_service.app.local_copy_trading import source_adapter
-from python_service.app.local_copy_trading.models import LocalCopyTradingState, SourceAccount
+from python_service.app.local_copy_trading.models import Account, CopyRelationship, LocalCopyTradingState
 
 
 Position = namedtuple('Position', ['ticket', 'symbol', 'type', 'volume'])
@@ -9,8 +9,8 @@ Position = namedtuple('Position', ['ticket', 'symbol', 'type', 'volume'])
 
 def test_source_adapter_reads_real_mt5_terminal_positions(monkeypatch):
     state = LocalCopyTradingState(
-        source_accounts=[
-            SourceAccount(
+        accounts=[
+            Account(
                 id='src-1',
                 name='Main A',
                 connection_type='mt5_terminal',
@@ -20,6 +20,7 @@ def test_source_adapter_reads_real_mt5_terminal_positions(monkeypatch):
                 server='Demo',
             ),
         ],
+        relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
     )
     calls = {'shutdown': 0}
 
@@ -48,7 +49,8 @@ def test_source_adapter_reads_real_mt5_terminal_positions(monkeypatch):
 
 def test_source_adapter_reports_source_connection_failure(monkeypatch):
     state = LocalCopyTradingState(
-        source_accounts=[SourceAccount(id='src-1', name='Main A', connection_type='mt5_terminal')],
+        accounts=[Account(id='src-1', name='Main A', connection_type='mt5_terminal')],
+        relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
     )
     monkeypatch.setattr(source_adapter, 'init_mt5_account', lambda *args: (False, 'source login failed'))
 

@@ -20,19 +20,18 @@ def test_get_overview_returns_local_copy_payload(tmp_path, monkeypatch):
     response = client.get('/local-copy-trading')
 
     assert response.status_code == 200
-    assert 'source_accounts' in response.json()
-    assert 'follower_accounts' in response.json()
+    assert 'accounts' in response.json()
     assert 'relationships' in response.json()
     assert 'events' in response.json()
 
 
-def test_create_source_account_route_persists_payload(tmp_path, monkeypatch):
+def test_create_account_route_persists_payload(tmp_path, monkeypatch):
     reset_state()
     monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
     app = build_test_app()
     client = TestClient(app)
 
-    response = client.post('/local-copy-trading/source-accounts', json={
+    response = client.post('/local-copy-trading/accounts', json={
         'name': 'Main A',
         'connection_type': 'simulated',
         'terminal_path': '',
@@ -43,36 +42,16 @@ def test_create_source_account_route_persists_payload(tmp_path, monkeypatch):
     })
 
     assert response.status_code == 200
-    assert response.json()['source_accounts'][0]['name'] == 'Main A'
+    assert response.json()['accounts'][0]['name'] == 'Main A'
 
 
-def test_create_follower_account_route_persists_payload(tmp_path, monkeypatch):
+def test_update_account_route_persists_payload(tmp_path, monkeypatch):
     reset_state()
     monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
     app = build_test_app()
     client = TestClient(app)
 
-    response = client.post('/local-copy-trading/follower-accounts', json={
-        'name': 'Follower A',
-        'connection_type': 'simulated',
-        'terminal_path': '',
-        'login': '2001',
-        'server': 'demo',
-        'password': 'secret',
-        'is_active': True,
-    })
-
-    assert response.status_code == 200
-    assert response.json()['follower_accounts'][0]['name'] == 'Follower A'
-
-
-def test_update_source_account_route_persists_payload(tmp_path, monkeypatch):
-    reset_state()
-    monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
-    app = build_test_app()
-    client = TestClient(app)
-
-    client.post('/local-copy-trading/source-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'src-1',
         'name': 'Main A',
         'connection_type': 'simulated',
@@ -83,7 +62,7 @@ def test_update_source_account_route_persists_payload(tmp_path, monkeypatch):
         'is_active': True,
     })
 
-    response = client.put('/local-copy-trading/source-accounts/src-1', json={
+    response = client.put('/local-copy-trading/accounts/src-1', json={
         'name': 'Main A Updated',
         'connection_type': 'simulated',
         'terminal_path': 'C:/MT5/source/terminal64.exe',
@@ -94,40 +73,8 @@ def test_update_source_account_route_persists_payload(tmp_path, monkeypatch):
     })
 
     assert response.status_code == 200
-    assert response.json()['source_accounts'][0]['id'] == 'src-1'
-    assert response.json()['source_accounts'][0]['name'] == 'Main A Updated'
-
-
-def test_update_follower_account_route_persists_payload(tmp_path, monkeypatch):
-    reset_state()
-    monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
-    app = build_test_app()
-    client = TestClient(app)
-
-    client.post('/local-copy-trading/follower-accounts', json={
-        'id': 'fol-1',
-        'name': 'Follower A',
-        'connection_type': 'simulated',
-        'terminal_path': '',
-        'login': '2001',
-        'server': 'demo',
-        'password': 'secret',
-        'is_active': True,
-    })
-
-    response = client.put('/local-copy-trading/follower-accounts/fol-1', json={
-        'name': 'Follower A Updated',
-        'connection_type': 'simulated',
-        'terminal_path': 'D:/MT5/follower/terminal64.exe',
-        'login': '2002',
-        'server': 'demo-2',
-        'password': 'secret-2',
-        'is_active': True,
-    })
-
-    assert response.status_code == 200
-    assert response.json()['follower_accounts'][0]['id'] == 'fol-1'
-    assert response.json()['follower_accounts'][0]['name'] == 'Follower A Updated'
+    assert response.json()['accounts'][0]['id'] == 'src-1'
+    assert response.json()['accounts'][0]['name'] == 'Main A Updated'
 
 
 def test_create_relationship_route_persists_payload(tmp_path, monkeypatch):
@@ -136,7 +83,7 @@ def test_create_relationship_route_persists_payload(tmp_path, monkeypatch):
     app = build_test_app()
     client = TestClient(app)
 
-    client.post('/local-copy-trading/source-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'src-1',
         'name': 'Main A',
         'connection_type': 'simulated',
@@ -146,7 +93,7 @@ def test_create_relationship_route_persists_payload(tmp_path, monkeypatch):
         'password': 'secret',
         'is_active': True,
     })
-    client.post('/local-copy-trading/follower-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'fol-1',
         'name': 'Follower A',
         'connection_type': 'simulated',
@@ -189,13 +136,42 @@ def test_create_relationship_route_rejects_unknown_accounts(tmp_path, monkeypatc
     assert response.status_code == 400
 
 
+def test_create_relationship_route_rejects_same_account_for_both_roles(tmp_path, monkeypatch):
+    reset_state()
+    monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
+    app = build_test_app()
+    client = TestClient(app)
+
+    client.post('/local-copy-trading/accounts', json={
+        'id': 'acc-1',
+        'name': 'Main A',
+        'connection_type': 'simulated',
+        'terminal_path': '',
+        'login': '1001',
+        'server': 'demo',
+        'password': 'secret',
+        'is_active': True,
+    })
+
+    response = client.post('/local-copy-trading/relationships', json={
+        'source_account_id': 'acc-1',
+        'follower_account_id': 'acc-1',
+        'symbol': 'XAUUSD',
+        'lot_multiplier': 1,
+        'is_active': True,
+    })
+
+    assert response.status_code == 400
+    assert response.json()['detail'] == 'Source and follower accounts must be different'
+
+
 def test_create_relationship_route_accepts_new_symbol_mapping_fields_without_legacy_symbol(tmp_path, monkeypatch):
     reset_state()
     monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
     app = build_test_app()
     client = TestClient(app)
 
-    client.post('/local-copy-trading/source-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'src-1',
         'name': 'Main A',
         'connection_type': 'simulated',
@@ -205,7 +181,7 @@ def test_create_relationship_route_accepts_new_symbol_mapping_fields_without_leg
         'password': 'secret',
         'is_active': True,
     })
-    client.post('/local-copy-trading/follower-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'fol-1',
         'name': 'Follower A',
         'connection_type': 'simulated',
@@ -237,7 +213,7 @@ def test_update_runtime_route_persists_enabled_and_poll_interval(tmp_path, monke
     app = build_test_app()
     client = TestClient(app)
 
-    client.post('/local-copy-trading/source-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'src-1',
         'name': 'Main A',
         'connection_type': 'mt5_terminal',
@@ -247,7 +223,7 @@ def test_update_runtime_route_persists_enabled_and_poll_interval(tmp_path, monke
         'password': 'secret',
         'is_active': True,
     })
-    client.post('/local-copy-trading/follower-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'fol-1',
         'name': 'Follower A',
         'connection_type': 'mt5_terminal',
@@ -286,7 +262,7 @@ def test_update_runtime_route_rejects_enable_without_complete_configuration(tmp_
     })
 
     assert response.status_code == 400
-    assert 'Add at least 1 source account' in response.json()['detail']
+    assert 'Add at least 2 accounts' in response.json()['detail']
 
 
 def test_update_runtime_route_rejects_invalid_payload(tmp_path, monkeypatch):
@@ -302,13 +278,13 @@ def test_update_runtime_route_rejects_invalid_payload(tmp_path, monkeypatch):
     assert response.status_code == 422
 
 
-def test_create_source_account_route_rejects_invalid_mt5_credentials(tmp_path, monkeypatch):
+def test_create_account_route_rejects_invalid_mt5_credentials(tmp_path, monkeypatch):
     reset_state()
     monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (False, 'MT5 credential verification failed'))
     app = build_test_app()
     client = TestClient(app)
 
-    response = client.post('/local-copy-trading/source-accounts', json={
+    response = client.post('/local-copy-trading/accounts', json={
         'name': 'Main A',
         'connection_type': 'mt5_terminal',
         'terminal_path': 'C:/MT5/terminal64.exe',
@@ -322,13 +298,13 @@ def test_create_source_account_route_rejects_invalid_mt5_credentials(tmp_path, m
     assert response.json()['detail'] == 'MT5 credential verification failed'
 
 
-def test_delete_source_account_route_removes_account_and_relationships(tmp_path, monkeypatch):
+def test_delete_account_route_removes_account_and_relationships(tmp_path, monkeypatch):
     reset_state()
     monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
     app = build_test_app()
     client = TestClient(app)
 
-    client.post('/local-copy-trading/source-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'src-1',
         'name': 'Main A',
         'connection_type': 'mt5_terminal',
@@ -338,7 +314,7 @@ def test_delete_source_account_route_removes_account_and_relationships(tmp_path,
         'password': 'secret',
         'is_active': True,
     })
-    client.post('/local-copy-trading/follower-accounts', json={
+    client.post('/local-copy-trading/accounts', json={
         'id': 'fol-1',
         'name': 'Follower A',
         'connection_type': 'mt5_terminal',
@@ -357,8 +333,19 @@ def test_delete_source_account_route_removes_account_and_relationships(tmp_path,
         'is_active': True,
     })
 
-    response = client.delete('/local-copy-trading/source-accounts/src-1')
+    response = client.delete('/local-copy-trading/accounts/src-1')
 
     assert response.status_code == 200
-    assert response.json()['source_accounts'] == []
+    assert response.json()['accounts'] == [
+        {
+            'id': 'fol-1',
+            'name': 'Follower A',
+            'connection_type': 'mt5_terminal',
+            'terminal_path': 'D:/MT5/terminal64.exe',
+            'login': '2001',
+            'server': 'demo',
+            'password': 'secret',
+            'is_active': True,
+        },
+    ]
     assert response.json()['relationships'] == []

@@ -12,7 +12,15 @@ def _as_dict(value) -> dict:
 
 def get_source_positions(state: LocalCopyTradingState) -> list[dict]:
     positions: list[dict] = []
-    for account in state.source_accounts:
+    source_account_ids = {
+        relationship.source_account_id
+        for relationship in state.relationships
+        if relationship.is_active
+    }
+
+    for account in state.accounts:
+        if account.id not in source_account_ids:
+            continue
         if not account.is_active:
             continue
         if account.connection_type == 'simulated':

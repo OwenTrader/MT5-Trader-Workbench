@@ -32,7 +32,7 @@ def process_tick(
 ) -> list[SyncEvent]:
     copy_executor = execute_copy or _default_copy_executor
     close_executor = execute_close or _default_close_executor
-    followers = {account.id: account for account in state.follower_accounts if account.is_active}
+    active_accounts = {account.id: account for account in state.accounts if account.is_active}
     events: list[SyncEvent] = []
     active_source_position_ids = {
         str(position.get('position_id') or position.get('ticket') or '')
@@ -45,7 +45,7 @@ def process_tick(
         if copied_event.position_id in active_source_position_ids:
             continue
         relationship = relationships.get(copied_event.relationship_id)
-        follower = followers.get(copied_event.follower_account_id)
+        follower = active_accounts.get(copied_event.follower_account_id)
         if relationship is None or follower is None:
             continue
         is_closed, close_message = close_executor(follower, relationship, copied_event)
@@ -65,8 +65,8 @@ def process_tick(
         events.append(state.events[-1])
 
     for relationship in state.relationships:
-        follower = followers.get(relationship.follower_account_id)
-        if not relationship.is_active or follower is None:
+        follower = active_accounts.get(relationship.follower_account_id)
+        if not relationship.is_active or follower is None or relationship.source_account_id not in active_accounts:
             continue
         for position in source_positions:
             if relationship.source_account_id != position.get('source_account_id'):

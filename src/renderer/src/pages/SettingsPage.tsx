@@ -322,10 +322,11 @@ export const SettingsPage: React.FC = () => {
       <PageHeader title={t('settings.title')} icon={Settings} />
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-4">
+        <TabsList className="grid w-full max-w-lg grid-cols-5">
           <TabsTrigger value="general">{t('settings.tabs.general')}</TabsTrigger>
           <TabsTrigger value="sound">{t('settings.tabs.sound')}</TabsTrigger>
           <TabsTrigger value="bot">{t('settings.tabs.bot')}</TabsTrigger>
+          <TabsTrigger value="ai">{t('settings.tabs.aiConfig')}</TabsTrigger>
           <TabsTrigger value="about">{t('settings.tabs.about')}</TabsTrigger>
         </TabsList>
         
@@ -377,81 +378,6 @@ export const SettingsPage: React.FC = () => {
                   {verifyStatus.message}
                 </p>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-base-url">{t('settings.general.aiBaseUrlLabel')}</Label>
-              <Input
-                id="ai-base-url"
-                value={localSettings.ai_base_url}
-                onChange={(e) => setLocalSettings({ ...localSettings, ai_base_url: e.target.value })}
-                placeholder={t('settings.general.aiBaseUrlPlaceholder')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-api-key">{t('settings.general.aiApiKeyLabel')}</Label>
-              <Input
-                id="ai-api-key"
-                type="password"
-                value={localSettings.ai_api_key}
-                onChange={(e) => setLocalSettings({ ...localSettings, ai_api_key: e.target.value })}
-                placeholder={t('settings.general.aiApiKeyPlaceholder')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-model">{t('settings.general.aiModelLabel')}</Label>
-              <Input
-                id="ai-model"
-                value={localSettings.ai_model}
-                onChange={(e) => setLocalSettings({ ...localSettings, ai_model: e.target.value })}
-                placeholder={t('settings.general.aiModelPlaceholder')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-timeframe">{t('settings.general.aiTimeframeLabel')}</Label>
-              <Input
-                id="ai-timeframe"
-                value={localSettings.ai_timeframe}
-                onChange={(e) => setLocalSettings({ ...localSettings, ai_timeframe: e.target.value })}
-                placeholder="M15"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-candles-count">{t('settings.general.aiCandlesCountLabel')}</Label>
-              <Input
-                id="ai-candles-count"
-                type="number"
-                min="10"
-                value={localSettings.ai_candles_count}
-                onChange={(e) => setLocalSettings({ ...localSettings, ai_candles_count: parseInt(e.target.value || '0', 10) })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-temperature">{t('settings.general.aiTemperatureLabel')}</Label>
-              <Input
-                id="ai-temperature"
-                type="number"
-                min="0"
-                max="2"
-                step="0.1"
-                value={localSettings.ai_temperature}
-                onChange={(e) => setLocalSettings({ ...localSettings, ai_temperature: Number(e.target.value) })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-system-prompt">{t('settings.general.aiSystemPromptLabel')}</Label>
-              <Input
-                id="ai-system-prompt"
-                value={localSettings.ai_system_prompt}
-                onChange={(e) => setLocalSettings({ ...localSettings, ai_system_prompt: e.target.value })}
-                placeholder={t('settings.general.aiSystemPromptPlaceholder')}
-              />
             </div>
 
             <div className="space-y-2">
@@ -921,6 +847,89 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-6 pt-4">
+          <div className="space-y-4 max-w-md">
+            <div className="space-y-2">
+              <Label htmlFor="ai-base-url">{t('settings.general.aiBaseUrlLabel')}</Label>
+              <Input
+                id="ai-base-url"
+                value={localSettings.ai_base_url}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_base_url: e.target.value })}
+                placeholder={t('settings.general.aiBaseUrlPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-api-key">{t('settings.general.aiApiKeyLabel')}</Label>
+              <Input
+                id="ai-api-key"
+                type="password"
+                value={localSettings.ai_api_key}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_api_key: e.target.value })}
+                placeholder={t('settings.general.aiApiKeyPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-model">{t('settings.general.aiModelLabel')}</Label>
+              <Input
+                id="ai-model"
+                value={localSettings.ai_model}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_model: e.target.value })}
+                placeholder={t('settings.general.aiModelPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-timeframe">{t('settings.general.aiTimeframeLabel')}</Label>
+              <Input
+                id="ai-timeframe"
+                value={localSettings.ai_timeframe}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_timeframe: e.target.value })}
+                placeholder="M15"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-candles-count">{t('settings.general.aiCandlesCountLabel')}</Label>
+              <Input
+                id="ai-candles-count"
+                type="number"
+                min="10"
+                value={localSettings.ai_candles_count}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_candles_count: parseInt(e.target.value || '0', 10) })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-temperature">{t('settings.general.aiTemperatureLabel')}</Label>
+              <Input
+                id="ai-temperature"
+                type="number"
+                min="0"
+                max="2"
+                step="0.1"
+                value={localSettings.ai_temperature}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_temperature: Number(e.target.value) })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ai-system-prompt">{t('settings.general.aiSystemPromptLabel')}</Label>
+              <Input
+                id="ai-system-prompt"
+                value={localSettings.ai_system_prompt}
+                onChange={(e) => setLocalSettings({ ...localSettings, ai_system_prompt: e.target.value })}
+                placeholder={t('settings.general.aiSystemPromptPlaceholder')}
+              />
+            </div>
+
+            <Button onClick={handleSave} disabled={isLoading}>
+              {isLoading ? t('settings.actions.saving') : t('settings.actions.save')}
+            </Button>
           </div>
         </TabsContent>
 

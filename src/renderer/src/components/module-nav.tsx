@@ -1,10 +1,11 @@
-import { Activity, LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake } from 'lucide-react'
+import { Activity, LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake, Users } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -19,7 +20,7 @@ interface ModuleNavProps {
 export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChange }) => {
   const { t } = useI18n()
 
-  const navItems = [
+  const primaryNavItems = [
     { id: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
     { id: 'price-alerts', label: t('nav.priceAlerts'), icon: Bell },
     { id: 'volatility', label: t('nav.volatility'), icon: TrendingUp },
@@ -29,13 +30,39 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
     { id: 'tech-analysis', label: t('nav.technicalAnalysis'), icon: BookOpen },
     { id: 'order-broadcast', label: t('nav.orderBroadcast'), icon: Megaphone },
     { id: 'order-sync', label: t('nav.orderSync'), icon: Link2 },
+  ]
+
+  const copyTradingNavItems = [
+    { id: 'account-list', label: t('nav.accountList'), icon: Users },
     { id: 'local-copy-trading', label: t('nav.localCopyTrading'), icon: Link2 },
+  ]
+
+  const secondaryNavItems = [
     { id: 'event-log', label: t('nav.eventLog'), icon: Activity },
     { id: 'sponsor', label: t('nav.sponsor'), icon: HeartHandshake },
     { id: 'settings', label: t('nav.settings'), icon: Settings },
   ]
 
-  const menuItems = navItems
+  const renderMenuItems = (items: typeof primaryNavItems) => items.map((item) => {
+    const Icon = item.icon
+
+    return (
+      <SidebarMenuItem key={item.id}>
+        <SidebarMenuButton
+          type="button"
+          size="lg"
+          className="gap-3 px-3 text-base group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!p-[14px] [&>svg]:size-5"
+          tooltip={item.label}
+          title={item.label}
+          isActive={activeModule === item.id}
+          onClick={() => onModuleChange(item.id)}
+        >
+          <Icon data-testid={`sidebar-icon-${item.id}`} />
+          <span>{item.label}</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    )
+  })
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -43,26 +70,24 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
-                const Icon = item.icon
+              {renderMenuItems(primaryNavItems)}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      type="button"
-                      size="lg"
-                      className="gap-3 px-3 text-base group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!p-[14px] [&>svg]:size-5"
-                      tooltip={item.label}
-                      title={item.label}
-                      isActive={activeModule === item.id}
-                      onClick={() => onModuleChange(item.id)}
-                    >
-                      <Icon data-testid={`sidebar-icon-${item.id}`} />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
+        <SidebarGroup>
+          <SidebarGroupLabel>{t('nav.group.localCopyTrading')}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {renderMenuItems(copyTradingNavItems)}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {renderMenuItems(secondaryNavItems)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

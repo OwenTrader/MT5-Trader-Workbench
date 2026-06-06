@@ -244,6 +244,20 @@ if (!isSingleInstance) {
     }
   }
 
+  function destroyTray(): void {
+    if (!tray) {
+      return
+    }
+
+    try {
+      tray.destroy()
+    } catch (error) {
+      console.error('Failed to destroy tray:', error)
+    }
+
+    tray = null
+  }
+
   async function createWindow() {
     if (mainWindow) return
     
@@ -407,18 +421,13 @@ if (!isSingleInstance) {
   })
 
   app.on('before-quit', (event) => {
+    destroyTray()
     shutdownController.handleBeforeQuit(event, 'before-quit')
   })
 
   app.on('will-quit', () => {
     logShutdown('will-quit')
-    if (tray) {
-      try {
-        tray.destroy()
-      } catch (e) {
-      }
-      tray = null
-    }
+    destroyTray()
   })
 
   app.whenReady().then(() => {

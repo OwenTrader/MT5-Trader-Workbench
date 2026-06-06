@@ -1,21 +1,14 @@
-from python_service.app.local_copy_trading.models import (
-    CopyRelationship,
-    FollowerAccount,
-    LocalCopyTradingState,
-    SourceAccount,
-)
+from python_service.app.local_copy_trading.models import Account, CopyRelationship, LocalCopyTradingState
 import pytest
 
 
-def test_local_copy_trading_state_supports_multiple_sources_and_followers():
+def test_local_copy_trading_state_supports_shared_account_pool():
     state = LocalCopyTradingState(
-        source_accounts=[
-            SourceAccount(id='src-1', name='Main A'),
-            SourceAccount(id='src-2', name='Main B'),
-        ],
-        follower_accounts=[
-            FollowerAccount(id='fol-1', name='Follower A'),
-            FollowerAccount(id='fol-2', name='Follower B'),
+        accounts=[
+            Account(id='src-1', name='Main A'),
+            Account(id='src-2', name='Main B'),
+            Account(id='fol-1', name='Follower A'),
+            Account(id='fol-2', name='Follower B'),
         ],
         relationships=[
             CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='xauusd'),
@@ -23,10 +16,22 @@ def test_local_copy_trading_state_supports_multiple_sources_and_followers():
         ],
     )
 
-    assert len(state.source_accounts) == 2
-    assert len(state.follower_accounts) == 2
+    assert len(state.accounts) == 4
     assert state.relationships[0].symbol == 'xauusd'
     assert state.relationships[1].symbol == 'nas100'
+
+
+def test_local_copy_trading_state_migrates_legacy_source_and_follower_lists():
+    state = LocalCopyTradingState.model_validate({
+        'source_accounts': [
+            {'id': 'src-1', 'name': 'Main A'},
+        ],
+        'follower_accounts': [
+            {'id': 'fol-1', 'name': 'Follower A'},
+        ],
+    })
+
+    assert [account.id for account in state.accounts] == ['src-1', 'fol-1']
 
 
 def test_copy_relationship_supports_different_follower_symbol_mapping():

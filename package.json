@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Electron MT5 Trader Workbench",
   "main": "out/main/index.js",
-  "author": "Antigravity",
+  "author": "owen600",
   "developerContact": "Telegram: owen600",
   "scripts": {
     "dev:renderer": "vite",

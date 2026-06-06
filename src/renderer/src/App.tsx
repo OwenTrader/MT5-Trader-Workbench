@@ -15,6 +15,7 @@ import { SponsorPage } from './pages/SponsorPage'
 import { OverlayDisplayPage } from './pages/overlay-display-page'
 import { LocalCopyTradingPage } from './pages/LocalCopyTradingPage'
 import { EventLogPage } from './pages/EventLogPage'
+import { AccountListPage } from './pages/AccountListPage'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
 
@@ -22,6 +23,7 @@ const VALID_MODULES = new Set([
   'dashboard',
   'order-broadcast',
   'order-sync',
+  'account-list',
   'local-copy-trading',
   'event-log',
   'order-center',
@@ -48,6 +50,7 @@ function ModuleRoute() {
       {activeModule === 'dashboard' && <DashboardPage />}
       {activeModule === 'order-broadcast' && <OrderBroadcastPage />}
       {activeModule === 'order-sync' && <OrderSyncPage />}
+      {activeModule === 'account-list' && <AccountListPage />}
       {activeModule === 'local-copy-trading' && <LocalCopyTradingPage />}
       {activeModule === 'event-log' && <EventLogPage />}
       {activeModule === 'order-center' && <OrderCenterPage />}

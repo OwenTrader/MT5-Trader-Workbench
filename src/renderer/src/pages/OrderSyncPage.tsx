@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PageHeader } from '@/components/page-header'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/i18n'
 import { cn, debounce } from '@/lib/utils'
@@ -186,110 +187,112 @@ export const OrderSyncPage: React.FC = () => {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-        <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t('orderSync.runtimeTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <Label htmlFor="order-sync-enabled">{t('orderSync.enabled')}</Label>
-                  <div className="text-xs text-muted-foreground">{t('orderSync.enabledHint')}</div>
+        <ScrollArea className="lg:col-span-1 min-h-0">
+          <div className="space-y-4 pr-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{t('orderSync.runtimeTitle')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <Label htmlFor="order-sync-enabled">{t('orderSync.enabled')}</Label>
+                    <div className="text-xs text-muted-foreground">{t('orderSync.enabledHint')}</div>
+                  </div>
+                  <Switch id="order-sync-enabled" checked={config.enabled} onCheckedChange={handleRuntimeToggle} />
                 </div>
-                <Switch id="order-sync-enabled" checked={config.enabled} onCheckedChange={handleRuntimeToggle} />
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <Label htmlFor="order-sync-block-high-frequency">{t('orderSync.blockHighFrequency')}</Label>
-                  <div className="text-xs text-muted-foreground">{t('orderSync.blockHighFrequencyHint')}</div>
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <Label htmlFor="order-sync-block-high-frequency">{t('orderSync.blockHighFrequency')}</Label>
+                    <div className="text-xs text-muted-foreground">{t('orderSync.blockHighFrequencyHint')}</div>
+                  </div>
+                  <Switch
+                    id="order-sync-block-high-frequency"
+                    checked={config.block_high_frequency_orders}
+                    onCheckedChange={(block_high_frequency_orders) => persist({ block_high_frequency_orders })}
+                  />
                 </div>
-                <Switch
-                  id="order-sync-block-high-frequency"
-                  checked={config.block_high_frequency_orders}
-                  onCheckedChange={(block_high_frequency_orders) => persist({ block_high_frequency_orders })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="order-sync-poll">{t('orderSync.pollInterval')}</Label>
-                <Input
-                  id="order-sync-poll"
-                  type="number"
-                  min="0.5"
-                  step="0.5"
-                  value={config.poll_interval_seconds}
-                  onChange={(event) => persist({ poll_interval_seconds: Number(event.target.value) || 1 })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="order-sync-high-frequency-window">{t('orderSync.highFrequencyWindow')}</Label>
-                <Input
-                  id="order-sync-high-frequency-window"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={config.high_frequency_window_seconds}
-                  onChange={(event) => persist({ high_frequency_window_seconds: Number(event.target.value) || 5 })}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="order-sync-poll">{t('orderSync.pollInterval')}</Label>
+                  <Input
+                    id="order-sync-poll"
+                    type="number"
+                    min="0.5"
+                    step="0.5"
+                    value={config.poll_interval_seconds}
+                    onChange={(event) => persist({ poll_interval_seconds: Number(event.target.value) || 1 })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="order-sync-high-frequency-window">{t('orderSync.highFrequencyWindow')}</Label>
+                  <Input
+                    id="order-sync-high-frequency-window"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={config.high_frequency_window_seconds}
+                    onChange={(event) => persist({ high_frequency_window_seconds: Number(event.target.value) || 5 })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{editingCredentialId ? t('orderSync.editCredential') : t('orderSync.addCredential')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('orderSync.credentialName')}</Label>
-                <Input value={credentialForm.name} onChange={(event) => setCredentialForm({ ...credentialForm, name: event.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('orderSync.userName')}</Label>
-                <Input value={credentialForm.user_name} onChange={(event) => setCredentialForm({ ...credentialForm, user_name: event.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('orderSync.apiKey')}</Label>
-                <Input type="password" value={credentialForm.api_key} onChange={(event) => setCredentialForm({ ...credentialForm, api_key: event.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('orderSync.accountId')}</Label>
-                <Input type="number" value={credentialForm.account_id} onChange={(event) => setCredentialForm({ ...credentialForm, account_id: Number(event.target.value) })} />
-              </div>
-              <Button className="w-full" onClick={submitCredential}>{editingCredentialId ? t('orderSync.update') : t('orderSync.create')}</Button>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{editingCredentialId ? t('orderSync.editCredential') : t('orderSync.addCredential')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t('orderSync.credentialName')}</Label>
+                  <Input value={credentialForm.name} onChange={(event) => setCredentialForm({ ...credentialForm, name: event.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('orderSync.userName')}</Label>
+                  <Input value={credentialForm.user_name} onChange={(event) => setCredentialForm({ ...credentialForm, user_name: event.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('orderSync.apiKey')}</Label>
+                  <Input type="password" value={credentialForm.api_key} onChange={(event) => setCredentialForm({ ...credentialForm, api_key: event.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('orderSync.accountId')}</Label>
+                  <Input type="number" value={credentialForm.account_id} onChange={(event) => setCredentialForm({ ...credentialForm, account_id: Number(event.target.value) })} />
+                </div>
+                <Button className="w-full" onClick={submitCredential}>{editingCredentialId ? t('orderSync.update') : t('orderSync.create')}</Button>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{editingMappingId ? t('orderSync.editMapping') : t('orderSync.addMapping')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('orderSync.mt5Symbol')}</Label>
-                <Input className="uppercase" value={mappingForm.mt5_symbol} onChange={(event) => setMappingForm({ ...mappingForm, mt5_symbol: event.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('orderSync.topstepContract')}</Label>
-                <Input value={mappingForm.topstep_contract_id} onChange={(event) => setMappingForm({ ...mappingForm, topstep_contract_id: event.target.value })} placeholder="CON.F.US.GC..." />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('orderSync.topstepName')}</Label>
-                <Input value={mappingForm.topstep_display_name} onChange={(event) => setMappingForm({ ...mappingForm, topstep_display_name: event.target.value })} placeholder="Gold" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('orderSync.mt5Lots')}</Label>
-                <Input type="number" min="0.01" step="0.01" value={mappingForm.mt5_lots} onChange={(event) => setMappingForm({ ...mappingForm, mt5_lots: Number(event.target.value) })} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('orderSync.topstepContracts')}</Label>
-                <Input type="number" min="1" step="1" value={mappingForm.topstep_contracts} onChange={(event) => setMappingForm({ ...mappingForm, topstep_contracts: Number(event.target.value) })} />
-              </div>
-              {(formError || error) ? <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs font-medium text-destructive">{formError || error}</div> : null}
-              <Button className="w-full" onClick={submitMapping}>{editingMappingId ? t('orderSync.update') : t('orderSync.create')}</Button>
-            </CardContent>
-          </Card>
-        </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{editingMappingId ? t('orderSync.editMapping') : t('orderSync.addMapping')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t('orderSync.mt5Symbol')}</Label>
+                  <Input className="uppercase" value={mappingForm.mt5_symbol} onChange={(event) => setMappingForm({ ...mappingForm, mt5_symbol: event.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('orderSync.topstepContract')}</Label>
+                  <Input value={mappingForm.topstep_contract_id} onChange={(event) => setMappingForm({ ...mappingForm, topstep_contract_id: event.target.value })} placeholder="CON.F.US.GC..." />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('orderSync.topstepName')}</Label>
+                  <Input value={mappingForm.topstep_display_name} onChange={(event) => setMappingForm({ ...mappingForm, topstep_display_name: event.target.value })} placeholder="Gold" />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('orderSync.mt5Lots')}</Label>
+                  <Input type="number" min="0.01" step="0.01" value={mappingForm.mt5_lots} onChange={(event) => setMappingForm({ ...mappingForm, mt5_lots: Number(event.target.value) })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('orderSync.topstepContracts')}</Label>
+                  <Input type="number" min="1" step="1" value={mappingForm.topstep_contracts} onChange={(event) => setMappingForm({ ...mappingForm, topstep_contracts: Number(event.target.value) })} />
+                </div>
+                {(formError || error) ? <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs font-medium text-destructive">{formError || error}</div> : null}
+                <Button className="w-full" onClick={submitMapping}>{editingMappingId ? t('orderSync.update') : t('orderSync.create')}</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </ScrollArea>
 
         <div className="lg:col-span-2 flex flex-col min-h-0">
           <Card className="flex-1 flex flex-col min-h-0">

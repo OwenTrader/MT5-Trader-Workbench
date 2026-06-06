@@ -1,9 +1,9 @@
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
-class SourceAccount(BaseModel):
+class Account(BaseModel):
     id: str = ''
     name: str
     connection_type: Literal['mt5_terminal', 'mt5_api', 'simulated'] = 'simulated'
@@ -14,15 +14,8 @@ class SourceAccount(BaseModel):
     is_active: bool = True
 
 
-class FollowerAccount(BaseModel):
-    id: str = ''
-    name: str
-    connection_type: Literal['mt5_terminal', 'mt5_api', 'simulated'] = 'simulated'
-    terminal_path: str = ''
-    login: str = ''
-    server: str = ''
-    password: str = ''
-    is_active: bool = True
+SourceAccount = Account
+FollowerAccount = Account
 
 
 class CopyRelationship(BaseModel):
@@ -75,12 +68,44 @@ class SyncEvent(BaseModel):
 class LocalCopyTradingState(BaseModel):
     enabled: bool = False
     poll_interval_seconds: float = 1
-    source_accounts: list[SourceAccount] = []
-    follower_accounts: list[FollowerAccount] = []
-    relationships: list[CopyRelationship] = []
-    events: list[SyncEvent] = []
+    accounts: list[Account] = Field(default_factory=list)
+    relationships: list[CopyRelationship] = Field(default_factory=list)
+    events: list[SyncEvent] = Field(default_factory=list)
     last_error: str | None = None
     last_checked_at: str | None = None
+
+    @model_validator(mode='before')
+    @classmethod
+    def migrate_legacy_account_lists(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+
+        normalized = dict(value)
+        merged_accounts: list[Any] = []
+        seen_ids: set[str] = set()
+
+        for item in [
+            *(normalized.get('accounts') or []),
+            *(normalized.get('source_accounts') or []),
+            *(normalized.get('follower_accounts') or []),
+        ]:
+            account_id = ''
+            if isinstance(item, dict):
+                account_id = str(item.get('id') or '')
+            else:
+                account_id = str(getattr(item, 'id', '') or '')
+
+            if account_id and account_id in seen_ids:
+                continue
+
+            if account_id:
+                seen_ids.add(account_id)
+            merged_accounts.append(item)
+
+        normalized['accounts'] = merged_accounts
+        normalized.pop('source_accounts', None)
+        normalized.pop('follower_accounts', None)
+        return normalized
 
 
 class LocalCopyTradingRuntimeUpdate(BaseModel):

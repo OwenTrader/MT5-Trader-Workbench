@@ -11,7 +11,10 @@ def load_state(storage_path: Path | str = DEFAULT_STORAGE_PATH) -> LocalCopyTrad
     path = Path(storage_path)
     if not path.exists():
         return LocalCopyTradingState()
-    return LocalCopyTradingState(**json.loads(path.read_text(encoding='utf-8')))
+    normalized_state = path.read_text(encoding='utf-8').strip('\ufeff\x00 \t\r\n')
+    if not normalized_state:
+        return LocalCopyTradingState()
+    return LocalCopyTradingState(**json.loads(normalized_state))
 
 
 def save_state(state: LocalCopyTradingState, storage_path: Path | str = DEFAULT_STORAGE_PATH) -> LocalCopyTradingState:

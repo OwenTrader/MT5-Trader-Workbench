@@ -1,4 +1,5 @@
 from python_service.app.local_copy_trading.models import (
+    Account,
     CopyRelationship,
     FollowerAccount,
     LocalCopyTradingState,
@@ -7,6 +8,7 @@ from python_service.app.local_copy_trading.models import (
 )
 
 __all__ = [
+    'Account',
     'SourceAccount',
     'FollowerAccount',
     'CopyRelationship',

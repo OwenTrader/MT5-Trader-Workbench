@@ -1,19 +1,16 @@
 from fastapi import APIRouter, HTTPException
 
-from python_service.app.local_copy_trading.models import CopyRelationship, FollowerAccount, LocalCopyTradingRuntimeUpdate, SourceAccount
+from python_service.app.local_copy_trading.models import Account, CopyRelationship, LocalCopyTradingRuntimeUpdate
 from python_service.app.local_copy_trading.runtime import (
-    add_follower_account,
+    add_account,
     add_relationship,
-    add_source_account,
     build_overview,
     get_state,
-    remove_follower_account,
+    remove_account,
     remove_relationship,
-    remove_source_account,
     reset_state,
-    update_follower_account,
+    update_account,
     update_runtime_settings,
-    update_source_account,
 )
 from python_service.app.local_copy_trading.storage import save_state
 from python_service.app.services.mt5_service import verify_mt5_credentials
@@ -22,7 +19,7 @@ from python_service.app.services.mt5_service import verify_mt5_credentials
 router = APIRouter(prefix='/local-copy-trading')
 
 
-def _validate_account_connection(account: SourceAccount | FollowerAccount) -> None:
+def _validate_account_connection(account: Account) -> None:
     is_valid, detail = verify_mt5_credentials(
         path=account.terminal_path,
         login=account.login,
@@ -35,10 +32,10 @@ def _validate_account_connection(account: SourceAccount | FollowerAccount) -> No
 
 def _ensure_runtime_can_enable() -> None:
     state = get_state()
-    if not state.source_accounts or not state.follower_accounts or not state.relationships:
+    if len(state.accounts) < 2 or not state.relationships:
         raise HTTPException(
             status_code=400,
-            detail='Add at least 1 source account, 1 follower account, and 1 relationship before enabling local copy trading',
+            detail='Add at least 2 accounts and 1 relationship before enabling local copy trading',
         )
 
 
@@ -47,38 +44,19 @@ def get_overview():
     return build_overview(get_state())
 
 
-@router.post('/source-accounts')
-def create_source_account(account: SourceAccount):
+@router.post('/accounts')
+def create_account(account: Account):
     _validate_account_connection(account)
-    state = add_source_account(get_state(), account)
+    state = add_account(get_state(), account)
     save_state(state)
     return build_overview(state)
 
 
-@router.post('/follower-accounts')
-def create_follower_account(account: FollowerAccount):
-    _validate_account_connection(account)
-    state = add_follower_account(get_state(), account)
-    save_state(state)
-    return build_overview(state)
-
-
-@router.put('/source-accounts/{account_id}')
-def edit_source_account(account_id: str, account: SourceAccount):
+@router.put('/accounts/{account_id}')
+def edit_account(account_id: str, account: Account):
     _validate_account_connection(account)
     try:
-        state = update_source_account(get_state(), account_id, account)
-    except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error)) from error
-    save_state(state)
-    return build_overview(state)
-
-
-@router.put('/follower-accounts/{account_id}')
-def edit_follower_account(account_id: str, account: FollowerAccount):
-    _validate_account_connection(account)
-    try:
-        state = update_follower_account(get_state(), account_id, account)
+        state = update_account(get_state(), account_id, account)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
     save_state(state)
@@ -96,16 +74,9 @@ def create_relationship(relationship: CopyRelationship):
     return build_overview(state)
 
 
-@router.delete('/source-accounts/{account_id}')
-def delete_source_account(account_id: str):
-    state = remove_source_account(get_state(), account_id)
-    save_state(state)
-    return build_overview(state)
-
-
-@router.delete('/follower-accounts/{account_id}')
-def delete_follower_account(account_id: str):
-    state = remove_follower_account(get_state(), account_id)
+@router.delete('/accounts/{account_id}')
+def delete_account(account_id: str):
+    state = remove_account(get_state(), account_id)
     save_state(state)
     return build_overview(state)
 

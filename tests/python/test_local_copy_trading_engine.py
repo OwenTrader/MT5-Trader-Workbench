@@ -1,19 +1,14 @@
 from python_service.app.local_copy_trading.engine import process_tick
-from python_service.app.local_copy_trading.models import (
-    CopyRelationship,
-    FollowerAccount,
-    LocalCopyTradingState,
-    SourceAccount,
-)
+from python_service.app.local_copy_trading.models import Account, CopyRelationship, LocalCopyTradingState
 
 
 def test_engine_fans_out_one_source_position_to_multiple_followers():
     state = LocalCopyTradingState(
         enabled=True,
-        source_accounts=[SourceAccount(id='src-1', name='Main A')],
-        follower_accounts=[
-            FollowerAccount(id='fol-1', name='Follower A'),
-            FollowerAccount(id='fol-2', name='Follower B'),
+        accounts=[
+            Account(id='src-1', name='Main A'),
+            Account(id='fol-1', name='Follower A'),
+            Account(id='fol-2', name='Follower B'),
         ],
         relationships=[
             CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD'),
@@ -29,7 +24,7 @@ def test_engine_fans_out_one_source_position_to_multiple_followers():
 
 def test_engine_filters_by_source_account_and_symbol():
     state = LocalCopyTradingState(
-        follower_accounts=[FollowerAccount(id='fol-1', name='Follower A')],
+        accounts=[Account(id='fol-1', name='Follower A')],
         relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
     )
 
@@ -40,7 +35,7 @@ def test_engine_filters_by_source_account_and_symbol():
 
 def test_engine_skips_inactive_relationships_and_followers():
     state = LocalCopyTradingState(
-        follower_accounts=[FollowerAccount(id='fol-1', name='Follower A', is_active=False)],
+        accounts=[Account(id='fol-1', name='Follower A', is_active=False), Account(id='src-1', name='Main A')],
         relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD', is_active=False)],
     )
 
@@ -52,8 +47,7 @@ def test_engine_skips_inactive_relationships_and_followers():
 def test_engine_deduplicates_already_copied_positions():
     state = LocalCopyTradingState(
         enabled=True,
-        source_accounts=[SourceAccount(id='src-1', name='Main A')],
-        follower_accounts=[FollowerAccount(id='fol-1', name='Follower A')],
+        accounts=[Account(id='src-1', name='Main A'), Account(id='fol-1', name='Follower A')],
         relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
     )
 
@@ -67,8 +61,7 @@ def test_engine_deduplicates_already_copied_positions():
 def test_engine_maps_source_symbol_to_follower_symbol():
     state = LocalCopyTradingState(
         enabled=True,
-        source_accounts=[SourceAccount(id='src-1', name='Main A')],
-        follower_accounts=[FollowerAccount(id='fol-1', name='Follower A')],
+        accounts=[Account(id='src-1', name='Main A'), Account(id='fol-1', name='Follower A')],
         relationships=[
             CopyRelationship(
                 id='rel-1',
@@ -90,7 +83,7 @@ def test_engine_maps_source_symbol_to_follower_symbol():
 def test_engine_records_follower_position_details_from_copy_executor():
     state = LocalCopyTradingState(
         enabled=True,
-        follower_accounts=[FollowerAccount(id='fol-1', name='Follower A')],
+        accounts=[Account(id='src-1', name='Main A'), Account(id='fol-1', name='Follower A')],
         relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
     )
 
@@ -107,7 +100,7 @@ def test_engine_records_follower_position_details_from_copy_executor():
 def test_engine_closes_copied_position_when_source_position_disappears():
     state = LocalCopyTradingState(
         enabled=True,
-        follower_accounts=[FollowerAccount(id='fol-1', name='Follower A')],
+        accounts=[Account(id='src-1', name='Main A'), Account(id='fol-1', name='Follower A')],
         relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
     )
     process_tick(
@@ -132,7 +125,7 @@ def test_engine_closes_copied_position_when_source_position_disappears():
 def test_engine_does_not_close_same_copied_position_twice():
     state = LocalCopyTradingState(
         enabled=True,
-        follower_accounts=[FollowerAccount(id='fol-1', name='Follower A')],
+        accounts=[Account(id='src-1', name='Main A'), Account(id='fol-1', name='Follower A')],
         relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
     )
     process_tick(state, source_positions=[{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD'}])
