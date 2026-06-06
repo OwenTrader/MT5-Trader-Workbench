@@ -119,13 +119,28 @@ describe('Python Quant Store', () => {
   })
 
   it('posts backfill requests and returns inserted rows', async () => {
+    let overviewRequests = 0
     ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
-      expect(String(input)).toBe('http://127.0.0.1:8765/python-quant/data/backfill')
-      expect(init?.method).toBe('POST')
-      expect(init?.body).toContain('XAUUSD')
+      const url = String(input)
+
+      if (url === 'http://127.0.0.1:8765/python-quant/data/backfill') {
+        expect(init?.method).toBe('POST')
+        expect(init?.body).toContain('XAUUSD')
+        return {
+          ok: true,
+          json: async () => ({ inserted_rows: 250 }),
+        } as Response
+      }
+
+      expect(url).toBe('http://127.0.0.1:8765/python-quant/overview')
+      overviewRequests += 1
       return {
         ok: true,
-        json: async () => ({ inserted_rows: 250 }),
+        json: async () => ({
+          accounts: [{ id: 'acc-1', name: 'Main A', login: '10001' }],
+          strategies: [{ id: 'sma_cross', name: 'SMA Cross', description: 'Trend strategy', timeframes: ['M5'] }],
+          jobs: [],
+        }),
       } as Response
     })
 
@@ -142,5 +157,6 @@ describe('Python Quant Store', () => {
     })
 
     expect(insertedRows).toBe(250)
+    expect(overviewRequests).toBe(1)
   })
 })

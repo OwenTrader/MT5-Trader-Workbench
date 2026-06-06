@@ -3,6 +3,21 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import React from 'react'
 
+vi.mock('sonner', () => ({
+  Toaster: () => null,
+  toast: {
+    error: vi.fn(),
+  },
+}))
+
+vi.mock('next-themes', () => ({
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+  }),
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 vi.mock('@/components/ui/select', () => {
   const SelectContext = React.createContext<{
     value?: string
@@ -70,6 +85,7 @@ vi.mock('@/components/ui/select', () => {
   }
 })
 
+import { App } from '@/App'
 import { I18nProvider } from '@/i18n'
 import { PythonQuantPage } from '@/pages/PythonQuantPage'
 import { usePythonQuantStore } from '@/stores/python-quant-store'
@@ -102,6 +118,14 @@ function renderPage() {
   )
 }
 
+function renderApp() {
+  return render(
+    <I18nProvider language="en">
+      <App />
+    </I18nProvider>
+  )
+}
+
 function createOverview(): TestOverview {
   return {
     accounts: [{ id: 'acc-1', name: 'Main A', login: '10001' }],
@@ -127,6 +151,7 @@ function createOverview(): TestOverview {
 describe('PythonQuantPage', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    window.location.hash = ''
     usePythonQuantStore.setState({
       overview: {
         accounts: [],
@@ -147,6 +172,34 @@ describe('PythonQuantPage', () => {
     renderPage()
 
     expect(await screen.findByRole('heading', { name: 'Python Quant', level: 1 })).toBeInTheDocument()
+  })
+
+  it('shows that Python Quant reuses Account List accounts for live assignments', async () => {
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => createOverview(),
+    })) as typeof fetch
+
+    renderPage()
+
+    expect(await screen.findByText(/already configured in Account List/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Run Backtest' })).not.toBeInTheDocument()
+  })
+
+  it('renders both Python Quant and Quant Backtest inside the account module group', async () => {
+    window.location.hash = '#/quant-backtest'
+
+    renderApp()
+
+    const group = (await screen.findByText('Independent Accounts')).closest('[data-sidebar="group"]')
+    expect(group).not.toBeNull()
+    if (!group) {
+      throw new Error('Independent Accounts group not found')
+    }
+
+    expect(within(group).getByRole('button', { name: 'Python Quant' })).toBeInTheDocument()
+    expect(within(group).getByRole('button', { name: 'Quant Backtest' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Quant Backtest', level: 1 })).toBeInTheDocument()
   })
 
   it('creates, updates, starts, stops, deletes, and backfills jobs from the page', async () => {

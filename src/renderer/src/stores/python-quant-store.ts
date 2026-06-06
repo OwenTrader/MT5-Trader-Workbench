@@ -121,7 +121,7 @@ export const usePythonQuantStore = create<PythonQuantStore>((set) => {
         }
 
         const insertedRows = parsePythonQuantBackfillResult(await response.json())
-        set({ isLoading: false, error: null })
+        await refreshOverview()
         return insertedRows
       } catch (error) {
         fail(error)

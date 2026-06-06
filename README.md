@@ -20,7 +20,8 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - Historical daily order statistics with selectable date ranges
 - Lightweight Event Log that aggregates currently available local copy trading and order sync events
 - Order Broadcast, Order Sync, and Local Copy Trading screens with explicit safety boundaries before enabling high-risk workflows
-- Python Quant module for creating MT5-backed strategy jobs, managing local market-data backfill, and starting/stopping Python strategy execution
+- Python Quant module for live MT5 account-strategy assignments, runtime status, manual market-data backfill, and shared strategy discovery
+- Quant Backtest module for historical backtesting with the same MT5 account pool, shared strategy registry, and local cached market data
 - Technical analysis entry that generates a report and opens it in the default browser
 - Settings management for MT5 path, theme, interface language, auto-connect, refresh interval, overlay options, sound options, DingTalk, WeCom, and Feishu bot credentials
 - Configuration migration guidance and sensitive-information handling notes for local settings, API keys, and webhook tokens
@@ -40,8 +41,10 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - `Technical Analysis`: one-click report generation flow
 - `Order Broadcast`: notification-only order broadcast rules
 - `Order Sync`: MT5 to TopStep synchronization configuration and sync records
+- `Account List`: shared MT5 account registry used by independent-account workflows
 - `Local Copy Trading`: source/follower account relationships and recent copy events
-- `Python Quant`: Python strategy jobs bound to configured MT5 accounts with local SQLite market-data cache
+- `Python Quant`: live Python strategy assignments with runtime controls, manual backfill, local SQLite market-data cache, and a user strategy directory
+- `Quant Backtest`: historical backtests that reuse the same account pool, strategy list, and cached market data
 - `Event Log`: currently available recent event context from sync-related modules
 - `Settings`: connection, display, notifications, and product information
 
@@ -132,13 +135,20 @@ The bundled local backend currently exposes routes for:
 - overlay quote streaming over WebSocket
 - order sync configuration and runtime records
 - local copy trading configuration and recent events
-- python quant overview, job lifecycle control, and local market-data backfill
+- python quant overview, live job lifecycle control, and local market-data backfill
+- quant backtest strategy listing and backtest execution
 
-## Python Quant Notes
+## Python Quant And Backtest Notes
 
-- Python Quant reuses MT5 accounts already configured in Local Copy Trading.
+- `Account List` is the shared source of MT5 accounts for both `Python Quant` live assignments and `Quant Backtest` runs.
+- `Python Quant` is limited to live assignment management, runtime status, start/stop controls, and manual market-data backfill.
+- `Quant Backtest` is the historical-testing entry and does not mutate live quant jobs.
 - Local market data is cached in `storage/python_quant/market_data.sqlite3`.
 - Quant jobs are persisted in `storage/python_quant/jobs.json`.
+- Built-in strategies are loaded from `python_service/app/quant/strategies/`.
+- User-added strategies are discovered from `storage/python_quant/strategies/` in development and from the packaged app's user data `storage/python_quant/strategies/` directory after installation.
+- `Python Quant` and `Quant Backtest` use the same merged strategy list from the built-in and user strategy directories.
+- Each user strategy file must define `STRATEGY_ID`, `STRATEGY_NAME`, `STRATEGY_DESCRIPTION`, `SUPPORTED_TIMEFRAMES`, and `Strategy`.
 - The first built-in strategy is `sma_cross`, and the packaged backend includes the built-in strategy module.
 - Python tests remain `pytest tests/python` even after adding the quant module.
 

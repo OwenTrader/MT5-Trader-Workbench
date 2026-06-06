@@ -18,6 +18,7 @@ from python_service.app.routes.awakening import router as awakening_router
 from python_service.app.routes.order_sync import router as order_sync_router
 from python_service.app.routes.risk_control import router as risk_control_router
 from python_service.app.local_copy_trading.routes import router as local_copy_trading_router
+from python_service.app.quant.backtest_routes import router as python_quant_backtest_router
 from python_service.app.quant.routes import router as python_quant_router
 from python_service.app.services.mt5_service import shutdown_mt5
 from python_service.app.services.order_sync_service import order_sync_loop
@@ -132,6 +133,7 @@ app.include_router(risk_control_router)
 app.include_router(stream_router)
 app.include_router(local_copy_trading_router)
 app.include_router(python_quant_router)
+app.include_router(python_quant_backtest_router)
 
 if __name__ == '__main__':
     uvicorn.run(app, host='127.0.0.1', port=8765)

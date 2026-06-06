@@ -2,9 +2,10 @@ import json
 from pathlib import Path
 
 from python_service.app.quant.models import QuantJob
+from python_service.app.quant.paths import get_jobs_path
 
 
-DEFAULT_JOBS_PATH = Path('storage/python_quant/jobs.json')
+DEFAULT_JOBS_PATH = get_jobs_path()
 
 
 def load_jobs(storage_path: Path | str = DEFAULT_JOBS_PATH) -> list[QuantJob]:
