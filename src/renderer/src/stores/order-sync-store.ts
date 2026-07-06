@@ -1,6 +1,7 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
-const API_BASE = 'http://127.0.0.1:8765/order-sync'
+const API_BASE = '/order-sync'
 
 export interface TopStepAccountCredential {
   id: string
@@ -81,7 +82,7 @@ export const useOrderSyncStore = create<OrderSyncState>((set, get) => ({
       set({ isLoading: true, error: null })
     }
     try {
-      const response = await fetch(API_BASE)
+      const response = await apiFetch(API_BASE)
       if (!response.ok) throw new Error('Failed to fetch order sync config')
       const config = await response.json()
       set({ config: { ...DEFAULT_CONFIG, ...config }, isLoading: false })
@@ -92,7 +93,7 @@ export const useOrderSyncStore = create<OrderSyncState>((set, get) => ({
   saveConfig: async (config) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(API_BASE, {
+      const response = await apiFetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
@@ -109,7 +110,7 @@ export const useOrderSyncStore = create<OrderSyncState>((set, get) => ({
   runTick: async () => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`${API_BASE}/tick`, { method: 'POST' })
+      const response = await apiFetch(`${API_BASE}/tick`, { method: 'POST' })
       if (!response.ok) throw new Error('Failed to run order sync')
       const config = await response.json()
       set({ config: { ...get().config, ...config }, isLoading: false })

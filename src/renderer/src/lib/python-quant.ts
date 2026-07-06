@@ -1,4 +1,4 @@
-export const PYTHON_QUANT_API_BASE = 'http://127.0.0.1:8765/python-quant'
+export const PYTHON_QUANT_API_BASE = '/python-quant'
 
 export const PYTHON_QUANT_TIMEFRAMES = ['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1'] as const
 

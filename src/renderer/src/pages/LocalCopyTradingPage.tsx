@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Loader2, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +16,19 @@ import { useLocalCopyTradingStore } from '@/stores/local-copy-trading-store'
 
 function isRelationshipFormComplete(sourceId: string, followerId: string, sourceSymbol: string, followerSymbol: string, lotMultiplier: string) {
   return Boolean(sourceId.trim() && followerId.trim() && sourceSymbol.trim() && followerSymbol.trim() && Number(lotMultiplier) > 0)
+}
+
+function getStatusBadge(status: string) {
+  switch (status) {
+    case 'copied':
+      return <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-transparent dark:text-emerald-400">{status}</Badge>
+    case 'closed':
+      return <Badge variant="secondary">{status}</Badge>
+    case 'error':
+      return <Badge variant="destructive">{status}</Badge>
+    default:
+      return <Badge variant="outline">{status}</Badge>
+  }
 }
 
 function getRelationshipSourceSymbol(relationship: { symbol: string; source_symbol?: string }) {
@@ -61,6 +74,7 @@ export function LocalCopyTradingPage() {
   const navigate = useNavigate()
   const {
     overview,
+    isLoading,
     error,
     fetchOverview,
     updateRuntime,
@@ -183,6 +197,11 @@ export function LocalCopyTradingPage() {
             <Badge>{overview.runtime.enabled ? t('localCopyTrading.enabled') : t('localCopyTrading.disabled')}</Badge>
             <Badge variant="outline">{t('localCopyTrading.configurationMode')}</Badge>
             <Badge variant="secondary">{t('localCopyTrading.poll', { seconds: overview.runtime.poll_interval_seconds })}</Badge>
+            {overview.runtime.last_checked_at ? (
+              <Badge variant="secondary" className="font-mono">
+                🕒 {formatDateTime(overview.runtime.last_checked_at)}
+              </Badge>
+            ) : null}
              <Badge variant="outline">{t('accountList.accountCount', { count: overview.accounts.length })}</Badge>
             <label className="flex items-center gap-2 text-sm">
               <span>{t('localCopyTrading.enabled')}</span>
@@ -191,6 +210,15 @@ export function LocalCopyTradingPage() {
             <Button variant="outline" size="sm" onClick={() => navigate('/account-list')}>{t('localCopyTrading.manageAccounts')}</Button>
             <Button variant="outline" size="sm" disabled={!canCreateRelationship} onClick={() => setRelationshipDialogOpen(true)}>{t('localCopyTrading.addRelationship')}</Button>
           </div>
+          {overview.runtime.last_error ? (
+            <div className="mt-4 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2">
+              <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+              <div>
+                <div className="font-semibold mb-1">Backend Engine Error</div>
+                <div className="break-all">{overview.runtime.last_error}</div>
+              </div>
+            </div>
+          ) : null}
           <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-200">
             {t('localCopyTrading.configurationModeDescription')}
           </div>
@@ -225,26 +253,47 @@ export function LocalCopyTradingPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {overview.relationships.map((relationship) => (
-                    <TableRow key={relationship.id}>
-                       <TableCell>{getAccountLabelById(overview.accounts, relationship.source_account_id)}</TableCell>
-                       <TableCell>{getAccountLabelById(overview.accounts, relationship.follower_account_id)}</TableCell>
-                      <TableCell>{getRelationshipSourceSymbol(relationship)}</TableCell>
-                      <TableCell>{getRelationshipFollowerSymbol(relationship)}</TableCell>
-                      <TableCell>{relationship.lot_multiplier}</TableCell>
-                      <TableCell>{relationship.is_active ? t('localCopyTrading.active') : t('localCopyTrading.inactive')}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" aria-label={t('localCopyTrading.confirmDeleteTitle')} className="text-destructive" onClick={() => setPendingDeleteRelationshipId(relationship.id)}>
-                          <Trash2 />
-                        </Button>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="size-4 animate-spin" />
+                          {t('common.loading')}
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                  {!hasRelationships ? (
+                  ) : overview.relationships.length > 0 ? (
+                    overview.relationships.map((relationship) => (
+                      <TableRow key={relationship.id}>
+                         <TableCell>{getAccountLabelById(overview.accounts, relationship.source_account_id)}</TableCell>
+                         <TableCell>{getAccountLabelById(overview.accounts, relationship.follower_account_id)}</TableCell>
+                        <TableCell>{getRelationshipSourceSymbol(relationship)}</TableCell>
+                        <TableCell>{getRelationshipFollowerSymbol(relationship)}</TableCell>
+                        <TableCell>{relationship.lot_multiplier}</TableCell>
+                        <TableCell>{relationship.is_active ? t('localCopyTrading.active') : t('localCopyTrading.inactive')}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" aria-label={t('localCopyTrading.confirmDeleteTitle')} className="text-destructive" onClick={() => setPendingDeleteRelationshipId(relationship.id)}>
+                            <Trash2 />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
                     <TableRow>
-                       <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">{canCreateRelationship ? t('localCopyTrading.emptyRelationships') : t('localCopyTrading.emptyRelationshipsNeedsAccounts')}</TableCell>
+                       <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                         {canCreateRelationship ? (
+                           t('localCopyTrading.emptyRelationships')
+                         ) : (
+                           <div className="flex flex-col items-center gap-3">
+                             <span>{t('localCopyTrading.emptyRelationshipsNeedsAccounts')}</span>
+                             <Button variant="outline" size="sm" onClick={() => navigate('/account-list')}>
+                               {t('localCopyTrading.manageAccounts')}
+                             </Button>
+                           </div>
+                         )}
+                       </TableCell>
                     </TableRow>
-                  ) : null}
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -270,22 +319,32 @@ export function LocalCopyTradingPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {overview.events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell>{event.symbol}</TableCell>
-                      <TableCell>{event.status}</TableCell>
-                       <TableCell>{getAccountLabelById(overview.accounts, event.source_account_id)}</TableCell>
-                       <TableCell>{getAccountLabelById(overview.accounts, event.follower_account_id)}</TableCell>
-                      <TableCell>{event.position_id || '-'}</TableCell>
-                      <TableCell>{event.message || '-'}</TableCell>
-                      <TableCell>{formatDateTime(event.created_at)}</TableCell>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="size-4 animate-spin" />
+                          {t('common.loading')}
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  ))}
-                  {overview.events.length === 0 ? (
+                  ) : overview.events.length > 0 ? (
+                    [...overview.events].reverse().slice(0, 100).map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell>{event.symbol}</TableCell>
+                        <TableCell>{getStatusBadge(event.status)}</TableCell>
+                         <TableCell>{getAccountLabelById(overview.accounts, event.source_account_id)}</TableCell>
+                         <TableCell>{getAccountLabelById(overview.accounts, event.follower_account_id)}</TableCell>
+                        <TableCell>{event.position_id || '-'}</TableCell>
+                        <TableCell>{event.message || '-'}</TableCell>
+                        <TableCell>{formatDateTime(event.created_at)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
                     <TableRow>
                       <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">{t('localCopyTrading.emptyEvents')}</TableCell>
                     </TableRow>
-                  ) : null}
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

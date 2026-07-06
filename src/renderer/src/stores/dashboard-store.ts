@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 interface AccountInfo {
@@ -31,7 +32,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
   fetchStatus: async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8765/mt5/status')
+      const res = await apiFetch('/mt5/status')
       if (res.ok) {
         const data = await res.json()
         set({ status: data })
@@ -43,7 +44,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
   fetchAccount: async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8765/mt5/account')
+      const res = await apiFetch('/mt5/account')
       if (res.ok) {
         const data = await res.json()
         set({ account: data })

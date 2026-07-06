@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import React, { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { useSettingsStore } from '@/stores/settings-store'
@@ -181,7 +182,7 @@ export const SettingsPage: React.FC = () => {
         t('settings.bot.dingtalkConfigRequired'),
         async () => {
           try {
-            const res = await fetch('http://127.0.0.1:8765/notifications/test_dingtalk', { method: 'POST' })
+            const res = await apiFetch('/notifications/test_dingtalk', { method: 'POST' })
             const rawResponse = await res.text()
             openBotDialog(t('settings.bot.dingtalkTitle'), rawResponse || t('settings.bot.testFailed'))
           } catch (e) {
@@ -200,7 +201,7 @@ export const SettingsPage: React.FC = () => {
         t('settings.bot.wecomConfigRequired'),
         async () => {
           try {
-            const res = await fetch('http://127.0.0.1:8765/notifications/test_wecom', { method: 'POST' })
+            const res = await apiFetch('/notifications/test_wecom', { method: 'POST' })
             const rawResponse = await res.text()
             openBotDialog(t('settings.bot.wecomTitle'), rawResponse || t('settings.bot.testFailed'))
           } catch (e) {
@@ -219,7 +220,7 @@ export const SettingsPage: React.FC = () => {
         t('settings.bot.feishuConfigRequired'),
         async () => {
           try {
-            const res = await fetch('http://127.0.0.1:8765/notifications/test_feishu', { method: 'POST' })
+            const res = await apiFetch('/notifications/test_feishu', { method: 'POST' })
             const rawResponse = await res.text()
             openBotDialog(t('settings.bot.feishuTitle'), rawResponse || t('settings.bot.testFailed'))
           } catch (e) {
@@ -278,7 +279,7 @@ export const SettingsPage: React.FC = () => {
     setIsVerifying(true)
     setVerifyStatus(null)
     try {
-      const response = await fetch('http://127.0.0.1:8765/mt5/verify_path', {
+      const response = await apiFetch('/mt5/verify_path', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: localSettings.mt5_path })

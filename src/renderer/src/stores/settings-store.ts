@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 type BackendStartupDiagnostics = {
@@ -153,7 +154,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   fetchSettings: async (backendUnavailableMessage = 'Unable to connect to the backend service.') => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch('http://127.0.0.1:8765/settings')
+      const response = await apiFetch('/settings')
       if (!response.ok) throw new Error('Failed to fetch settings')
       const settings = await response.json()
       set({
@@ -173,7 +174,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const updated = { ...get().settings, ...newSettings }
     set({ settings: updated, isLoading: true, error: null })
     try {
-      const response = await fetch('http://127.0.0.1:8765/settings', {
+      const response = await apiFetch('/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),

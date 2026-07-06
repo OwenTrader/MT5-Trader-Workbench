@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import React, { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n'
 import { Button } from '@/components/ui/button'
@@ -33,7 +34,7 @@ export const TechnicalAnalysisPage: React.FC = () => {
     setError(null)
 
     try {
-      const response = await fetch('http://127.0.0.1:8765/awakening/report', {
+      const response = await apiFetch('/awakening/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symbol: 'XAUUSD' })

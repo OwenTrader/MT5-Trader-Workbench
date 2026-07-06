@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 export interface PriceAlert {
@@ -92,7 +93,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       set({ isLoading: true })
     }
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/price')
+      const res = await apiFetch('/alerts/price')
       if (res.ok) {
         const data = await res.json()
         set({ priceAlerts: data })
@@ -108,7 +109,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   addPriceAlert: async (alert) => {
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/price', {
+      const res = await apiFetch('/alerts/price', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...alert, id: "" })
@@ -123,7 +124,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   updatePriceAlert: async (alert) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8765/alerts/price/${alert.id}`, {
+      const res = await apiFetch(`/alerts/price/${alert.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(alert)
@@ -138,7 +139,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   deletePriceAlert: async (id) => {
     try {
-      await fetch(`http://127.0.0.1:8765/alerts/price/${id}`, { method: 'DELETE' })
+      await apiFetch(`/alerts/price/${id}`, { method: 'DELETE' })
       set((state) => ({
         priceAlerts: state.priceAlerts.filter((a) => a.id !== id)
       }))
@@ -152,7 +153,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       set({ isLoading: true })
     }
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/volatility')
+      const res = await apiFetch('/alerts/volatility')
       if (res.ok) {
         const data = await res.json()
         set({ volatilityAlerts: data })
@@ -168,7 +169,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   addVolatilityAlert: async (alert) => {
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/volatility', {
+      const res = await apiFetch('/alerts/volatility', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...alert, id: "" })
@@ -183,7 +184,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   updateVolatilityAlert: async (alert) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8765/alerts/volatility/${alert.id}`, {
+      const res = await apiFetch(`/alerts/volatility/${alert.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(alert)
@@ -198,7 +199,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   deleteVolatilityAlert: async (id) => {
     try {
-      await fetch(`http://127.0.0.1:8765/alerts/volatility/${id}`, { method: 'DELETE' })
+      await apiFetch(`/alerts/volatility/${id}`, { method: 'DELETE' })
       set((state) => ({
         volatilityAlerts: state.volatilityAlerts.filter((a) => a.id !== id)
       }))
@@ -212,7 +213,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       set({ isLoading: true })
     }
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/indicator')
+      const res = await apiFetch('/alerts/indicator')
       if (res.ok) {
         const data = await res.json()
         set({ indicatorAlerts: data })
@@ -228,7 +229,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   addIndicatorAlert: async (alert) => {
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/indicator', {
+      const res = await apiFetch('/alerts/indicator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...alert, id: "" })
@@ -243,7 +244,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   updateIndicatorAlert: async (alert) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8765/alerts/indicator/${alert.id}`, {
+      const res = await apiFetch(`/alerts/indicator/${alert.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(alert)
@@ -258,7 +259,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   deleteIndicatorAlert: async (id) => {
     try {
-      await fetch(`http://127.0.0.1:8765/alerts/indicator/${id}`, { method: 'DELETE' })
+      await apiFetch(`/alerts/indicator/${id}`, { method: 'DELETE' })
       set((state) => ({
         indicatorAlerts: state.indicatorAlerts.filter((a) => a.id !== id)
       }))
@@ -272,7 +273,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       set({ isLoading: true })
     }
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/order-broadcast')
+      const res = await apiFetch('/alerts/order-broadcast')
       if (res.ok) {
         const data = await res.json()
         set({ orderBroadcastRules: data })
@@ -288,7 +289,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   addOrderBroadcastRule: async (rule) => {
     try {
-      const res = await fetch('http://127.0.0.1:8765/alerts/order-broadcast', {
+      const res = await apiFetch('/alerts/order-broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...rule, id: '' })
@@ -309,7 +310,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   updateOrderBroadcastRule: async (rule) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8765/alerts/order-broadcast/${rule.id}`, {
+      const res = await apiFetch(`/alerts/order-broadcast/${rule.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rule)
@@ -330,7 +331,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   deleteOrderBroadcastRule: async (id) => {
     try {
-      await fetch(`http://127.0.0.1:8765/alerts/order-broadcast/${id}`, { method: 'DELETE' })
+      await apiFetch(`/alerts/order-broadcast/${id}`, { method: 'DELETE' })
       set((state) => ({
         orderBroadcastRules: state.orderBroadcastRules.filter((rule) => rule.id !== id)
       }))

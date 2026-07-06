@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 export interface DailyOrderStat {
@@ -44,7 +45,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   fetchOverview: async () => {
     set({ isOverviewLoading: true })
     try {
-      const res = await fetch('http://127.0.0.1:8765/history/overview')
+      const res = await apiFetch('/history/overview')
       if (res.ok) {
         set({ overview: await res.json() })
       }
@@ -63,7 +64,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         from_date: from || f,
         to_date: to || t
       })
-      const res = await fetch(`http://127.0.0.1:8765/history/daily?${query}`)
+      const res = await apiFetch(`/history/daily?${query}`)
       if (res.ok) {
         set({ dailyStats: await res.json() })
       }

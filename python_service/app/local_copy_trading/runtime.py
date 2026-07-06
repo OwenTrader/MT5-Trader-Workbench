@@ -69,6 +69,38 @@ def update_account(state: LocalCopyTradingState, account_id: str, account: Accou
     raise ValueError('Account not found')
 
 
+def _has_cycle(relationships: list[CopyRelationship]) -> bool:
+    graph = {}
+    for r in relationships:
+        if r.source_account_id not in graph:
+            graph[r.source_account_id] = []
+        graph[r.source_account_id].append(r.follower_account_id)
+        
+    visited = set()
+    rec_stack = set()
+    
+    def dfs(node: str) -> bool:
+        visited.add(node)
+        rec_stack.add(node)
+        
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                if dfs(neighbor):
+                    return True
+            elif neighbor in rec_stack:
+                return True
+                
+        rec_stack.remove(node)
+        return False
+        
+    for node in graph:
+        if node not in visited:
+            if dfs(node):
+                return True
+                
+    return False
+
+
 def add_relationship(state: LocalCopyTradingState, relationship: CopyRelationship) -> LocalCopyTradingState:
     if relationship.source_account_id == relationship.follower_account_id:
         raise ValueError('Source and follower accounts must be different')
@@ -86,6 +118,10 @@ def add_relationship(state: LocalCopyTradingState, relationship: CopyRelationshi
     )
     if duplicate_exists:
         raise ValueError('Relationship already exists for this source, follower, and symbol mapping')
+        
+    if _has_cycle(state.relationships + [relationship]):
+        raise ValueError('Adding this relationship would create a cyclic copy-trading loop')
+        
     state.relationships.append(relationship.model_copy(update={'id': _ensure_id(relationship.id)}))
     return state
 
@@ -120,6 +156,26 @@ def remove_relationship(state: LocalCopyTradingState, relationship_id: str) -> L
 
 def add_event(state: LocalCopyTradingState, event: SyncEvent) -> LocalCopyTradingState:
     state.events.append(event.model_copy(update={'id': _ensure_id(event.id)}))
+    
+    if len(state.events) > 1000:
+        closed_keys = {
+            (e.relationship_id, e.source_account_id, e.follower_account_id, e.position_id)
+            for e in state.events
+            if e.status == 'closed'
+        }
+        
+        open_set = {
+            id(e)
+            for e in state.events
+            if e.status == 'copied'
+            and (e.relationship_id, e.source_account_id, e.follower_account_id, e.position_id) not in closed_keys
+        }
+        
+        recent_events = state.events[-1000:]
+        recent_set = {id(e) for e in recent_events}
+        
+        state.events = [e for e in state.events if id(e) in recent_set or id(e) in open_set]
+        
     return state
 
 

@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import React, { useEffect } from 'react'
 import { useI18n } from '@/i18n'
 import { Badge } from '@/components/ui/badge'
@@ -82,7 +83,7 @@ export function DashboardPage() {
 
   const handleReconnect = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8765/mt5/launch', { method: 'POST' })
+      const response = await apiFetch('/mt5/launch', { method: 'POST' })
       const result = await response.json()
       
       if (result.status === 'error') {

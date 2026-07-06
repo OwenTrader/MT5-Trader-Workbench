@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 import {
@@ -30,7 +31,7 @@ export const useQuantBacktestStore = create<QuantBacktestStore>((set) => ({
   fetchStrategies: async () => {
     set({ isLoadingStrategies: true, error: null })
     try {
-      const response = await fetch(`${QUANT_BACKTEST_API_BASE}/strategies`)
+      const response = await apiFetch(`${QUANT_BACKTEST_API_BASE}/strategies`)
       if (!response.ok) {
         throw new Error(await getPythonQuantErrorMessage(response, 'Failed to fetch quant backtest strategies'))
       }
@@ -50,7 +51,7 @@ export const useQuantBacktestStore = create<QuantBacktestStore>((set) => ({
   runBacktest: async (payload) => {
     set({ isRunning: true, error: null, result: null })
     try {
-      const response = await fetch(`${QUANT_BACKTEST_API_BASE}/run`, {
+      const response = await apiFetch(`${QUANT_BACKTEST_API_BASE}/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

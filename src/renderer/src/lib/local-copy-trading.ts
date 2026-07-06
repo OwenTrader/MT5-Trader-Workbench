@@ -1,4 +1,4 @@
-export const LOCAL_COPY_TRADING_API_BASE = 'http://127.0.0.1:8765/local-copy-trading'
+export const LOCAL_COPY_TRADING_API_BASE = '/local-copy-trading'
 
 export interface LocalCopyTradingRuntime {
   enabled: boolean

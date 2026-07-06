@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 import {
@@ -26,7 +27,7 @@ interface PythonQuantStore {
 }
 
 async function loadOverview(): Promise<PythonQuantOverview> {
-  const response = await fetch(`${PYTHON_QUANT_API_BASE}/overview`)
+  const response = await apiFetch(`${PYTHON_QUANT_API_BASE}/overview`)
   if (!response.ok) {
     throw new Error(await getPythonQuantErrorMessage(response, 'Failed to fetch Python Quant overview'))
   }
@@ -75,7 +76,7 @@ export const usePythonQuantStore = create<PythonQuantStore>((set) => {
       }
     },
     createJob: async (payload) => runMutation(
-      () => fetch(`${PYTHON_QUANT_API_BASE}/jobs`, {
+      () => apiFetch(`${PYTHON_QUANT_API_BASE}/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -83,7 +84,7 @@ export const usePythonQuantStore = create<PythonQuantStore>((set) => {
       'Failed to create Python Quant job',
     ),
     updateJob: async (jobId, payload) => runMutation(
-      () => fetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}`, {
+      () => apiFetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -91,19 +92,19 @@ export const usePythonQuantStore = create<PythonQuantStore>((set) => {
       'Failed to update Python Quant job',
     ),
     startJob: async (jobId) => runMutation(
-      () => fetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}/start`, {
+      () => apiFetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}/start`, {
         method: 'POST',
       }),
       'Failed to start Python Quant job',
     ),
     stopJob: async (jobId) => runMutation(
-      () => fetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}/stop`, {
+      () => apiFetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}/stop`, {
         method: 'POST',
       }),
       'Failed to stop Python Quant job',
     ),
     deleteJob: async (jobId) => runMutation(
-      () => fetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}`, {
+      () => apiFetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}`, {
         method: 'DELETE',
       }),
       'Failed to delete Python Quant job',
@@ -111,7 +112,7 @@ export const usePythonQuantStore = create<PythonQuantStore>((set) => {
     backfillData: async (payload) => {
       set({ isLoading: true, error: null })
       try {
-        const response = await fetch(`${PYTHON_QUANT_API_BASE}/data/backfill`, {
+        const response = await apiFetch(`${PYTHON_QUANT_API_BASE}/data/backfill`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

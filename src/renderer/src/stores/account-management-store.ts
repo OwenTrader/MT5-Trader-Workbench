@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 import {
@@ -34,7 +35,7 @@ export const useAccountManagementStore = create<AccountManagementStore>((set) =>
   fetchOverview: async () => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(LOCAL_COPY_TRADING_API_BASE)
+      const response = await apiFetch(LOCAL_COPY_TRADING_API_BASE)
       const overview = await handleAccountOverviewResponse(response)
       set({ overview, isLoading: false })
     } catch (error) {
@@ -44,7 +45,7 @@ export const useAccountManagementStore = create<AccountManagementStore>((set) =>
   createAccount: async (payload) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`${LOCAL_COPY_TRADING_API_BASE}/accounts`, {
+      const response = await apiFetch(`${LOCAL_COPY_TRADING_API_BASE}/accounts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -60,7 +61,7 @@ export const useAccountManagementStore = create<AccountManagementStore>((set) =>
   updateAccount: async (accountId, payload) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`${LOCAL_COPY_TRADING_API_BASE}/accounts/${accountId}`, {
+      const response = await apiFetch(`${LOCAL_COPY_TRADING_API_BASE}/accounts/${accountId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -76,7 +77,7 @@ export const useAccountManagementStore = create<AccountManagementStore>((set) =>
   deleteAccount: async (accountId) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`${LOCAL_COPY_TRADING_API_BASE}/accounts/${accountId}`, {
+      const response = await apiFetch(`${LOCAL_COPY_TRADING_API_BASE}/accounts/${accountId}`, {
         method: 'DELETE',
       })
       const overview = await handleAccountOverviewResponse(response)

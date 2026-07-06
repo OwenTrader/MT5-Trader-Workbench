@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import React, { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n'
 import { useAlertsStore, PriceAlert } from '@/stores/alerts-store'
@@ -130,7 +131,7 @@ export const PriceAlertsPage: React.FC = () => {
     
     // 1. Validate with Backend
     try {
-      const verifyRes = await fetch('http://127.0.0.1:8765/mt5/verify_alert', {
+      const verifyRes = await apiFetch('/mt5/verify_alert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -203,7 +204,7 @@ export const PriceAlertsPage: React.FC = () => {
 
   const handleTestNotification = async () => {
     try {
-      await fetch('http://127.0.0.1:8765/notifications/test', {
+      await apiFetch('/notifications/test', {
         method: 'POST'
       })
     } catch (e) {

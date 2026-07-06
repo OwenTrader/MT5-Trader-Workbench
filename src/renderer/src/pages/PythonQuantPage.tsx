@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import React, { useEffect } from 'react'
 import { Database, LineChart, Pencil, Play, Square, Trash2 } from 'lucide-react'
 
@@ -319,7 +320,7 @@ export function PythonQuantPage() {
     const loadJobEvents = async () => {
       const entries = await Promise.all(overview.jobs.map(async (job) => {
         try {
-          const response = await fetch(`${PYTHON_QUANT_API_BASE}/jobs/${job.id}/events`)
+          const response = await apiFetch(`${PYTHON_QUANT_API_BASE}/jobs/${job.id}/events`)
           if (!response.ok) {
             throw new Error(await getPythonQuantErrorMessage(response, 'Failed to fetch Python Quant job events'))
           }

@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
 
 import {
@@ -25,7 +26,7 @@ export const useLocalCopyTradingStore = create<LocalCopyTradingStore>((set) => (
   fetchOverview: async () => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(LOCAL_COPY_TRADING_API_BASE)
+      const response = await apiFetch(LOCAL_COPY_TRADING_API_BASE)
       const overview = await parseLocalCopyTradingOverviewResponse(response)
       set({ overview, isLoading: false })
     } catch (error) {
@@ -35,7 +36,7 @@ export const useLocalCopyTradingStore = create<LocalCopyTradingStore>((set) => (
   updateRuntime: async (payload) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`${LOCAL_COPY_TRADING_API_BASE}/runtime`, {
+      const response = await apiFetch(`${LOCAL_COPY_TRADING_API_BASE}/runtime`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -51,7 +52,7 @@ export const useLocalCopyTradingStore = create<LocalCopyTradingStore>((set) => (
   createRelationship: async (payload) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`${LOCAL_COPY_TRADING_API_BASE}/relationships`, {
+      const response = await apiFetch(`${LOCAL_COPY_TRADING_API_BASE}/relationships`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -67,7 +68,7 @@ export const useLocalCopyTradingStore = create<LocalCopyTradingStore>((set) => (
   deleteRelationship: async (relationshipId) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`${LOCAL_COPY_TRADING_API_BASE}/relationships/${relationshipId}`, {
+      const response = await apiFetch(`${LOCAL_COPY_TRADING_API_BASE}/relationships/${relationshipId}`, {
         method: 'DELETE',
       })
       const overview = await parseLocalCopyTradingOverviewResponse(response)

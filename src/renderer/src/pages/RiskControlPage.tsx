@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api'
 import React, { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,7 +9,7 @@ import { PageHeader } from '@/components/page-header'
 import { ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
-const RISK_CONTROL_URL = 'http://127.0.0.1:8765/risk-control'
+const RISK_CONTROL_URL = '/risk-control'
 
 function parsePositiveNumber(value: string) {
   if (value.trim() === '') {
@@ -40,7 +41,7 @@ export const RiskControlPage: React.FC = () => {
       setError(null)
 
       try {
-        const response = await fetch(RISK_CONTROL_URL)
+        const response = await apiFetch(RISK_CONTROL_URL)
         if (!response.ok) {
           throw new Error(`Request failed with status ${response.status}`)
         }
@@ -87,7 +88,7 @@ export const RiskControlPage: React.FC = () => {
     setError(null)
 
     try {
-      const response = await fetch(RISK_CONTROL_URL, {
+      const response = await apiFetch(RISK_CONTROL_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
