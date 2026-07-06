@@ -4,6 +4,7 @@ import pytest
 
 from python_service.app.local_copy_trading.models import LocalCopyTradingState, SourceAccount
 from python_service.app.local_copy_trading.runtime import reset_state
+from python_service.app.quant import event_log as quant_event_log
 from python_service.app.quant import storage as quant_storage
 from python_service.app.quant.market_data import ensure_recent_bars
 from python_service.app.quant.models import QuantJob
@@ -172,7 +173,7 @@ def test_ensure_recent_bars_refreshes_only_latest_when_cache_is_stale(monkeypatc
     assert rows[-1]['time'] == stale_time
 
 
-def test_run_job_once_backfills_executes_and_records_signal(monkeypatch):
+def test_run_job_once_backfills_executes_and_records_signal(tmp_path, monkeypatch):
     job = QuantJob(
         id='job-1',
         name='Gold M5 Trend',
@@ -181,9 +182,12 @@ def test_run_job_once_backfills_executes_and_records_signal(monkeypatch):
         symbol='XAUUSD',
         timeframe='M5',
         lot=0.01,
+        execution_mode='live',
         enabled=True,
         status='running',
     )
+
+    monkeypatch.setattr(quant_event_log, 'DEFAULT_EVENTS_PATH', tmp_path / 'events.json')
 
     monkeypatch.setattr('python_service.app.quant.runtime.get_account_for_job', lambda job: {
         'id': 'acc-1',
@@ -206,11 +210,51 @@ def test_run_job_once_backfills_executes_and_records_signal(monkeypatch):
     assert updated.last_bar_time == '2026-06-05T08:35:00+00:00'
     assert updated.status == 'running'
     assert executed['signal'] == 'buy'
+    assert quant_event_log.list_events('job-1')[0].event_type == 'order_sent'
+
+
+def test_run_job_once_skips_mt5_execution_for_paper_mode(tmp_path, monkeypatch):
+    job = QuantJob(
+        id='job-1',
+        name='Gold M5 Trend',
+        account_id='acc-1',
+        strategy_id='sma_cross',
+        symbol='XAUUSD',
+        timeframe='M5',
+        lot=0.01,
+        enabled=True,
+        status='running',
+        execution_mode='paper',
+    )
+
+    monkeypatch.setattr(quant_event_log, 'DEFAULT_EVENTS_PATH', tmp_path / 'events.json')
+
+    monkeypatch.setattr('python_service.app.quant.runtime.get_account_for_job', lambda job: {
+        'id': 'acc-1',
+        'terminal_path': 'C:/MT5/terminal64.exe',
+        'login': '1001',
+        'password': 'secret',
+        'server': 'demo',
+    })
+    monkeypatch.setattr('python_service.app.quant.runtime.ensure_recent_bars', lambda **kwargs: [
+        {'time': '2026-06-05T08:30:00+00:00', 'open': 1.0, 'high': 2.0, 'low': 0.5, 'close': 1.0, 'tick_volume': 10},
+        {'time': '2026-06-05T08:35:00+00:00', 'open': 1.0, 'high': 2.1, 'low': 0.9, 'close': 2.0, 'tick_volume': 12},
+    ])
+    monkeypatch.setattr('python_service.app.quant.runtime.evaluate_strategy_signal', lambda *args, **kwargs: ('buy', '2026-06-05T08:35:00+00:00'))
+    monkeypatch.setattr('python_service.app.quant.runtime.execute_signal', lambda **kwargs: (_ for _ in ()).throw(AssertionError('paper jobs must not execute MT5 orders')))
+
+    updated = run_job_once(job)
+
+    assert updated.last_signal == 'buy'
+    assert updated.last_bar_time == '2026-06-05T08:35:00+00:00'
+    assert updated.status == 'running'
+    assert quant_event_log.list_events('job-1')[0].event_type == 'order_skipped_paper'
 
 
 def test_run_enabled_jobs_once_marks_job_error_and_persists_jobs(tmp_path, monkeypatch):
     jobs_path = tmp_path / 'jobs.json'
     monkeypatch.setattr(quant_storage, 'DEFAULT_JOBS_PATH', jobs_path)
+    monkeypatch.setattr(quant_event_log, 'DEFAULT_EVENTS_PATH', tmp_path / 'events.json')
     quant_storage.save_jobs(
         [
             QuantJob(
@@ -249,3 +293,4 @@ def test_run_enabled_jobs_once_marks_job_error_and_persists_jobs(tmp_path, monke
     assert loaded[0].status == 'error'
     assert loaded[0].last_error == 'execution failed'
     assert loaded[1].status == 'stopped'
+    assert quant_event_log.list_events('job-1')[0].event_type == 'strategy_error'

@@ -101,6 +101,7 @@ type TestOverview = {
     symbol: string
     timeframe: string
     lot: number
+    execution_mode: 'paper' | 'live'
     enabled: boolean
     status: 'stopped' | 'running' | 'error'
     last_signal: 'buy' | 'sell' | 'close' | 'hold' | null
@@ -138,6 +139,7 @@ function createOverview(): TestOverview {
       symbol: 'XAUUSD',
       timeframe: 'M5',
       lot: 0.01,
+      execution_mode: 'live',
       enabled: false,
       status: 'stopped',
       last_signal: null,
@@ -152,6 +154,7 @@ describe('PythonQuantPage', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     window.location.hash = ''
+    vi.stubGlobal('confirm', vi.fn(() => true))
     usePythonQuantStore.setState({
       overview: {
         accounts: [],
@@ -186,8 +189,30 @@ describe('PythonQuantPage', () => {
     expect(screen.queryByRole('button', { name: 'Run Backtest' })).not.toBeInTheDocument()
   })
 
-  it('renders both Python Quant and Quant Backtest inside the account module group', async () => {
-    window.location.hash = '#/quant-backtest'
+  it('renders a unified Quant entry inside the account module group', async () => {
+    const user = userEvent.setup()
+    window.location.hash = '#/quant'
+
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+
+      if (url.endsWith('/python-quant/overview')) {
+        return { ok: true, json: async () => structuredClone(createOverview()) } as Response
+      }
+
+      if (url.endsWith('/python-quant/jobs/job-1/events')) {
+        return { ok: true, json: async () => [] } as Response
+      }
+
+      if (url.endsWith('/python-quant/backtests/strategies')) {
+        return {
+          ok: true,
+          json: async () => [{ id: 'sma_cross', name: 'SMA Cross', description: 'Trend strategy', timeframes: ['M15'] }],
+        } as Response
+      }
+
+      throw new Error(`Unhandled request: ${url}`)
+    }) as typeof fetch
 
     renderApp()
 
@@ -197,8 +222,13 @@ describe('PythonQuantPage', () => {
       throw new Error('Independent Accounts group not found')
     }
 
-    expect(within(group).getByRole('button', { name: 'Python Quant' })).toBeInTheDocument()
-    expect(within(group).getByRole('button', { name: 'Quant Backtest' })).toBeInTheDocument()
+    expect(within(group).getByRole('button', { name: 'Quant' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Quant', level: 1 })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Live Jobs' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Backtest' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: 'Backtest' }))
+    expect(window.location.hash).toContain('tab=backtest')
     expect(await screen.findByRole('heading', { name: 'Quant Backtest', level: 1 })).toBeInTheDocument()
   })
 
@@ -214,6 +244,24 @@ describe('PythonQuantPage', () => {
 
       if (url.endsWith('/python-quant/overview')) {
         return { ok: true, json: async () => structuredClone(overview) } as Response
+      }
+
+      if (url.endsWith('/python-quant/jobs/job-1/events')) {
+        return {
+          ok: true,
+          json: async () => [{
+            id: 'event-1',
+            job_id: 'job-1',
+            event_type: 'signal_generated',
+            message: 'buy signal evaluated for XAUUSD',
+            details: {},
+            created_at: '2026-06-05T08:35:10+00:00',
+          }],
+        } as Response
+      }
+
+      if (url.endsWith('/python-quant/jobs/job-2/events')) {
+        return { ok: true, json: async () => [] } as Response
       }
 
       if (url.endsWith('/python-quant/jobs') && method === 'POST') {
@@ -285,10 +333,12 @@ describe('PythonQuantPage', () => {
     renderPage()
 
     expect(await screen.findByText('Gold M5 Trend')).toBeInTheDocument()
+    expect(await screen.findByText('buy signal evaluated for XAUUSD')).toBeInTheDocument()
 
     await user.type(screen.getByLabelText('Job Name'), 'Silver M15 Mean Reversion')
     await user.clear(screen.getByLabelText('Symbol'))
     await user.type(screen.getByLabelText('Symbol'), 'XAGUSD')
+    await user.selectOptions(screen.getByLabelText('Execution Mode'), 'live')
     await user.selectOptions(screen.getByLabelText('Timeframe'), 'M15')
     await user.clear(screen.getByLabelText('Lot Size'))
     await user.type(screen.getByLabelText('Lot Size'), '0.02')
@@ -298,6 +348,7 @@ describe('PythonQuantPage', () => {
       expect(screen.getByText('Silver M15 Mean Reversion')).toBeInTheDocument()
     })
     expect(requests.some((request) => request.url.endsWith('/python-quant/jobs') && request.method === 'POST' && request.body?.includes('Silver M15 Mean Reversion'))).toBe(true)
+    expect(requests.some((request) => request.url.endsWith('/python-quant/jobs') && request.method === 'POST' && request.body?.includes('"execution_mode":"live"'))).toBe(true)
 
     await user.click(screen.getByRole('button', { name: 'Edit Gold M5 Trend' }))
     const dialog = await screen.findByRole('dialog')
@@ -318,6 +369,7 @@ describe('PythonQuantPage', () => {
     await waitFor(() => {
       expect(screen.getByText('running')).toBeInTheDocument()
     })
+    expect(window.confirm).toHaveBeenCalled()
     expect(requests.some((request) => request.url.endsWith('/python-quant/jobs/job-1/start') && request.method === 'POST')).toBe(true)
 
     await user.click(screen.getByRole('button', { name: 'Stop Gold M5 Breakout' }))
@@ -350,6 +402,10 @@ describe('PythonQuantPage', () => {
 
       if (url.endsWith('/python-quant/overview')) {
         return { ok: true, json: async () => structuredClone(overview) } as Response
+      }
+
+      if (url.endsWith('/python-quant/jobs/job-1/events')) {
+        return { ok: true, json: async () => [] } as Response
       }
 
       if (url.endsWith('/python-quant/jobs') && method === 'POST') {

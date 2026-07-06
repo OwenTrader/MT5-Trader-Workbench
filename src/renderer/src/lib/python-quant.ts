@@ -5,9 +5,13 @@ export const PYTHON_QUANT_TIMEFRAMES = ['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D
 export type PythonQuantTimeframe = (typeof PYTHON_QUANT_TIMEFRAMES)[number]
 export type PythonQuantJobStatus = 'stopped' | 'running' | 'error'
 export type PythonQuantSignalAction = 'buy' | 'sell' | 'close' | 'hold'
+export type PythonQuantExecutionMode = 'paper' | 'live'
+export type PythonQuantJobEventType = 'signal_generated' | 'order_skipped_paper' | 'order_sent' | 'strategy_error'
 
 const PYTHON_QUANT_JOB_STATUSES: PythonQuantJobStatus[] = ['stopped', 'running', 'error']
 const PYTHON_QUANT_SIGNAL_ACTIONS: PythonQuantSignalAction[] = ['buy', 'sell', 'close', 'hold']
+const PYTHON_QUANT_EXECUTION_MODES: PythonQuantExecutionMode[] = ['paper', 'live']
+const PYTHON_QUANT_JOB_EVENT_TYPES: PythonQuantJobEventType[] = ['signal_generated', 'order_skipped_paper', 'order_sent', 'strategy_error']
 
 export interface PythonQuantAccount {
   id: string
@@ -34,6 +38,7 @@ export interface PythonQuantJob {
   symbol: string
   timeframe: string
   lot: number
+  execution_mode: PythonQuantExecutionMode
   enabled: boolean
   status: PythonQuantJobStatus
   last_signal: PythonQuantSignalAction | null
@@ -48,6 +53,15 @@ export interface PythonQuantOverview {
   jobs: PythonQuantJob[]
 }
 
+export interface PythonQuantJobEvent {
+  id: string
+  job_id: string
+  event_type: PythonQuantJobEventType
+  message: string
+  details: Record<string, unknown>
+  created_at: string
+}
+
 export interface PythonQuantJobPayload {
   name: string
   account_id: string
@@ -55,6 +69,7 @@ export interface PythonQuantJobPayload {
   symbol: string
   timeframe: PythonQuantTimeframe
   lot: number
+  execution_mode: PythonQuantExecutionMode
 }
 
 export interface PythonQuantJobUpdatePayload extends PythonQuantJobPayload {
@@ -109,6 +124,18 @@ function readStatus(value: unknown): PythonQuantJobStatus {
 function readSignalAction(value: unknown): PythonQuantSignalAction | null {
   return typeof value === 'string' && PYTHON_QUANT_SIGNAL_ACTIONS.includes(value as PythonQuantSignalAction)
     ? value as PythonQuantSignalAction
+    : null
+}
+
+function readExecutionMode(value: unknown): PythonQuantExecutionMode {
+  return typeof value === 'string' && PYTHON_QUANT_EXECUTION_MODES.includes(value as PythonQuantExecutionMode)
+    ? value as PythonQuantExecutionMode
+    : 'paper'
+}
+
+function readJobEventType(value: unknown): PythonQuantJobEventType | null {
+  return typeof value === 'string' && PYTHON_QUANT_JOB_EVENT_TYPES.includes(value as PythonQuantJobEventType)
+    ? value as PythonQuantJobEventType
     : null
 }
 
@@ -172,12 +199,36 @@ function parseJob(value: unknown): PythonQuantJob | null {
     symbol: readString(record.symbol),
     timeframe: readString(record.timeframe),
     lot: readNumber(record.lot),
+    execution_mode: readExecutionMode(record.execution_mode),
     enabled: readBoolean(record.enabled),
     status: readStatus(record.status),
     last_signal: readSignalAction(record.last_signal),
     last_error: readString(record.last_error) || null,
     last_bar_time: readString(record.last_bar_time) || null,
     updated_at: readString(record.updated_at),
+  }
+}
+
+function parseJobEvent(value: unknown): PythonQuantJobEvent | null {
+  const record = asRecord(value)
+  if (!record) {
+    return null
+  }
+
+  const id = readString(record.id)
+  const jobId = readString(record.job_id)
+  const eventType = readJobEventType(record.event_type)
+  if (!id || !jobId || !eventType) {
+    return null
+  }
+
+  return {
+    id,
+    job_id: jobId,
+    event_type: eventType,
+    message: readString(record.message),
+    details: asRecord(record.details) ?? {},
+    created_at: readString(record.created_at),
   }
 }
 
@@ -203,6 +254,12 @@ export function parsePythonQuantOverview(payload: unknown): PythonQuantOverview 
 export function parsePythonQuantBackfillResult(payload: unknown): number {
   const record = asRecord(payload)
   return readNumber(record?.inserted_rows)
+}
+
+export function parsePythonQuantJobEvents(payload: unknown): PythonQuantJobEvent[] {
+  return Array.isArray(payload)
+    ? payload.map(parseJobEvent).filter((item): item is PythonQuantJobEvent => item !== null)
+    : []
 }
 
 export async function getPythonQuantErrorMessage(response: Response, fallback: string): Promise<string> {

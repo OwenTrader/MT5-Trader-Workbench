@@ -203,6 +203,10 @@ export function QuantBacktestPage() {
           <p className="text-sm text-muted-foreground">
             Accounts come from Account List and are shared with Python Quant live assignments.
           </p>
+          <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+            Uses cached MT5 bars and simplified signal replay for strategy validation.
+            This view does not include spread, slippage, fees, or contract-specific PnL.
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -301,7 +305,7 @@ export function QuantBacktestPage() {
           {result ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Total Return</p>
+                <p className="text-sm text-muted-foreground">Simplified Replay Return</p>
                 <p className="text-2xl font-semibold">{formatPercent(result.summary.total_return_pct)}</p>
               </div>
               <div className="rounded-lg border p-4">

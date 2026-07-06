@@ -12,7 +12,12 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useI18n } from '@/i18n'
 import {
+  getPythonQuantErrorMessage,
+  parsePythonQuantJobEvents,
+  PYTHON_QUANT_API_BASE,
   PYTHON_QUANT_TIMEFRAMES,
+  type PythonQuantExecutionMode,
+  type PythonQuantJobEvent,
   type PythonQuantJob,
   type PythonQuantJobPayload,
   type PythonQuantTimeframe,
@@ -26,6 +31,7 @@ type QuantJobFormState = {
   symbol: string
   timeframe: PythonQuantTimeframe
   lot: string
+  executionMode: PythonQuantExecutionMode
 }
 
 const EMPTY_FORM: QuantJobFormState = {
@@ -35,6 +41,7 @@ const EMPTY_FORM: QuantJobFormState = {
   symbol: 'XAUUSD',
   timeframe: 'M5',
   lot: '0.01',
+  executionMode: 'paper',
 }
 
 function getAccountLabel(account: { id: string; name: string; login: string }) {
@@ -109,6 +116,7 @@ function buildPayload(form: QuantJobFormState): PythonQuantJobPayload | string {
     symbol,
     timeframe: form.timeframe,
     lot,
+    execution_mode: form.executionMode,
   }
 }
 
@@ -236,6 +244,21 @@ function QuantJobFormFields({ form, onChange, accountOptions, strategyOptions, i
           onChange={(event) => onChange((current) => ({ ...current, lot: event.target.value }))}
         />
       </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={`${idPrefix}-python-quant-execution-mode`}>Execution Mode</Label>
+        <Select value={form.executionMode} onValueChange={(value) => onChange((current) => ({ ...current, executionMode: value as PythonQuantExecutionMode }))}>
+          <SelectTrigger id={`${idPrefix}-python-quant-execution-mode`} aria-label={withLabelPrefix('Execution Mode')}>
+            <SelectValue placeholder="Select execution mode" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="paper">Paper</SelectItem>
+              <SelectItem value="live">Live</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   )
 }
@@ -251,6 +274,7 @@ export function PythonQuantPage() {
   const [backfillError, setBackfillError] = React.useState<string | null>(null)
   const [backfillMessage, setBackfillMessage] = React.useState<string | null>(null)
   const [editingJob, setEditingJob] = React.useState<PythonQuantJob | null>(null)
+  const [jobEvents, setJobEvents] = React.useState<Record<string, PythonQuantJobEvent[]>>({})
 
   useEffect(() => {
     void fetchOverview()
@@ -284,6 +308,40 @@ export function PythonQuantPage() {
     })
   }, [overview.accounts, overview.strategies])
 
+  useEffect(() => {
+    if (overview.jobs.length === 0) {
+      setJobEvents({})
+      return
+    }
+
+    let cancelled = false
+
+    const loadJobEvents = async () => {
+      const entries = await Promise.all(overview.jobs.map(async (job) => {
+        try {
+          const response = await fetch(`${PYTHON_QUANT_API_BASE}/jobs/${job.id}/events`)
+          if (!response.ok) {
+            throw new Error(await getPythonQuantErrorMessage(response, 'Failed to fetch Python Quant job events'))
+          }
+
+          return [job.id, parsePythonQuantJobEvents(await response.json())] as const
+        } catch {
+          return [job.id, []] as const
+        }
+      }))
+
+      if (!cancelled) {
+        setJobEvents(Object.fromEntries(entries))
+      }
+    }
+
+    void loadJobEvents()
+
+    return () => {
+      cancelled = true
+    }
+  }, [overview.jobs])
+
   const pageError = !formError && !jobsError && !backfillError ? error : null
   const hasAccounts = overview.accounts.length > 0
   const hasStrategies = overview.strategies.length > 0
@@ -315,6 +373,7 @@ export function PythonQuantPage() {
       accountId: current.accountId,
       strategyId: current.strategyId,
       timeframe: current.timeframe,
+      executionMode: current.executionMode,
     }))
   }
 
@@ -322,14 +381,15 @@ export function PythonQuantPage() {
     setJobsError(null)
     setFormError(null)
     setEditingJob(job)
-    setEditForm({
-      name: job.name,
-      accountId: job.account_id,
-      strategyId: job.strategy_id,
-      symbol: job.symbol,
-      timeframe: job.timeframe as PythonQuantTimeframe,
-      lot: String(job.lot),
-    })
+      setEditForm({
+        name: job.name,
+        accountId: job.account_id,
+        strategyId: job.strategy_id,
+        symbol: job.symbol,
+        timeframe: job.timeframe as PythonQuantTimeframe,
+        lot: String(job.lot),
+        executionMode: job.execution_mode,
+      })
   }
 
   const handleUpdateJob = async () => {
@@ -358,6 +418,14 @@ export function PythonQuantPage() {
 
   const handleStartJob = async (jobId: string) => {
     setJobsError(null)
+    const job = overview.jobs.find((item) => item.id === jobId)
+    if (job?.execution_mode === 'live') {
+      const confirmed = window.confirm(`Start live quant job "${job.name}" on ${job.symbol} with lot ${job.lot}?`)
+      if (!confirmed) {
+        return
+      }
+    }
+
     const success = await startJob(jobId)
     if (!success) {
       setJobsError(usePythonQuantStore.getState().error)
@@ -507,21 +575,22 @@ export function PythonQuantPage() {
 
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Job</TableHead>
-                <TableHead>Account</TableHead>
-                <TableHead>Strategy</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Signal</TableHead>
-                <TableHead>Last Error</TableHead>
-                <TableHead>Last Bar Time</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
+                <TableRow>
+                  <TableHead>Job</TableHead>
+                  <TableHead>Account</TableHead>
+                  <TableHead>Strategy</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Recent Activity</TableHead>
+                  <TableHead>Last Signal</TableHead>
+                  <TableHead>Last Error</TableHead>
+                  <TableHead>Last Bar Time</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
             </TableHeader>
             <TableBody>
               {overview.jobs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground">
                     No Python Quant jobs yet.
                   </TableCell>
                 </TableRow>
@@ -532,19 +601,28 @@ export function PythonQuantPage() {
                   login: '',
                 })
                 const strategyLabel = overview.strategies.find((strategy) => strategy.id === job.strategy_id)?.name ?? job.strategy_id
+                const latestEvent = jobEvents[job.id]?.[0] ?? null
 
                 return (
                   <TableRow key={job.id}>
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <span className="font-medium">{job.name}</span>
-                        <span className="text-xs text-muted-foreground">{job.symbol} · {job.timeframe} · {job.lot}</span>
+                        <span className="text-xs text-muted-foreground">{job.symbol} · {job.timeframe} · {job.lot} · {job.execution_mode}</span>
                       </div>
                     </TableCell>
                     <TableCell>{accountLabel}</TableCell>
                     <TableCell>{strategyLabel}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(job.status)}>{job.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {latestEvent ? (
+                        <div className="flex max-w-56 flex-col gap-1 whitespace-normal break-words">
+                          <span>{latestEvent.message}</span>
+                          <span className="text-xs text-muted-foreground">{formatDateTime(latestEvent.created_at)}</span>
+                        </div>
+                      ) : '-'}
                     </TableCell>
                     <TableCell>{job.last_signal ?? '-'}</TableCell>
                     <TableCell className="max-w-56 whitespace-normal break-words text-destructive">{job.last_error ?? '-'}</TableCell>

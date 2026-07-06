@@ -4,8 +4,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from python_service.app.quant import runtime as quant_runtime
+from python_service.app.quant import event_log as quant_event_log
 from python_service.app.quant.market_data import backfill_from_mt5
-from python_service.app.quant.models import Timeframe
+from python_service.app.quant.models import ExecutionMode, Timeframe
 
 
 router = APIRouter(prefix='/python-quant')
@@ -19,6 +20,7 @@ class QuantJobCreateRequest(BaseModel):
     symbol: str
     timeframe: Timeframe
     lot: float
+    execution_mode: ExecutionMode = 'paper'
 
     @field_validator('symbol')
     @classmethod
@@ -34,6 +36,7 @@ class QuantJobCreateRequest(BaseModel):
 
 
 class QuantJobUpdateRequest(QuantJobCreateRequest):
+    execution_mode: ExecutionMode | None = None
     enabled: bool | None = None
 
 
@@ -136,6 +139,16 @@ def stop_job(job_id: str):
         raise HTTPException(status_code=404, detail=str(error)) from error
 
     return updated_job.model_dump()
+
+
+@router.get('/jobs/{job_id}/events')
+def get_job_events(job_id: str):
+    try:
+        quant_runtime.get_job(job_id)
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+
+    return [event.model_dump() for event in quant_event_log.list_events(job_id)]
 
 
 @router.post('/data/backfill')

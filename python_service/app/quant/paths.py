@@ -26,6 +26,13 @@ def get_jobs_path() -> Path:
     return get_quant_root_dir() / 'jobs.json'
 
 
+def get_events_path() -> Path:
+    configured = os.environ.get('PYTHON_QUANT_EVENTS_PATH', '').strip()
+    if configured:
+        return Path(configured)
+    return get_quant_root_dir() / 'events.json'
+
+
 def get_market_data_path() -> Path:
     configured = os.environ.get('PYTHON_QUANT_MARKET_DATA_PATH', '').strip()
     if configured:

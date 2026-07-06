@@ -171,6 +171,8 @@ describe('QuantBacktestPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Quant Backtest', level: 1 })).toBeInTheDocument()
     expect(screen.getByText(/shared with Python Quant live assignments/i)).toBeInTheDocument()
+    expect(screen.getByText(/uses cached mt5 bars and simplified signal replay/i)).toBeInTheDocument()
+    expect(screen.getByText(/does not include spread, slippage, fees, or contract-specific pnl/i)).toBeInTheDocument()
 
     await waitFor(() => {
       expect(screen.getByLabelText('MT5 Account')).toHaveValue('acc-1')
@@ -183,6 +185,7 @@ describe('QuantBacktestPage', () => {
     await user.click(screen.getByRole('button', { name: 'Run Backtest' }))
 
     expect(await screen.findByText('4.52%')).toBeInTheDocument()
+    expect(screen.getByText('Simplified Replay Return')).toBeInTheDocument()
     expect(screen.getAllByText('2')).toHaveLength(2)
     expect(screen.getAllByText('10031.20')).toHaveLength(2)
     expect(screen.getByText('buy')).toBeInTheDocument()

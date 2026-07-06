@@ -34,8 +34,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
 
   const copyTradingNavItems = [
     { id: 'account-list', label: t('nav.accountList'), icon: Users },
-    { id: 'python-quant', label: t('nav.pythonQuant'), icon: LineChart },
-    { id: 'quant-backtest', label: t('nav.quantBacktest'), icon: LineChart },
+    { id: 'quant', label: 'Quant', icon: LineChart },
     { id: 'local-copy-trading', label: t('nav.localCopyTrading'), icon: Link2 },
   ]
 
@@ -47,6 +46,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
 
   const renderMenuItems = (items: typeof primaryNavItems) => items.map((item) => {
     const Icon = item.icon
+    const isQuantGroupRoute = item.id === 'quant' && ['quant', 'python-quant', 'quant-backtest'].includes(activeModule)
 
     return (
       <SidebarMenuItem key={item.id}>
@@ -56,7 +56,7 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
           className="gap-3 px-3 text-base group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!p-[14px] [&>svg]:size-5"
           tooltip={item.label}
           title={item.label}
-          isActive={activeModule === item.id}
+          isActive={isQuantGroupRoute || activeModule === item.id}
           onClick={() => onModuleChange(item.id)}
         >
           <Icon data-testid={`sidebar-icon-${item.id}`} />

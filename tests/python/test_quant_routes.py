@@ -3,7 +3,9 @@ from fastapi.testclient import TestClient
 
 from python_service.app.local_copy_trading.models import LocalCopyTradingState, SourceAccount
 from python_service.app.local_copy_trading.runtime import reset_state
+from python_service.app.quant import event_log as quant_event_log
 from python_service.app.quant import storage as quant_storage
+from python_service.app.quant.models import QuantJobEvent
 from python_service.app.quant.routes import router as quant_router
 
 
@@ -35,6 +37,7 @@ def seed_accounts() -> None:
 def prepare_client(tmp_path, monkeypatch) -> TestClient:
     seed_accounts()
     monkeypatch.setattr(quant_storage, 'DEFAULT_JOBS_PATH', tmp_path / 'jobs.json')
+    monkeypatch.setattr(quant_event_log, 'DEFAULT_EVENTS_PATH', tmp_path / 'events.json')
     return TestClient(build_test_app())
 
 
@@ -61,12 +64,15 @@ def test_create_job_route_persists_payload(tmp_path, monkeypatch):
         'symbol': 'xauusd',
         'timeframe': 'M5',
         'lot': 0.01,
+        'execution_mode': 'live',
     })
 
     assert response.status_code == 200
     assert response.json()['symbol'] == 'XAUUSD'
+    assert response.json()['execution_mode'] == 'live'
     loaded = quant_storage.load_jobs(tmp_path / 'jobs.json')
     assert loaded[0].id == response.json()['id']
+    assert loaded[0].execution_mode == 'live'
 
 
 def test_update_job_route_persists_mutations(tmp_path, monkeypatch):
@@ -87,11 +93,38 @@ def test_update_job_route_persists_mutations(tmp_path, monkeypatch):
         'symbol': 'XAUUSD',
         'timeframe': 'M15',
         'lot': 0.02,
+        'execution_mode': 'live',
     })
 
     assert response.status_code == 200
     assert response.json()['timeframe'] == 'M15'
     assert response.json()['lot'] == 0.02
+    assert response.json()['execution_mode'] == 'live'
+
+
+def test_update_job_route_preserves_execution_mode_when_field_is_omitted(tmp_path, monkeypatch):
+    client = prepare_client(tmp_path, monkeypatch)
+    created = client.post('/python-quant/jobs', json={
+        'name': 'Gold M5 Trend',
+        'account_id': 'acc-1',
+        'strategy_id': 'sma_cross',
+        'symbol': 'XAUUSD',
+        'timeframe': 'M5',
+        'lot': 0.01,
+        'execution_mode': 'live',
+    }).json()
+
+    response = client.put(f"/python-quant/jobs/{created['id']}", json={
+        'name': 'Gold M15 Trend',
+        'account_id': 'acc-1',
+        'strategy_id': 'sma_cross',
+        'symbol': 'XAUUSD',
+        'timeframe': 'M15',
+        'lot': 0.02,
+    })
+
+    assert response.status_code == 200
+    assert response.json()['execution_mode'] == 'live'
 
 
 def test_delete_job_route_removes_job(tmp_path, monkeypatch):
@@ -173,3 +206,21 @@ def test_backfill_route_returns_inserted_row_count(tmp_path, monkeypatch):
 
     assert response.status_code == 200
     assert response.json() == {'inserted_rows': 120}
+
+
+def test_job_events_route_returns_recent_job_events(tmp_path, monkeypatch):
+    client = prepare_client(tmp_path, monkeypatch)
+    created = client.post('/python-quant/jobs', json={
+        'name': 'Gold M5 Trend',
+        'account_id': 'acc-1',
+        'strategy_id': 'sma_cross',
+        'symbol': 'XAUUSD',
+        'timeframe': 'M5',
+        'lot': 0.01,
+    }).json()
+    quant_event_log.append_event(QuantJobEvent(job_id=created['id'], event_type='signal_generated', message='buy signal evaluated'))
+
+    response = client.get(f"/python-quant/jobs/{created['id']}/events")
+
+    assert response.status_code == 200
+    assert response.json()[0]['message'] == 'buy signal evaluated'

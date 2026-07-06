@@ -7,10 +7,11 @@ import backtrader as bt
 import pandas as pd
 
 from python_service.app.local_copy_trading.runtime import get_state as get_local_copy_trading_state
+from python_service.app.quant import event_log as quant_event_log
 from python_service.app.quant.market_data import DEFAULT_MARKET_DATA_PATH, ensure_recent_bars
 from python_service.app.quant.mt5_execution import execute_signal
 from python_service.app.quant import storage as quant_storage
-from python_service.app.quant.models import QuantJob, SignalAction, utc_now_iso
+from python_service.app.quant.models import QuantJob, QuantJobEvent, QuantJobEventType, SignalAction, utc_now_iso
 from python_service.app.quant.strategy_registry import get_strategy_module, list_strategies
 
 
@@ -101,6 +102,15 @@ def get_job(job_id: str) -> QuantJob:
         if job.id == job_id:
             return job
     raise LookupError(f'Unknown quant job: {job_id}')
+
+
+def record_job_event(job: QuantJob, event_type: QuantJobEventType, message: str, details: dict[str, object] | None = None) -> QuantJobEvent:
+    return quant_event_log.append_event(QuantJobEvent(
+        job_id=job.id,
+        event_type=event_type,
+        message=message,
+        details=details or {},
+    ))
 
 
 def validate_unique_account_symbol(
@@ -218,8 +228,29 @@ def run_job_once(job: QuantJob, *, db_path: Path | str = DEFAULT_MARKET_DATA_PAT
     )
     signal, bar_time = evaluate_strategy_signal(job.strategy_id, bars)
     action = resolve_signal_action(job, signal=signal, bar_time=bar_time)
-    if action != 'hold':
+    record_job_event(job, 'signal_generated', f'{signal} signal evaluated for {job.symbol}', {
+        'signal': signal,
+        'action': action,
+        'bar_time': bar_time,
+        'execution_mode': job.execution_mode,
+    })
+
+    if job.execution_mode == 'live' and action != 'hold':
         execute_signal(account=account, symbol=job.symbol, lot=job.lot, signal=action)
+        record_job_event(job, 'order_sent', f'{action} order sent for {job.symbol}', {
+            'signal': signal,
+            'action': action,
+            'bar_time': bar_time,
+            'lot': job.lot,
+        })
+    elif job.execution_mode == 'paper' and action != 'hold':
+        record_job_event(job, 'order_skipped_paper', f'{action} signal kept in paper mode for {job.symbol}', {
+            'signal': signal,
+            'action': action,
+            'bar_time': bar_time,
+            'lot': job.lot,
+        })
+
     return job.model_copy(update={
         'status': 'running',
         'last_signal': signal,
@@ -241,6 +272,9 @@ async def run_enabled_jobs_once(*, db_path: Path | str = DEFAULT_MARKET_DATA_PAT
         try:
             updated_jobs.append(run_job_once(job, db_path=db_path))
         except Exception as error:
+            record_job_event(job, 'strategy_error', str(error), {
+                'execution_mode': job.execution_mode,
+            })
             updated_jobs.append(job.model_copy(update={
                 'status': 'error',
                 'last_error': str(error),

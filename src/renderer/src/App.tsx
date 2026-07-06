@@ -2,6 +2,7 @@ import React from 'react'
 import { HashRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { WorkbenchShell } from '@/layouts/workbench-shell'
 import { DashboardPage } from '@/pages/dashboard-page'
+import { QuantPage } from '@/pages/QuantPage'
 import { PythonQuantPage } from '@/pages/PythonQuantPage'
 import { QuantBacktestPage } from '@/pages/QuantBacktestPage'
 import { OrderBroadcastPage } from './pages/OrderBroadcastPage'
@@ -23,6 +24,7 @@ import { ThemeProvider } from 'next-themes'
 
 const VALID_MODULES = new Set([
   'dashboard',
+  'quant',
   'python-quant',
   'quant-backtest',
   'order-broadcast',
@@ -52,6 +54,7 @@ function ModuleRoute() {
   return (
     <WorkbenchShell activeModule={activeModule} onModuleChange={(nextModule) => navigate(`/${nextModule}`)}>
       {activeModule === 'dashboard' && <DashboardPage />}
+      {activeModule === 'quant' && <QuantPage />}
       {activeModule === 'python-quant' && <PythonQuantPage />}
       {activeModule === 'quant-backtest' && <QuantBacktestPage />}
       {activeModule === 'order-broadcast' && <OrderBroadcastPage />}
