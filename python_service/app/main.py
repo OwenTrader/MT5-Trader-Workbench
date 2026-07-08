@@ -17,10 +17,12 @@ from python_service.app.routes.history import router as history_router
 from python_service.app.routes.awakening import router as awakening_router
 from python_service.app.routes.order_sync import router as order_sync_router
 from python_service.app.routes.risk_control import router as risk_control_router
+from python_service.app.routes.data_management import router as data_management_router
+from python_service.app.routes.trading_review import router as trading_review_router
 from python_service.app.local_copy_trading.routes import router as local_copy_trading_router
 from python_service.app.quant.backtest_routes import router as python_quant_backtest_router
 from python_service.app.quant.routes import router as python_quant_router
-from python_service.app.services.mt5_service import shutdown_mt5
+from python_service.app.services.mt5_service import shutdown_mt5, get_mt5_client
 from python_service.app.services.order_sync_service import order_sync_loop
 from python_service.app.services.streaming_service import streaming_loop
 from python_service.app.local_copy_trading.loop import local_copy_trading_loop
@@ -100,6 +102,13 @@ async def lifespan(app: FastAPI):
     parent_pid = get_parent_pid_from_env()
     if parent_pid is not None:
         background_tasks.append(asyncio.create_task(parent_process_watchdog(parent_pid)))
+        
+    # Attempt to pre-launch MT5 if a path is configured in settings
+    try:
+        get_mt5_client(allow_launch=True)
+    except Exception as e:
+        print(f"Failed to eagerly launch MT5 during startup: {e}")
+        
     try:
         yield
     finally:
@@ -131,6 +140,8 @@ app.include_router(awakening_router)
 app.include_router(order_sync_router)
 app.include_router(risk_control_router)
 app.include_router(stream_router)
+app.include_router(data_management_router)
+app.include_router(trading_review_router)
 app.include_router(local_copy_trading_router)
 app.include_router(python_quant_router)
 app.include_router(python_quant_backtest_router)

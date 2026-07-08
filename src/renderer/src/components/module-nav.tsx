@@ -1,4 +1,4 @@
-import { Activity, LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake, Users } from 'lucide-react'
+import { Activity, LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake, Users, Database, PlayCircle } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import {
   Sidebar,
@@ -34,6 +34,8 @@ export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChan
 
   const copyTradingNavItems = [
     { id: 'account-list', label: t('nav.accountList'), icon: Users },
+    { id: 'data-management', label: t('nav.dataManagement'), icon: Database },
+    { id: 'trading-review', label: t('nav.tradingReview'), icon: PlayCircle },
     { id: 'quant', label: 'Quant', icon: LineChart },
     { id: 'local-copy-trading', label: t('nav.localCopyTrading'), icon: Link2 },
   ]

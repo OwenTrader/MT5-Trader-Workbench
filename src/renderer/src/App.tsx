@@ -19,6 +19,8 @@ import { OverlayDisplayPage } from './pages/overlay-display-page'
 import { LocalCopyTradingPage } from './pages/LocalCopyTradingPage'
 import { EventLogPage } from './pages/EventLogPage'
 import { AccountListPage } from './pages/AccountListPage'
+import { DataManagementPage } from './pages/DataManagementPage'
+import { TradingReviewPage } from './pages/TradingReviewPage'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
 
@@ -40,6 +42,8 @@ const VALID_MODULES = new Set([
   'tech-analysis',
   'sponsor',
   'settings',
+  'data-management',
+  'trading-review',
 ])
 
 function ModuleRoute() {
@@ -62,6 +66,8 @@ function ModuleRoute() {
       {activeModule === 'account-list' && <AccountListPage />}
       {activeModule === 'local-copy-trading' && <LocalCopyTradingPage />}
       {activeModule === 'event-log' && <EventLogPage />}
+      {activeModule === 'data-management' && <DataManagementPage />}
+      {activeModule === 'trading-review' && <TradingReviewPage />}
       {activeModule === 'order-center' && <OrderCenterPage />}
       {activeModule === 'price-alerts' && <PriceAlertsPage />}
       {activeModule === 'volatility' && <VolatilityPage />}
