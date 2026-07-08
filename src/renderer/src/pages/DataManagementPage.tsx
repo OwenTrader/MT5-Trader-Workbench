@@ -45,10 +45,10 @@ export function DataManagementPage() {
     if (confirm(t('dataManagement.confirmDelete', { symbol: s, timeframe: tf }))) {
       try {
         await deleteData(s, tf)
-        toast.success('Deleted successfully')
+        toast.success(t('dataManagement.deletedSuccess'))
         fetchSummary()
       } catch (err: any) {
-        toast.error('Failed to delete')
+        toast.error(t('dataManagement.deleteFailed'))
       }
     }
   }
@@ -71,7 +71,7 @@ export function DataManagementPage() {
               <RefreshCw className="h-5 w-5" />
               {t('dataManagement.syncTitle')}
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Fetch history data from MT5</p>
+            <p className="text-sm text-muted-foreground mt-1">{t('dataManagement.fetchHistoryHint')}</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -125,10 +125,10 @@ export function DataManagementPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead>TF</TableHead>
-                    <TableHead>Count</TableHead>
-                    <TableHead>Range</TableHead>
+                    <TableHead>{t('dataManagement.tableSymbol')}</TableHead>
+                    <TableHead>{t('dataManagement.tableTF')}</TableHead>
+                    <TableHead>{t('dataManagement.tableCount')}</TableHead>
+                    <TableHead>{t('dataManagement.tableRange')}</TableHead>
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>

@@ -50,11 +50,11 @@ export function TradingReviewPage() {
   const handleCreateSession = async () => {
     try {
       const id = await store.createSession(symbol, timeframe, startDate, endDate, initialBalance)
-      toast.success('Session created')
+      toast.success(t('tradingReview.sessionCreated'))
       store.fetchSessions()
       store.loadSessionState(id)
     } catch (err: any) {
-      toast.error(err.message || 'Failed to create session')
+      toast.error(err.message || t('tradingReview.sessionCreateFailed'))
     }
   }
 
@@ -62,10 +62,10 @@ export function TradingReviewPage() {
     if (confirm(t('tradingReview.confirmDelete'))) {
       try {
         await store.deleteSession(id)
-        toast.success('Session deleted')
+        toast.success(t('tradingReview.sessionDeleted'))
         store.fetchSessions()
       } catch (err: any) {
-        toast.error('Failed to delete')
+        toast.error(t('tradingReview.deleteFailed'))
       }
     }
   }
@@ -89,7 +89,7 @@ export function TradingReviewPage() {
     const currentTime = store.klines[store.klines.length - 1].time
     try {
       await store.openTrade(type, lots, currentPrice, currentTime)
-      toast.success(`Opened ${type} trade`)
+      toast.success(t('tradingReview.openTradeSuccess', { type }))
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -101,7 +101,7 @@ export function TradingReviewPage() {
     const currentTime = store.klines[store.klines.length - 1].time
     try {
       await store.closeTrade(tradeId, currentPrice, currentTime)
-      toast.success('Trade closed')
+      toast.success(t('tradingReview.closeTradeSuccess'))
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -129,7 +129,7 @@ export function TradingReviewPage() {
             <p className="text-muted-foreground">{store.currentSession.symbol} - {store.currentSession.timeframe}</p>
           </div>
           <Button variant="outline" onClick={() => useTradingReviewStore.setState({ currentSession: null, klines: [], trades: [] })}>
-            Back to Sessions
+            {t('tradingReview.backToSessions')}
           </Button>
         </div>
 
@@ -156,7 +156,7 @@ export function TradingReviewPage() {
                   className={store.isPlaying ? "bg-amber-600 hover:bg-amber-700 text-white" : ""}
                   onClick={store.togglePlayback}
                 >
-                  {store.isPlaying ? <><PauseCircle className="mr-2 h-4 w-4" /> Pause</> : <><PlayCircle className="mr-2 h-4 w-4" /> Auto Play</>}
+                  {store.isPlaying ? <><PauseCircle className="mr-2 h-4 w-4" /> {t('tradingReview.pause')}</> : <><PlayCircle className="mr-2 h-4 w-4" /> {t('tradingReview.autoPlay')}</>}
                 </Button>
                 
                 <div className="flex items-center gap-2 flex-1">
@@ -166,16 +166,16 @@ export function TradingReviewPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1x Speed</SelectItem>
-                      <SelectItem value="5">5x Speed</SelectItem>
-                      <SelectItem value="10">10x Speed</SelectItem>
-                      <SelectItem value="20">20x Speed</SelectItem>
+                      <SelectItem value="1">{t('tradingReview.speed1x')}</SelectItem>
+                      <SelectItem value="5">{t('tradingReview.speed5x')}</SelectItem>
+                      <SelectItem value="10">{t('tradingReview.speed10x')}</SelectItem>
+                      <SelectItem value="20">{t('tradingReview.speed20x')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <Button onClick={handleNextCandle} disabled={store.isPlaying}>
-                  <ArrowRight className="mr-2 h-4 w-4" /> Step Forward
+                  <ArrowRight className="mr-2 h-4 w-4" /> {t('tradingReview.stepForward')}
                 </Button>
               </div>
             </CardContent>
@@ -184,7 +184,7 @@ export function TradingReviewPage() {
 
         <div className="grid grid-cols-3 gap-6 flex-1 min-h-0">
           <Card className="col-span-2 flex flex-col min-h-0">
-            <CardHeader className="shrink-0"><CardTitle>Chart View</CardTitle></CardHeader>
+            <CardHeader className="shrink-0"><CardTitle>{t('tradingReview.chartView')}</CardTitle></CardHeader>
             <CardContent className="flex-1 overflow-hidden p-0 rounded-b-lg border-t">
               <TradingChart klines={store.klines} trades={closedTrades} />
             </CardContent>
@@ -214,7 +214,7 @@ export function TradingReviewPage() {
               <CardContent className="flex-1 overflow-auto">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold mb-2">Active Trades</h3>
+                    <h3 className="font-semibold mb-2">{t('tradingReview.activeTrades')}</h3>
                     {activeTrades.length === 0 ? <p className="text-sm text-muted-foreground">{t('tradingReview.noActiveTrades')}</p> : (
                       <div className="space-y-2">
                         {activeTrades.map(t => (
@@ -229,7 +229,7 @@ export function TradingReviewPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Closed Trades ({closedTrades.length})</h3>
+                    <h3 className="font-semibold mb-2">{t('tradingReview.closedTrades')} ({closedTrades.length})</h3>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {closedTrades.map(t => (
                         <div key={t.id} className="flex justify-between items-center p-2 border rounded text-sm bg-muted/50">
@@ -301,11 +301,11 @@ export function TradingReviewPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead>Timeframe</TableHead>
-                    <TableHead>Start Time</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('tradingReview.symbol')}</TableHead>
+                    <TableHead>{t('tradingReview.timeframe')}</TableHead>
+                    <TableHead>{t('tradingReview.tableStartTime')}</TableHead>
+                    <TableHead>{t('tradingReview.tableBalance')}</TableHead>
+                    <TableHead className="text-right">{t('tradingReview.tableActions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
