@@ -24,3 +24,32 @@ storage/python_quant/strategies/
 test-results/
 .build-version.json
 .cache/
+
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / Frontend Testing
+.eslintcache
+coverage/
+
+# Playwright
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Python Extras
+*.pyo
+*.pyd
+.Python
+env/
+.tox/
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
+
+# Environment Variables
+.env.*
+!.env.example
