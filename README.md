@@ -22,7 +22,10 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - Order Broadcast, Order Sync, and Local Copy Trading screens with explicit safety boundaries before enabling high-risk workflows
 - Python Quant module for live MT5 account-strategy assignments, runtime status, manual market-data backfill, and shared strategy discovery
 - Quant Backtest module for historical backtesting with the same MT5 account pool, shared strategy registry, and local cached market data
+- Data Management module to sync and store historical MT5 K-line data locally
+- Trading Review module for manual historical paper-trading with playback controls
 - Technical analysis entry that generates a report and opens it in the default browser
+- Full i18n support with seamless switching between English and Chinese
 - Settings management for MT5 path, theme, interface language, auto-connect, refresh interval, overlay options, sound options, DingTalk, WeCom, and Feishu bot credentials
 - Configuration migration guidance and sensitive-information handling notes for local settings, API keys, and webhook tokens
 - System tray integration with quick actions for showing the main window, toggling the overlay, and quitting the app
@@ -43,6 +46,8 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 - `Order Sync`: MT5 to TopStep synchronization configuration and sync records
 - `Account List`: shared MT5 account registry used by independent-account workflows
 - `Local Copy Trading`: source/follower account relationships and recent copy events
+- `Data Management`: local MT5 history data synchronization and storage
+- `Trading Review`: historical manual paper-trading environment with playback
 - `Python Quant`: live Python strategy assignments with runtime controls, manual backfill, local SQLite market-data cache, and a user strategy directory
 - `Quant Backtest`: historical backtests that reuse the same account pool, strategy list, and cached market data
 - `Event Log`: currently available recent event context from sync-related modules
@@ -135,6 +140,7 @@ The bundled local backend currently exposes routes for:
 - overlay quote streaming over WebSocket
 - order sync configuration and runtime records
 - local copy trading configuration and recent events
+- local database management for historical K-line data and trading review sessions
 - python quant overview, live job lifecycle control, and local market-data backfill
 - quant backtest strategy listing and backtest execution
 
