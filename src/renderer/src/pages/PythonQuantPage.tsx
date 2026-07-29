@@ -159,6 +159,7 @@ type QuantJobFormFieldsProps = {
 }
 
 function QuantJobFormFields({ form, onChange, accountOptions, strategyOptions, idPrefix, labelPrefix }: QuantJobFormFieldsProps) {
+  const { t } = useI18n()
   const selectedStrategy = strategyOptions.find((strategy) => strategy.id === form.strategyId)
   const timeframeOptions = normalizeTimeframes(selectedStrategy?.timeframes ?? [])
   const withLabelPrefix = (label: string) => (labelPrefix ? `${labelPrefix} ${label}` : label)
@@ -166,20 +167,20 @@ function QuantJobFormFields({ form, onChange, accountOptions, strategyOptions, i
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <div className="flex flex-col gap-2 md:col-span-2">
-        <Label htmlFor={`${idPrefix}-python-quant-job-name`}>Job Name</Label>
+        <Label htmlFor={`${idPrefix}-python-quant-job-name`}>{t('pythonQuant.jobName')}</Label>
         <Input
           id={`${idPrefix}-python-quant-job-name`}
-          aria-label={withLabelPrefix('Job Name')}
+          aria-label={withLabelPrefix(t('pythonQuant.jobName'))}
           value={form.name}
           onChange={(event) => onChange((current) => ({ ...current, name: event.target.value }))}
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${idPrefix}-python-quant-account`}>MT5 Account</Label>
+        <Label htmlFor={`${idPrefix}-python-quant-account`}>{t('pythonQuant.mt5Account')}</Label>
         <Select value={form.accountId} onValueChange={(value) => onChange((current) => ({ ...current, accountId: value }))}>
-          <SelectTrigger id={`${idPrefix}-python-quant-account`} aria-label={withLabelPrefix('MT5 Account')}>
-            <SelectValue placeholder="Select account" />
+          <SelectTrigger id={`${idPrefix}-python-quant-account`} aria-label={withLabelPrefix(t('pythonQuant.mt5Account'))}>
+            <SelectValue placeholder={t('pythonQuant.selectAccount')} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -192,10 +193,10 @@ function QuantJobFormFields({ form, onChange, accountOptions, strategyOptions, i
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${idPrefix}-python-quant-strategy`}>Strategy</Label>
+        <Label htmlFor={`${idPrefix}-python-quant-strategy`}>{t('pythonQuant.strategy')}</Label>
         <Select value={form.strategyId} onValueChange={(value) => onChange((current) => ({ ...current, strategyId: value }))}>
-          <SelectTrigger id={`${idPrefix}-python-quant-strategy`} aria-label={withLabelPrefix('Strategy')}>
-            <SelectValue placeholder="Select strategy" />
+          <SelectTrigger id={`${idPrefix}-python-quant-strategy`} aria-label={withLabelPrefix(t('pythonQuant.strategy'))}>
+            <SelectValue placeholder={t('pythonQuant.selectStrategy')} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -208,20 +209,20 @@ function QuantJobFormFields({ form, onChange, accountOptions, strategyOptions, i
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${idPrefix}-python-quant-symbol`}>Symbol</Label>
+        <Label htmlFor={`${idPrefix}-python-quant-symbol`}>{t('pythonQuant.symbol')}</Label>
         <Input
           id={`${idPrefix}-python-quant-symbol`}
-          aria-label={withLabelPrefix('Symbol')}
+          aria-label={withLabelPrefix(t('pythonQuant.symbol'))}
           value={form.symbol}
           onChange={(event) => onChange((current) => ({ ...current, symbol: event.target.value.toUpperCase() }))}
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${idPrefix}-python-quant-timeframe`}>Timeframe</Label>
+        <Label htmlFor={`${idPrefix}-python-quant-timeframe`}>{t('pythonQuant.timeframe')}</Label>
         <Select value={form.timeframe} onValueChange={(value) => onChange((current) => ({ ...current, timeframe: value as PythonQuantTimeframe }))}>
-          <SelectTrigger id={`${idPrefix}-python-quant-timeframe`} aria-label={withLabelPrefix('Timeframe')}>
-            <SelectValue placeholder="Select timeframe" />
+          <SelectTrigger id={`${idPrefix}-python-quant-timeframe`} aria-label={withLabelPrefix(t('pythonQuant.timeframe'))}>
+            <SelectValue placeholder={t('pythonQuant.selectTimeframe')} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -234,10 +235,10 @@ function QuantJobFormFields({ form, onChange, accountOptions, strategyOptions, i
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${idPrefix}-python-quant-lot`}>Lot Size</Label>
+        <Label htmlFor={`${idPrefix}-python-quant-lot`}>{t('pythonQuant.lotSize')}</Label>
         <Input
           id={`${idPrefix}-python-quant-lot`}
-          aria-label={withLabelPrefix('Lot Size')}
+          aria-label={withLabelPrefix(t('pythonQuant.lotSize'))}
           type="number"
           min="0"
           step="0.01"
@@ -247,15 +248,15 @@ function QuantJobFormFields({ form, onChange, accountOptions, strategyOptions, i
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${idPrefix}-python-quant-execution-mode`}>Execution Mode</Label>
+        <Label htmlFor={`${idPrefix}-python-quant-execution-mode`}>{t('pythonQuant.executionMode')}</Label>
         <Select value={form.executionMode} onValueChange={(value) => onChange((current) => ({ ...current, executionMode: value as PythonQuantExecutionMode }))}>
-          <SelectTrigger id={`${idPrefix}-python-quant-execution-mode`} aria-label={withLabelPrefix('Execution Mode')}>
-            <SelectValue placeholder="Select execution mode" />
+          <SelectTrigger id={`${idPrefix}-python-quant-execution-mode`} aria-label={withLabelPrefix(t('pythonQuant.executionMode'))}>
+            <SelectValue placeholder={t('pythonQuant.selectExecutionMode')} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="paper">Paper</SelectItem>
-              <SelectItem value="live">Live</SelectItem>
+              <SelectItem value="paper">{t('pythonQuant.paper')}</SelectItem>
+              <SelectItem value="live">{t('pythonQuant.live')}</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -483,25 +484,25 @@ export function PythonQuantPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t('pythonQuant.title')}
-        description="Assign live strategies to accounts from Account List, monitor runtime status, and backfill market data manually."
+        description={t('pythonQuant.description')}
         icon={LineChart}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Create Job</CardTitle>
-          <p className="text-sm text-muted-foreground">Create or update live MT5 strategy assignments for accounts maintained in Account List.</p>
+          <CardTitle>{t('pythonQuant.createJobHeader')}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t('pythonQuant.createJobSub')}</p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
-            Python Quant uses MT5 accounts already configured in Account List.
+            {t('pythonQuant.quantUsesAccountList')}
           </p>
 
           {!hasAccounts || !hasStrategies ? (
             <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              {!hasAccounts ? 'Add at least one MT5 account in Account List before creating a live quant job.' : null}
+              {!hasAccounts ? t('pythonQuant.noAccountsHint') : null}
               {!hasAccounts && !hasStrategies ? ' ' : null}
-              {!hasStrategies ? 'No Python strategies are currently available.' : null}
+              {!hasStrategies ? t('pythonQuant.noStrategiesHint') : null}
             </div>
           ) : null}
 
@@ -521,7 +522,7 @@ export function PythonQuantPage() {
 
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_160px_auto] md:items-end">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="python-quant-bars">Bars</Label>
+              <Label htmlFor="python-quant-bars">{t('pythonQuant.bars')}</Label>
               <Input
                 id="python-quant-bars"
                 type="number"
@@ -534,7 +535,7 @@ export function PythonQuantPage() {
 
             <Button variant="outline" onClick={handleBackfill} disabled={isLoading || !hasAccounts || !hasStrategies}>
               <Database data-icon="inline-start" />
-              Backfill Data
+              {t('pythonQuant.backfillData')}
             </Button>
 
             <Button onClick={handleCreateJob} disabled={isLoading || !hasAccounts || !hasStrategies}>
@@ -564,8 +565,8 @@ export function PythonQuantPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Jobs</CardTitle>
-          <p className="text-sm text-muted-foreground">Start, stop, edit, or remove live strategy jobs without leaving the page.</p>
+          <CardTitle>{t('pythonQuant.jobsTitle')}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t('pythonQuant.jobsSub')}</p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {jobsError ? (
@@ -577,22 +578,22 @@ export function PythonQuantPage() {
           <Table>
             <TableHeader>
                 <TableRow>
-                  <TableHead>Job</TableHead>
-                  <TableHead>Account</TableHead>
-                  <TableHead>Strategy</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Recent Activity</TableHead>
-                  <TableHead>Last Signal</TableHead>
-                  <TableHead>Last Error</TableHead>
-                  <TableHead>Last Bar Time</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('pythonQuant.colJob')}</TableHead>
+                  <TableHead>{t('pythonQuant.colAccount')}</TableHead>
+                  <TableHead>{t('pythonQuant.colStrategy')}</TableHead>
+                  <TableHead>{t('pythonQuant.colStatus')}</TableHead>
+                  <TableHead>{t('pythonQuant.colActivity')}</TableHead>
+                  <TableHead>{t('pythonQuant.colLastSignal')}</TableHead>
+                  <TableHead>{t('pythonQuant.colLastError')}</TableHead>
+                  <TableHead>{t('pythonQuant.colLastBarTime')}</TableHead>
+                  <TableHead className="text-right">{t('pythonQuant.colActions')}</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
               {overview.jobs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center text-muted-foreground">
-                    No Python Quant jobs yet.
+                    {t('pythonQuant.emptyJobs')}
                   </TableCell>
                 </TableRow>
               ) : overview.jobs.map((job) => {
@@ -632,7 +633,7 @@ export function PythonQuantPage() {
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" size="sm" onClick={() => handleOpenEdit(job)} aria-label={`Edit ${job.name}`}>
                           <Pencil data-icon="inline-start" />
-                          Edit
+                          {t('priceAlerts.edit')}
                         </Button>
                         <Button size="sm" onClick={() => handleStartJob(job.id)} disabled={isLoading || job.status === 'running'} aria-label={`Start ${job.name}`}>
                           <Play data-icon="inline-start" />
@@ -644,7 +645,7 @@ export function PythonQuantPage() {
                         </Button>
                         <Button variant="destructive" size="sm" onClick={() => handleDeleteJob(job.id)} aria-label={`Delete ${job.name}`}>
                           <Trash2 data-icon="inline-start" />
-                          Delete
+                          {t('priceAlerts.delete')}
                         </Button>
                       </div>
                     </TableCell>
@@ -663,8 +664,8 @@ export function PythonQuantPage() {
       }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Python Quant Job</DialogTitle>
-            <DialogDescription>Update the job settings and save the changes back to the backend.</DialogDescription>
+            <DialogTitle>{t('pythonQuant.editJobTitle')}</DialogTitle>
+            <DialogDescription>{t('pythonQuant.editJobSub')}</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-4">
@@ -685,8 +686,8 @@ export function PythonQuantPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={closeEditDialog}>Cancel</Button>
-            <Button onClick={handleUpdateJob} disabled={isLoading}>Save Changes</Button>
+            <Button variant="outline" onClick={closeEditDialog}>{t('pythonQuant.cancel')}</Button>
+            <Button onClick={handleUpdateJob} disabled={isLoading}>{t('pythonQuant.saveChanges')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

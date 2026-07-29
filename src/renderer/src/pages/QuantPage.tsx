@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/page-header'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useI18n } from '@/i18n'
 import { PythonQuantPage } from '@/pages/PythonQuantPage'
 import { QuantBacktestPage } from '@/pages/QuantBacktestPage'
 
@@ -12,21 +13,22 @@ type QuantPageProps = {
 }
 
 export function QuantPage({ defaultTab = 'live-jobs' }: QuantPageProps) {
+  const { t } = useI18n()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentTab = searchParams.get('tab') === 'backtest' ? 'backtest' : defaultTab
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Quant"
-        description="Manage live jobs and run backtests from one workflow entry."
+        title={t('quant.title')}
+        description={t('quant.description')}
         icon={LineChart}
       />
 
       <Tabs value={currentTab} onValueChange={(value) => setSearchParams({ tab: value })} className="flex flex-col gap-6">
         <TabsList>
-          <TabsTrigger value="live-jobs">Live Jobs</TabsTrigger>
-          <TabsTrigger value="backtest">Backtest</TabsTrigger>
+          <TabsTrigger value="live-jobs">{t('quant.tabLiveJobs')}</TabsTrigger>
+          <TabsTrigger value="backtest">{t('quant.tabBacktest')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="live-jobs">

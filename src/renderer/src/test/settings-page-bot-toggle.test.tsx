@@ -89,17 +89,17 @@ describe('SettingsPage bot toggles', () => {
     fireEvent.click(botTab)
     fireEvent.keyDown(botTab, { key: 'Enter' })
 
-    const tokenInput = await screen.findByLabelText('Access Token')
-    const secretInput = await screen.findByLabelText('Secret (可选)')
-    const enableSwitch = screen.getByLabelText('钉钉 (DingTalk) Bot')
+    const tokenInput = await screen.findByLabelText(/Access Token/)
+    const secretInput = await screen.findByLabelText(/Secret/)
+    const enableSwitch = screen.getByLabelText(/DingTalk/)
 
     fireEvent.change(tokenInput, { target: { value: 'ding-token' } })
     fireEvent.change(secretInput, { target: { value: 'ding-secret' } })
     fireEvent.click(enableSwitch)
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Access Token')).toHaveValue('ding-token')
-      expect(screen.getByLabelText('Secret (可选)')).toHaveValue('ding-secret')
+      expect(screen.getByLabelText(/Access Token/)).toHaveValue('ding-token')
+      expect(screen.getByLabelText(/Secret/)).toHaveValue('ding-secret')
     })
   })
 
@@ -143,8 +143,8 @@ describe('SettingsPage bot toggles', () => {
     expect(testButtons[1]).toBeDisabled()
     expect(testButtons[2]).toBeDisabled()
 
-    fireEvent.change(screen.getByLabelText('Access Token'), { target: { value: 'ding-token' } })
-    const webhookInputs = screen.getAllByLabelText('Webhook URL')
+    fireEvent.change(screen.getByLabelText(/Access Token/), { target: { value: 'ding-token' } })
+    const webhookInputs = screen.getAllByLabelText(/Webhook/)
     fireEvent.change(webhookInputs[0], { target: { value: 'https://example.test/wecom' } })
 
     await waitFor(() => {
