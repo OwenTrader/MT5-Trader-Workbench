@@ -6,7 +6,9 @@ import {
   getPythonQuantErrorMessage,
   parsePythonQuantBackfillResult,
   parsePythonQuantOverview,
+  parseStrategyCode,
   PYTHON_QUANT_API_BASE,
+  type CustomStrategyPayload,
   type PythonQuantBackfillPayload,
   type PythonQuantJobPayload,
   type PythonQuantJobUpdatePayload,
@@ -23,7 +25,12 @@ interface PythonQuantStore {
   startJob: (jobId: string) => Promise<boolean>
   stopJob: (jobId: string) => Promise<boolean>
   deleteJob: (jobId: string) => Promise<boolean>
+  evaluateJobNow: (jobId: string) => Promise<boolean>
+  batchStartJobs: (jobIds: string[]) => Promise<void>
+  batchStopJobs: (jobIds: string[]) => Promise<void>
   backfillData: (payload: PythonQuantBackfillPayload) => Promise<number | null>
+  fetchStrategyCode: (strategyId: string) => Promise<string | null>
+  createCustomStrategy: (payload: CustomStrategyPayload) => Promise<boolean>
 }
 
 async function loadOverview(): Promise<PythonQuantOverview> {
@@ -35,7 +42,7 @@ async function loadOverview(): Promise<PythonQuantOverview> {
   return parsePythonQuantOverview(await response.json())
 }
 
-export const usePythonQuantStore = create<PythonQuantStore>((set) => {
+export const usePythonQuantStore = create<PythonQuantStore>((set, get) => {
   const fail = (error: unknown) => {
     set({
       error: error instanceof Error ? error.message : String(error),
@@ -109,6 +116,22 @@ export const usePythonQuantStore = create<PythonQuantStore>((set) => {
       }),
       'Failed to delete Python Quant job',
     ),
+    evaluateJobNow: async (jobId) => runMutation(
+      () => apiFetch(`${PYTHON_QUANT_API_BASE}/jobs/${jobId}/evaluate`, {
+        method: 'POST',
+      }),
+      'Failed to evaluate Python Quant job',
+    ),
+    batchStartJobs: async (jobIds) => {
+      for (const id of jobIds) {
+        await get().startJob(id)
+      }
+    },
+    batchStopJobs: async (jobIds) => {
+      for (const id of jobIds) {
+        await get().stopJob(id)
+      }
+    },
     backfillData: async (payload) => {
       set({ isLoading: true, error: null })
       try {
@@ -126,8 +149,26 @@ export const usePythonQuantStore = create<PythonQuantStore>((set) => {
         return insertedRows
       } catch (error) {
         fail(error)
+      }
+      return null
+    },
+    fetchStrategyCode: async (strategyId) => {
+      try {
+        const response = await apiFetch(`${PYTHON_QUANT_API_BASE}/strategies/${strategyId}/code`)
+        if (!response.ok) return null
+        const parsed = parseStrategyCode(await response.json())
+        return parsed?.code || null
+      } catch {
         return null
       }
     },
+    createCustomStrategy: async (payload) => runMutation(
+      () => apiFetch(`${PYTHON_QUANT_API_BASE}/strategies/custom`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+      'Failed to create custom Python strategy',
+    ),
   }
 })

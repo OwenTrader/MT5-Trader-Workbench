@@ -148,10 +148,10 @@ describe('Dashboard Page', () => {
   it('renders English navigation when language is en', async () => {
     render(<TestRoot />)
 
-    expect(await screen.findByTitle('Price Alerts')).toBeInTheDocument()
-    expect(screen.getByTitle('Local Copy Trading')).toBeInTheDocument()
+    expect(await screen.findByTitle('Alerts Hub')).toBeInTheDocument()
+    expect(screen.getByTitle('Automation & Copy')).toBeInTheDocument()
+    expect(screen.getByTitle('Quant & Review')).toBeInTheDocument()
     expect(screen.getByTitle('Event Log')).toBeInTheDocument()
-    expect(screen.getByTitle('Order Center')).toBeInTheDocument()
     expect(screen.getByTitle('Support Me')).toBeInTheDocument()
     expect(screen.getByTitle('Settings')).toBeInTheDocument()
   })
@@ -224,7 +224,9 @@ describe('Dashboard Page', () => {
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
     expect(await within(nav).findByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
-    expect(await within(nav).findByRole('button', { name: 'Technical Analysis' })).toBeInTheDocument()
+    expect(await within(nav).findByRole('button', { name: 'Alerts Hub' })).toBeInTheDocument()
+    expect(await within(nav).findByRole('button', { name: 'Automation & Copy' })).toBeInTheDocument()
+    expect(await within(nav).findByRole('button', { name: 'Quant & Review' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Event Log' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Support Me' })).toBeInTheDocument()
     expect(await within(nav).findByRole('button', { name: 'Settings' })).toBeInTheDocument()
@@ -272,13 +274,13 @@ describe('Dashboard Page', () => {
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
-    await user.click(await within(nav).findByRole('button', { name: 'Technical Analysis' }))
+    await user.click(await within(nav).findByRole('button', { name: 'Alerts Hub' }))
 
-    expect(window.location.hash).toContain('/tech-analysis')
-    expect(await screen.findByText('Generate AI Analysis')).toBeInTheDocument()
+    expect(window.location.hash).toContain('/alerts')
+    expect(await screen.findByRole('heading', { name: 'Alerts Hub' })).toBeInTheDocument()
   })
 
-  it('navigates to and renders the local copy trading page from the sidebar', async () => {
+  it('navigates to and renders the automation page from the sidebar', async () => {
     const user = userEvent.setup()
     render(<TestRoot />)
 
@@ -288,10 +290,10 @@ describe('Dashboard Page', () => {
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
-    await user.click(await within(nav).findByRole('button', { name: 'Local Copy Trading' }))
+    await user.click(await within(nav).findByRole('button', { name: 'Automation & Copy' }))
 
-    expect(window.location.hash).toContain('/local-copy-trading')
-    expect(await screen.findByRole('heading', { name: 'Local Copy Trading' })).toBeInTheDocument()
+    expect(window.location.hash).toContain('/automation')
+    expect(await screen.findByRole('heading', { name: 'Automation & Copy' })).toBeInTheDocument()
   })
 
   it('navigates to and renders available recent events from the sidebar', async () => {

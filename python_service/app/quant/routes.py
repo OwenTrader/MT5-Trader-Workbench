@@ -1,4 +1,6 @@
+import ast
 from pathlib import Path
+import re
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, field_validator
@@ -7,6 +9,8 @@ from python_service.app.quant import runtime as quant_runtime
 from python_service.app.quant import event_log as quant_event_log
 from python_service.app.quant.market_data import backfill_from_mt5
 from python_service.app.quant.models import ExecutionMode, Timeframe
+from python_service.app.quant.paths import get_user_strategies_dir
+from python_service.app.quant.strategy_registry import list_strategies, get_strategy_module
 
 
 router = APIRouter(prefix='/python-quant')
@@ -164,6 +168,72 @@ def backfill_data(payload: QuantBackfillRequest):
         raise HTTPException(status_code=400, detail=str(error)) from error
 
     return {'inserted_rows': inserted_rows}
+
+
+class CustomStrategyCreateRequest(BaseModel):
+    id: str
+    name: str
+    description: str
+    timeframes: list[str]
+    code: str
+
+
+@router.get('/strategies/{strategy_id}/code')
+def get_strategy_code(strategy_id: str):
+    for descriptor in list_strategies():
+        if descriptor.id == strategy_id:
+            try:
+                module = get_strategy_module(strategy_id)
+                file_path = getattr(module, '__file__', None)
+                if file_path and Path(file_path).exists():
+                    code = Path(file_path).read_text(encoding='utf-8')
+                else:
+                    code = '# Source code unavailable'
+                return {
+                    'strategy_id': descriptor.id,
+                    'name': descriptor.name,
+                    'code': code,
+                }
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e)) from e
+
+    raise HTTPException(status_code=404, detail=f'Strategy not found: {strategy_id}')
+
+
+@router.post('/strategies/custom')
+def create_custom_strategy(payload: CustomStrategyCreateRequest):
+    clean_id = payload.id.strip().lower()
+    if not re.match(r'^[a-z0-9_]+$', clean_id):
+        raise HTTPException(status_code=400, detail='Strategy ID must only contain lowercase letters, numbers, and underscores.')
+
+    try:
+        ast.parse(payload.code)
+    except SyntaxError as e:
+        raise HTTPException(status_code=400, detail=f'Invalid Python syntax: {e}') from e
+
+    strategies_dir = get_user_strategies_dir()
+    strategies_dir.mkdir(parents=True, exist_ok=True)
+    target_file = strategies_dir / f'{clean_id}.py'
+    target_file.write_text(payload.code, encoding='utf-8')
+
+    return {'success': True, 'strategy_id': clean_id}
+
+
+@router.post('/jobs/{job_id}/evaluate')
+def evaluate_job_now(job_id: str):
+    try:
+        job = quant_runtime.get_job(job_id)
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+
+    _require_account(job.account_id)
+    _require_strategy(job.strategy_id)
+
+    try:
+        updated_job = quant_runtime.run_job_once(job)
+        return updated_job.model_dump()
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
 
 
 def request_backfill(account_id: str, symbol: str, timeframe: Timeframe, bars: int) -> int:

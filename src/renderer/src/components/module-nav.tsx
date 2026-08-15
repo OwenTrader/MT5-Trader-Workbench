@@ -1,4 +1,12 @@
-import { Activity, LayoutDashboard, Settings, Bell, TrendingUp, ShieldCheck, LineChart, Megaphone, ShoppingBag, BookOpen, Link2, HeartHandshake, Users, Database, PlayCircle } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Bell,
+  Link2,
+  LineChart,
+  Settings,
+  Activity,
+  HeartHandshake,
+} from 'lucide-react'
 import { useI18n } from '@/i18n'
 import {
   Sidebar,
@@ -20,78 +28,71 @@ interface ModuleNavProps {
 export const ModuleNav: React.FC<ModuleNavProps> = ({ activeModule, onModuleChange }) => {
   const { t } = useI18n()
 
-  const primaryNavItems = [
-    { id: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
-    { id: 'price-alerts', label: t('nav.priceAlerts'), icon: Bell },
-    { id: 'volatility', label: t('nav.volatility'), icon: TrendingUp },
-    { id: 'indicator-alerts', label: t('nav.indicatorAlerts'), icon: LineChart },
-    { id: 'risk-control', label: t('nav.riskControl'), icon: ShieldCheck },
-    { id: 'order-center', label: t('nav.orderCenter'), icon: ShoppingBag },
-    { id: 'tech-analysis', label: t('nav.technicalAnalysis'), icon: BookOpen },
-    { id: 'order-broadcast', label: t('nav.orderBroadcast'), icon: Megaphone },
-    { id: 'order-sync', label: t('nav.orderSync'), icon: Link2 },
+  const workspaceNavItems = [
+    { id: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard, testId: 'sidebar-icon-dashboard' },
+    { id: 'alerts', label: t('nav.alertsHub'), icon: Bell, testId: 'sidebar-icon-alerts' },
+    { id: 'automation', label: t('nav.automationHub'), icon: Link2, testId: 'sidebar-icon-automation' },
+    { id: 'quant', label: t('nav.quantLab'), icon: LineChart, testId: 'sidebar-icon-quant' },
   ]
 
-  const copyTradingNavItems = [
-    { id: 'account-list', label: t('nav.accountList'), icon: Users },
-    { id: 'data-management', label: t('nav.dataManagement'), icon: Database },
-    { id: 'trading-review', label: t('nav.tradingReview'), icon: PlayCircle },
-    { id: 'quant', label: 'Quant', icon: LineChart },
-    { id: 'local-copy-trading', label: t('nav.localCopyTrading'), icon: Link2 },
+  const systemNavItems = [
+    { id: 'event-log', label: t('nav.eventLog'), icon: Activity, testId: 'sidebar-icon-event-log' },
+    { id: 'sponsor', label: t('nav.sponsor'), icon: HeartHandshake, testId: 'sidebar-icon-sponsor' },
+    { id: 'settings', label: t('nav.settings'), icon: Settings, testId: 'sidebar-icon-settings' },
   ]
 
-  const secondaryNavItems = [
-    { id: 'event-log', label: t('nav.eventLog'), icon: Activity },
-    { id: 'sponsor', label: t('nav.sponsor'), icon: HeartHandshake },
-    { id: 'settings', label: t('nav.settings'), icon: Settings },
-  ]
+  const isItemActive = (itemId: string) => {
+    if (itemId === activeModule) return true
+    if (itemId === 'alerts' && ['alerts', 'price-alerts', 'volatility', 'indicator-alerts', 'order-broadcast'].includes(activeModule)) return true
+    if (itemId === 'automation' && ['automation', 'local-copy-trading', 'account-list', 'order-sync', 'risk-control', 'order-center'].includes(activeModule)) return true
+    if (itemId === 'quant' && ['quant', 'quant-lab', 'python-quant', 'quant-backtest', 'data-management', 'trading-review', 'tech-analysis'].includes(activeModule)) return true
+    return false
+  }
 
-  const renderMenuItems = (items: typeof primaryNavItems) => items.map((item) => {
-    const Icon = item.icon
-    const isQuantGroupRoute = item.id === 'quant' && ['quant', 'python-quant', 'quant-backtest'].includes(activeModule)
+  const renderMenuItems = (items: typeof workspaceNavItems) =>
+    items.map((item) => {
+      const Icon = item.icon
+      const active = isItemActive(item.id)
 
-    return (
-      <SidebarMenuItem key={item.id}>
-        <SidebarMenuButton
-          type="button"
-          size="lg"
-          className="gap-3 px-3 text-base group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!p-[14px] [&>svg]:size-5"
-          tooltip={item.label}
-          title={item.label}
-          isActive={isQuantGroupRoute || activeModule === item.id}
-          onClick={() => onModuleChange(item.id)}
-        >
-          <Icon data-testid={`sidebar-icon-${item.id}`} />
-          <span>{item.label}</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    )
-  })
+      return (
+        <SidebarMenuItem key={item.id}>
+          <SidebarMenuButton
+            type="button"
+            size="lg"
+            className="gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!gap-0 group-data-[collapsible=icon]:!p-2.5 [&>svg]:size-5 hover:bg-accent/80 hover:text-accent-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold"
+            tooltip={item.label}
+            title={item.label}
+            isActive={active}
+            onClick={() => onModuleChange(item.id)}
+          >
+            <Icon data-testid={item.testId} />
+            <span className="truncate">{item.label}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )
+    })
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
+    <Sidebar collapsible="icon" className="border-r bg-sidebar select-none">
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3 py-1 font-semibold">
+            {t('nav.group.workspaces')}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {renderMenuItems(primaryNavItems)}
+            <SidebarMenu className="gap-1 px-2">
+              {renderMenuItems(workspaceNavItems)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>{t('nav.group.localCopyTrading')}</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3 py-1 font-semibold">
+            {t('nav.group.systemSupport')}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {renderMenuItems(copyTradingNavItems)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderMenuItems(secondaryNavItems)}
+            <SidebarMenu className="gap-1 px-2">
+              {renderMenuItems(systemNavItems)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

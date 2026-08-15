@@ -83,6 +83,24 @@ export interface PythonQuantBackfillPayload {
   bars: number
 }
 
+export interface CustomStrategyPayload {
+  id: string
+  name: string
+  description: string
+  timeframes: string[]
+  code: string
+}
+
+export function parseStrategyCode(payload: unknown): { strategy_id: string; name: string; code: string } | null {
+  const record = asRecord(payload)
+  if (!record || typeof record.code !== 'string') return null
+  return {
+    strategy_id: readString(record.strategy_id),
+    name: readString(record.name),
+    code: readString(record.code),
+  }
+}
+
 export function createEmptyPythonQuantOverview(): PythonQuantOverview {
   return {
     accounts: [],

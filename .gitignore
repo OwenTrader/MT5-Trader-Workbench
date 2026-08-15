@@ -1,55 +1,72 @@
-node_modules
+# Dependencies
+node_modules/
+venv/
+.venv/
+env/
+ENV/
+
+# Build & Bundling Outputs
+dist/
 /dist/
-dist-electron
+dist-electron/
 out/
-*.log
-.env
-.idea
-.vscode
-.pytest_cache/
-__pycache__
-*.pyc
-venv
-.venv
-packaging/python-runtime
-packaging/python-service
+/build/
+releases/
+.cache/
+.build-version.json
+packaging/python-runtime/
+packaging/python-service/
 python_service/build/
 python_service/dist/
-releases
-/docs/
-storage/settings.local.json
-storage/python_quant/
-storage/python_quant/strategies/
-/build/
-test-results/
-.build-version.json
-.cache/
 
-# System Files
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Node / Frontend Testing
-.eslintcache
-coverage/
-
-# Playwright
-playwright-report/
-blob-report/
-playwright/.cache/
-
-# Python Extras
+# Logs & Cache
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*$py.class
 *.pyo
 *.pyd
 .Python
-env/
 .tox/
 .coverage
 htmlcov/
 *.egg-info/
 .eggs/
+.eslintcache
+.vite/
+
+# Playwright & Testing
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+coverage/
+
+# IDE & Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # Environment Variables
+.env
 .env.*
 !.env.example
+
+# Local & User Runtime Storage
+storage/settings.local.json
+storage/*.local.json
+storage/python_quant/
+storage/python_quant/strategies/
+storage/custom_strategies/

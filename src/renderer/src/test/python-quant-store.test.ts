@@ -159,4 +159,66 @@ describe('Python Quant Store', () => {
     expect(insertedRows).toBe(250)
     expect(overviewRequests).toBe(1)
   })
+
+  it('fetches strategy code from backend', async () => {
+    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
+      expect(String(input)).toBe('http://127.0.0.1:8765/python-quant/strategies/rsi_reversal/code')
+      return {
+        ok: true,
+        json: async () => ({
+          strategy_id: 'rsi_reversal',
+          name: 'RSI Reversal',
+          code: 'import backtrader as bt\nclass Strategy: pass',
+        }),
+      } as Response
+    })
+
+    const { result } = renderHook(() => usePythonQuantStore())
+
+    let code: string | null = null
+    await act(async () => {
+      code = await result.current.fetchStrategyCode('rsi_reversal')
+    })
+
+    expect(code).toContain('import backtrader')
+  })
+
+  it('creates custom strategy and evaluates job', async () => {
+    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/strategies/custom')) {
+        expect(init?.method).toBe('POST')
+        return { ok: true, json: async () => ({ success: true }) } as Response
+      }
+      if (url.includes('/jobs/job-1/evaluate')) {
+        expect(init?.method).toBe('POST')
+        return { ok: true, json: async () => ({ id: 'job-1', last_signal: 'buy' }) } as Response
+      }
+      return {
+        ok: true,
+        json: async () => ({ accounts: [], strategies: [], jobs: [] }),
+      } as Response
+    })
+
+    const { result } = renderHook(() => usePythonQuantStore())
+
+    let success = false
+    await act(async () => {
+      success = await result.current.createCustomStrategy({
+        id: 'my_strat',
+        name: 'My Strat',
+        description: 'Test',
+        timeframes: ['M5'],
+        code: 'import backtrader',
+      })
+    })
+    expect(success).toBe(true)
+
+    let evalSuccess = false
+    await act(async () => {
+      evalSuccess = await result.current.evaluateJobNow('job-1')
+    })
+    expect(evalSuccess).toBe(true)
+  })
 })
+

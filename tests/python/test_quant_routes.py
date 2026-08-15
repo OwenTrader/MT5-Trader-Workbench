@@ -224,3 +224,70 @@ def test_job_events_route_returns_recent_job_events(tmp_path, monkeypatch):
 
     assert response.status_code == 200
     assert response.json()[0]['message'] == 'buy signal evaluated'
+
+
+def test_get_strategy_code_route_returns_python_source(tmp_path, monkeypatch):
+    client = prepare_client(tmp_path, monkeypatch)
+
+    response = client.get('/python-quant/strategies/rsi_reversal/code')
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data['strategy_id'] == 'rsi_reversal'
+    assert 'STRATEGY_ID' in data['code']
+    assert 'class Strategy' in data['code']
+
+
+def test_create_custom_strategy_route(tmp_path, monkeypatch):
+    client = prepare_client(tmp_path, monkeypatch)
+    strategies_dir = tmp_path / 'strategies'
+    strategies_dir.mkdir(exist_ok=True)
+    monkeypatch.setenv('PYTHON_QUANT_STRATEGIES_DIR', str(strategies_dir))
+
+    valid_code = """
+import backtrader as bt
+
+STRATEGY_ID = 'my_custom_sma'
+STRATEGY_NAME = 'My Custom SMA'
+STRATEGY_DESCRIPTION = 'Custom user strategy.'
+SUPPORTED_TIMEFRAMES = ['M5', 'M15']
+
+class Strategy(bt.Strategy):
+    def next(self):
+        self.signal_output = 'hold'
+"""
+    response = client.post('/python-quant/strategies/custom', json={
+        'id': 'my_custom_sma',
+        'name': 'My Custom SMA',
+        'description': 'Custom user strategy.',
+        'timeframes': ['M5', 'M15'],
+        'code': valid_code.strip()
+    })
+
+    assert response.status_code == 200
+    assert response.json()['success'] is True
+    assert (strategies_dir / 'my_custom_sma.py').exists()
+
+
+def test_evaluate_job_route_runs_single_step(tmp_path, monkeypatch):
+    client = prepare_client(tmp_path, monkeypatch)
+    created = client.post('/python-quant/jobs', json={
+        'name': 'Gold M5 Trend',
+        'account_id': 'acc-1',
+        'strategy_id': 'sma_cross',
+        'symbol': 'XAUUSD',
+        'timeframe': 'M5',
+        'lot': 0.01,
+    }).json()
+
+    monkeypatch.setattr('python_service.app.quant.runtime.run_job_once', lambda job, **kwargs: job.model_copy(update={
+        'status': 'running',
+        'last_signal': 'buy',
+        'last_bar_time': '2024-01-01T00:00:00Z'
+    }))
+
+    response = client.post(f"/python-quant/jobs/{created['id']}/evaluate")
+
+    assert response.status_code == 200
+    assert response.json()['last_signal'] == 'buy'
+

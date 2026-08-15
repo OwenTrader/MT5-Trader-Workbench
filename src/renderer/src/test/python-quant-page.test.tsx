@@ -7,6 +7,9 @@ vi.mock('sonner', () => ({
   Toaster: () => null,
   toast: {
     error: vi.fn(),
+    success: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
   },
 }))
 
@@ -85,6 +88,7 @@ vi.mock('@/components/ui/select', () => {
   }
 })
 
+import { MemoryRouter } from 'react-router-dom'
 import { App } from '@/App'
 import { I18nProvider } from '@/i18n'
 import { PythonQuantPage } from '@/pages/PythonQuantPage'
@@ -114,7 +118,9 @@ type TestOverview = {
 function renderPage() {
   return render(
     <I18nProvider language="en">
-      <PythonQuantPage />
+      <MemoryRouter>
+        <PythonQuantPage />
+      </MemoryRouter>
     </I18nProvider>
   )
 }
@@ -216,18 +222,18 @@ describe('PythonQuantPage', () => {
 
     renderApp()
 
-    const group = (await screen.findByText('Independent Accounts')).closest('[data-sidebar="group"]')
+    const group = (await screen.findByText('Workspaces')).closest('[data-sidebar="group"]')
     expect(group).not.toBeNull()
     if (!group) {
-      throw new Error('Independent Accounts group not found')
+      throw new Error('Workspaces group not found')
     }
 
-    expect(within(group).getByRole('button', { name: 'Quant' })).toBeInTheDocument()
+    expect(within(group).getByRole('button', { name: 'Quant & Review' })).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Quant', level: 1 })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Live Jobs' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Backtest' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Python Quant' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Quant Backtest' })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('tab', { name: 'Backtest' }))
+    await user.click(screen.getByRole('tab', { name: 'Quant Backtest' }))
     expect(window.location.hash).toContain('tab=backtest')
     expect(await screen.findByRole('heading', { name: 'Quant Backtest', level: 1 })).toBeInTheDocument()
   })

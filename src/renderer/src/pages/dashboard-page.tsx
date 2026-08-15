@@ -13,10 +13,22 @@ import { PageHeader } from '@/components/page-header'
 import { cn } from '@/lib/utils'
 import { Bell, DollarSign, Eye, LayoutDashboard, Radio, ShieldCheck, TrendingDown, TrendingUp, Volume2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { PositionTable } from '@/components/dashboard/position-table'
+import { WatchlistCard } from '@/components/dashboard/watchlist-card'
 
 export function DashboardPage() {
   const { t } = useI18n()
-  const { status, account, startPolling, stopPolling, fetchStatus } = useDashboardStore()
+  const {
+    status,
+    account,
+    positions,
+    selectedSymbol,
+    setSelectedSymbol,
+    startPolling,
+    stopPolling,
+    fetchStatus,
+    fetchPositions,
+  } = useDashboardStore()
   const {
     priceAlerts,
     volatilityAlerts,
@@ -37,17 +49,16 @@ export function DashboardPage() {
     void fetchVolatilityAlerts({ silent: true })
     void fetchIndicatorAlerts({ silent: true })
     void fetchOrderSyncConfig({ silent: true })
+    void fetchPositions()
     
     let removeVisibilityListener: (() => void) | undefined
     let removeSettingsListener: (() => void) | undefined
 
     if ((window as any).electron?.ipcRenderer) {
-      // Listen for settings change
       removeSettingsListener = (window as any).electron.ipcRenderer.on('settings:changed', () => {
         void fetchSettings(t('dashboard.errors.backendUnavailable'))
       })
 
-      // Check initial visibility
       const checkVisibility = async () => {
         try {
           const visible = await (window as any).electron.ipcRenderer.invoke('overlay:is-visible')
@@ -58,7 +69,6 @@ export function DashboardPage() {
       }
       checkVisibility()
 
-      // Listen for visibility changes
       removeVisibilityListener = (window as any).electron.ipcRenderer.on('overlay:visibility-changed', (visible: boolean) => {
         setIsOverlayVisible(visible)
       })
@@ -68,7 +78,7 @@ export function DashboardPage() {
       removeSettingsListener?.()
       removeVisibilityListener?.()
     }
-  }, [fetchSettings, fetchOverview, fetchAlerts, fetchVolatilityAlerts, fetchIndicatorAlerts, fetchOrderSyncConfig, t])
+  }, [fetchSettings, fetchOverview, fetchAlerts, fetchVolatilityAlerts, fetchIndicatorAlerts, fetchOrderSyncConfig, fetchPositions, t])
 
   useEffect(() => {
     if (error) {
@@ -89,7 +99,6 @@ export function DashboardPage() {
       if (result.status === 'error') {
         toast.error(result.message)
       } else {
-        // Wait a bit for terminal to fully initialize before fetching status
         setTimeout(fetchStatus, 3000)
       }
     } catch (error) {
@@ -100,7 +109,9 @@ export function DashboardPage() {
 
   const toggleOverlay = async () => {
     const nextVisible = !isOverlayVisible
-    await (window as any).electron.ipcRenderer.invoke('overlay:toggle-visible', nextVisible)
+    if ((window as any).electron?.ipcRenderer) {
+      await (window as any).electron.ipcRenderer.invoke('overlay:toggle-visible', nextVisible)
+    }
     setIsOverlayVisible(nextVisible)
   }
 
@@ -127,8 +138,23 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('dashboard.title')} icon={LayoutDashboard} />
+      <div className="flex items-center justify-between">
+        <PageHeader title={t('dashboard.title')} icon={LayoutDashboard} />
+        <div className="flex gap-2">
+          <Button onClick={handleReconnect} variant="outline" size="sm">
+            {t('dashboard.actions.reconnect')}
+          </Button>
+          <Button 
+            onClick={toggleOverlay} 
+            variant={isOverlayVisible ? "destructive" : "default"}
+            size="sm"
+          >
+            {isOverlayVisible ? t('dashboard.actions.hideOverlay') : t('dashboard.actions.showOverlay')}
+          </Button>
+        </div>
+      </div>
       
+      {/* 1. Metric Top Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="h-full">
           <CardContent className="flex h-full flex-col justify-center pt-6">
@@ -160,15 +186,29 @@ export function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
       </div>
 
+      {/* 2. Order Performance Overview */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <ProfitCard title={t('orderCenter.today')} value={overview.today} icon={<DollarSign />} />
         <ProfitCard title={t('orderCenter.week')} value={overview.week} icon={<TrendingUp />} />
         <ProfitCard title={t('orderCenter.month')} value={overview.month} icon={<TrendingDown />} />
       </div>
 
+      {/* 3. Middle Cockpit: Watchlist & Quick Overlay Pin */}
+      <div className="grid grid-cols-1 gap-6">
+        <WatchlistCard
+          selectedSymbol={selectedSymbol}
+          onSelectSymbol={setSelectedSymbol}
+          isOverlayVisible={isOverlayVisible}
+          onToggleOverlay={toggleOverlay}
+        />
+      </div>
+
+      {/* 4. Real-time Open Positions Table */}
+      <PositionTable positions={positions} onRefresh={fetchPositions} />
+
+      {/* 5. Running Status Center */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">{t('dashboard.statusCenter.title')}</CardTitle>
@@ -226,16 +266,6 @@ export function DashboardPage() {
           />
         </CardContent>
       </Card>
-
-      <div className="flex gap-4">
-        <Button onClick={handleReconnect} variant="outline">{t('dashboard.actions.reconnect')}</Button>
-        <Button 
-          onClick={toggleOverlay} 
-          variant={isOverlayVisible ? "destructive" : "default"}
-        >
-          {isOverlayVisible ? t('dashboard.actions.hideOverlay') : t('dashboard.actions.showOverlay')}
-        </Button>
-      </div>
     </div>
   )
 }

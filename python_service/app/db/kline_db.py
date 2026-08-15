@@ -58,10 +58,21 @@ def init_db():
             close_price REAL,
             lots REAL NOT NULL,
             profit REAL,
+            sl REAL,
+            tp REAL,
             FOREIGN KEY(session_id) REFERENCES review_sessions(id)
         )
     ''')
     
+    try:
+        cursor.execute("ALTER TABLE review_trades ADD COLUMN sl REAL")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE review_trades ADD COLUMN tp REAL")
+    except Exception:
+        pass
+
     # Indices for performance
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_klines_symbol_tf_time ON klines(symbol, timeframe, time)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_review_trades_session ON review_trades(session_id)')
@@ -213,14 +224,22 @@ def delete_review_session(session_id: int):
     conn.commit()
     conn.close()
 
-def open_trade(session_id: int, trade_type: str, open_time: int, open_price: float, lots: float) -> int:
+def open_trade(
+    session_id: int,
+    trade_type: str,
+    open_time: int,
+    open_price: float,
+    lots: float,
+    sl: Optional[float] = None,
+    tp: Optional[float] = None
+) -> int:
     conn = get_connection()
     cursor = conn.cursor()
     
     cursor.execute('''
-        INSERT INTO review_trades (session_id, type, open_time, open_price, lots)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (session_id, trade_type, open_time, open_price, lots))
+        INSERT INTO review_trades (session_id, type, open_time, open_price, lots, sl, tp)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, trade_type, open_time, open_price, lots, sl, tp))
     
     trade_id = cursor.lastrowid
     conn.commit()

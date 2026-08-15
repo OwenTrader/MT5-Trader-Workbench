@@ -14,7 +14,6 @@ import {
   getBackendStartupDiagnostics,
 } from './python-service'
 import { toggleOverlay, getOverlayWindow } from './overlay-window'
-import { AWAKENING_DOCS } from './awakening-data'
 import { createShutdownController } from './shutdown-coordinator'
 
 const isSingleInstance = app.requestSingleInstanceLock()
@@ -324,28 +323,6 @@ if (!isSingleInstance) {
     ipcMain.handle('app:open-user-guide', async (_event, locale?: string) => {
       const targetLocale: MainLocale = locale === 'en' ? 'en' : 'zh-CN'
       await openUserGuide(targetLocale)
-    })
-
-    ipcMain.handle('awakening:list-files', async () => {
-      try {
-        return AWAKENING_DOCS.map(doc => doc.fileName)
-      } catch (err) {
-        console.error('Failed to load awakening data:', err)
-        return []
-      }
-    })
-
-    ipcMain.handle('awakening:read-file', async (_event, fileName: string) => {
-      try {
-        const doc = AWAKENING_DOCS.find(d => d.fileName === fileName)
-        if (doc) {
-          return doc.content
-        }
-        throw new Error(`File not found in internal storage: ${fileName}`)
-      } catch (err) {
-        console.error('Failed to read awakening file:', err)
-        throw err
-      }
     })
 
     try {

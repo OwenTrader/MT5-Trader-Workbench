@@ -1,0 +1,4 @@
+{
+  "_comment": "复制本文件为 wecom_config.json 后填入你的 webhook key（位于 send?key= 后面那段）",
+  "webhook_key": "请在此处填写你的企业微信群机器人 Webhook Key"
+}

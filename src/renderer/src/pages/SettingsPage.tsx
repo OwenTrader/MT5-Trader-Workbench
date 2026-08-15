@@ -970,6 +970,18 @@ export const SettingsPage: React.FC = () => {
               <p className="text-sm font-medium">{t('settings.about.sensitiveInfoTitle')}</p>
               <p className="mt-2 text-sm text-muted-foreground">{t('settings.about.sensitiveInfoDescription')}</p>
             </div>
+
+            <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-primary">打赏与定制功能支持</p>
+                  <p className="text-xs text-muted-foreground mt-1">如果您觉得本交易工作台对您的交易有所帮助，欢迎打赏支持作者持续迭代！</p>
+                </div>
+                <Button variant="default" size="sm" onClick={() => window.location.hash = '#/sponsor'}>
+                  前往赞助页面
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
