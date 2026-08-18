@@ -79,6 +79,33 @@
       "output": "dist",
       "buildResources": "resources"
     },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/app-icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "perMachine": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "MT5 Trader Workbench",
+      "installerIcon": "resources/app-icon.ico",
+      "uninstallerIcon": "resources/app-icon.ico",
+      "installerHeaderIcon": "resources/app-icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "differentialPackage": false,
+      "include": "resources/installer.nsh"
+    },
     "files": [
       "out/**/*"
     ],

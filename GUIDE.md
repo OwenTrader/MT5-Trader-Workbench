@@ -242,6 +242,7 @@ workbench-gemini/
 │   ├── app-icon.ico                                    # Primary Windows application executable icon
 │   ├── app-icon.png                                    # High-resolution application icon in PNG format
 │   ├── icon.png                                        # Window header and branding icon asset
+│   ├── installer.nsh                                   # Custom NSIS macro script for process watchdog and cleanup hooks
 │   └── tray-icon.png                                   # System tray icon image asset
 ├── scripts/                                        # Build automation, icon generation, and verification scripts
 │   ├── check-python-deps.ps1                           # PowerShell script to verify required Python environment packages
@@ -254,6 +255,7 @@ workbench-gemini/
 │   │   ├── i18n.ts                                         # Main process localization strings (Window title, tray menu)
 │   │   ├── index.ts                                        # Electron main entrypoint, window lifecycle, and IPC handlers
 │   │   ├── overlay-window.ts                               # Frameless desktop quote overlay window manager
+│   │   ├── packaging-config.test.ts                        # Unit tests for electron-builder NSIS packaging configuration
 │   │   ├── packaging-paths.test.ts                         # Unit tests for packaging asset path resolution
 │   │   ├── packaging-paths.ts                              # Packaged vs development resource path helper
 │   │   ├── python-service.test.ts                          # Unit tests for Python backend process supervisor

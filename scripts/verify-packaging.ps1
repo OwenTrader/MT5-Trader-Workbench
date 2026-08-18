@@ -91,6 +91,27 @@ if ($helpEntry.from -ne 'resources/help') {
   throw 'Electron extraResources path is not aligned with help source path'
 }
 
+$nsis = $packageJson.build.nsis
+if (-not $nsis) {
+  throw 'Missing build.nsis configuration in package.json'
+}
+
+if ($nsis.oneClick -ne $false) {
+  throw 'NSIS configuration must set oneClick to false for interactive setup wizard'
+}
+
+if ($nsis.allowToChangeInstallationDirectory -ne $true) {
+  throw 'NSIS configuration must set allowToChangeInstallationDirectory to true'
+}
+
+if ($nsis.installerIcon -and -not (Test-Path $nsis.installerIcon -PathType Leaf)) {
+  throw "Missing installer icon file: $($nsis.installerIcon)"
+}
+
+if ($nsis.include -and -not (Test-Path $nsis.include -PathType Leaf)) {
+  throw "Missing custom NSIS script: $($nsis.include)"
+}
+
 [pscustomobject]@{
   BackendDirectory = (Resolve-Path $backendDir).Path
   ExecutablePath = (Resolve-Path $exe).Path
