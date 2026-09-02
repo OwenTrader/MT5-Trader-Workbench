@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TradingReviewPage } from '@/pages/TradingReviewPage'
@@ -45,7 +45,7 @@ describe('TradingReviewPage Component', () => {
   })
 
   it('renders session list and creation form with cached dataset helper', async () => {
-    ;(apiFetch as any).mockImplementation(async (url: string) => {
+    (apiFetch as any).mockImplementation(async (url: string) => {
       if (url.includes('/data-management/summary')) {
         return {
           ok: true,

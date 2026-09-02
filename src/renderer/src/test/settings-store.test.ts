@@ -60,7 +60,7 @@ describe('Settings Store', () => {
   })
 
   it('includes backend diagnostics when fetching settings fails', async () => {
-    ;(fetch as any).mockRejectedValue(new Error('fetch failed'))
+    (fetch as any).mockRejectedValue(new Error('fetch failed'))
     mockGetBackendStartupDiagnostics.mockResolvedValue({
       healthUrl: 'http://127.0.0.1:8765/health',
       executablePath: 'C:/app/resources/mt5_service/mt5_service.exe',
@@ -85,7 +85,7 @@ describe('Settings Store', () => {
   })
 
   it('saves settings to backend', async () => {
-    ;(fetch as any).mockResolvedValue({ ok: true })
+    (fetch as any).mockResolvedValue({ ok: true })
 
     const { result } = renderHook(() => useSettingsStore())
     await result.current.updateSettings({ mt5_path: 'D:/MT5', language: 'en' })

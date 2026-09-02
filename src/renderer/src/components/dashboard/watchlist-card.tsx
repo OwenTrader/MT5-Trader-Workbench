@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye, Pin, TrendingUp, Sparkles } from 'lucide-react'
+import { Eye, TrendingUp, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
 
 interface WatchlistCardProps {
   selectedSymbol: string

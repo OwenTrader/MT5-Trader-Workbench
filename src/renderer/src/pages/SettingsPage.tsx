@@ -33,7 +33,7 @@ import { Settings } from 'lucide-react'
 
 export const SettingsPage: React.FC = () => {
   const { t } = useI18n()
-  const { theme, setTheme } = useTheme()
+  const { setTheme } = useTheme()
   const { settings, fetchSettings, updateSettings, isLoading } = useSettingsStore()
   const [localSettings, setLocalSettings] = useState(settings)
   const [overlaySymbolsText, setOverlaySymbolsText] = useState((settings.overlay_symbols || []).join(', '))

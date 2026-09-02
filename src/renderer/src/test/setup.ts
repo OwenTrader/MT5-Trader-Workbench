@@ -8,11 +8,11 @@ if (typeof window !== 'undefined') {
   }
 
   if (!(window as any).ResizeObserver) {
-    ;(window as any).ResizeObserver = ResizeObserverMock
+    (window as any).ResizeObserver = ResizeObserverMock
   }
 
   if (!(globalThis as any).ResizeObserver) {
-    ;(globalThis as any).ResizeObserver = ResizeObserverMock
+    (globalThis as any).ResizeObserver = ResizeObserverMock
   }
 
   Object.defineProperty(window, 'matchMedia', {

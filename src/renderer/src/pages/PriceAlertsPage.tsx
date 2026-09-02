@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Trash2, Play, Pause, Edit3, Plus, RefreshCw, Bell } from 'lucide-react'
+import { Trash2, Play, Pause, Edit3, RefreshCw, Bell } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
 import { usePolling } from '@/lib/polling'
 import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'

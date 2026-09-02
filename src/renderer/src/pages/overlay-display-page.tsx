@@ -36,7 +36,7 @@ export const OverlayDisplayPage: React.FC = () => {
     if (!observeTarget) return
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
+      for (const _entry of entries) {
         // Measure with precision
         const rect = observeTarget.getBoundingClientRect()
         const targetWidth = Math.ceil(rect.width) 

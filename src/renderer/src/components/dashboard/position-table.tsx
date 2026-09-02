@@ -1,5 +1,4 @@
 import React from 'react'
-import { useI18n } from '@/i18n'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,8 +13,6 @@ interface PositionTableProps {
 }
 
 export const PositionTable: React.FC<PositionTableProps> = ({ positions, onRefresh }) => {
-  const { t } = useI18n()
-
   const totalProfit = positions.reduce((acc, pos) => acc + (pos.profit || 0), 0)
   const totalVolume = positions.reduce((acc, pos) => acc + (pos.volume || 0), 0)
 

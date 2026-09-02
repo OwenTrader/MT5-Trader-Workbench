@@ -7,7 +7,7 @@ import { I18nProvider } from '@/i18n'
 import { MemoryRouter } from 'react-router-dom'
 
 vi.mock('@/lib/api', () => ({
-  apiFetch: vi.fn().mockImplementation((url: string) => {
+  apiFetch: vi.fn().mockImplementation((_url: string) => {
     return Promise.resolve({
       ok: true,
       json: () => Promise.resolve([]),

@@ -18,7 +18,7 @@ describe('Quant Backtest Store', () => {
   })
 
   it('loads backtest strategies from the backend', async () => {
-    ;(fetch as any).mockResolvedValue({
+    (fetch as any).mockResolvedValue({
       ok: true,
       json: async () => [
         { id: 'sma_cross', name: 'SMA Cross', description: 'Trend strategy', timeframes: ['M5', 'M15'] },
@@ -36,7 +36,7 @@ describe('Quant Backtest Store', () => {
   })
 
   it('posts backtest requests and stores results', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/python-quant/backtests/run')
       expect(init?.method).toBe('POST')
       expect(init?.body).toContain('sma_cross')

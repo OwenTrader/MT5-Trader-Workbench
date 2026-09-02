@@ -41,7 +41,7 @@ if (!isSingleInstance) {
     app.isPackaged ? process.resourcesPath : app.getAppPath(),
   ])
 
-  function logShutdown(message: string): void {
+  const logShutdown = (message: string): void => {
     console.log(`[shutdown] ${message}`)
   }
 
@@ -55,45 +55,45 @@ if (!isSingleInstance) {
     log: logShutdown
   })
 
-  function getPackagedDefaultSettingsPath(): string {
+  const getPackagedDefaultSettingsPath = (): string => {
     return join(process.resourcesPath, 'storage', 'settings.json')
   }
 
-  function getUserSettingsPath(): string {
+  const getUserSettingsPath = (): string => {
     return join(app.getPath('userData'), 'storage', 'settings.json')
   }
 
-  function getDevelopmentSettingsPath(): string {
+  const getDevelopmentSettingsPath = (): string => {
     return join(app.getAppPath(), 'storage', 'settings.local.json')
   }
 
-  function getDevelopmentDefaultSettingsPath(): string {
+  const getDevelopmentDefaultSettingsPath = (): string => {
     return join(app.getAppPath(), 'storage', 'settings.default.json')
   }
 
-  function getUserGuideFileName(locale: MainLocale): string {
+  const getUserGuideFileName = (locale: MainLocale): string => {
     return locale === 'en' ? 'user-guide.en.html' : 'user-guide.zh-CN.html'
   }
 
-  function getPackagedUserGuidePath(locale: MainLocale): string {
+  const getPackagedUserGuidePath = (locale: MainLocale): string => {
     return join(process.resourcesPath, 'help', getUserGuideFileName(locale))
   }
 
-  function getDevelopmentUserGuidePath(locale: MainLocale): string {
+  const getDevelopmentUserGuidePath = (locale: MainLocale): string => {
     return join(app.getAppPath(), 'resources', 'help', getUserGuideFileName(locale))
   }
 
-  function getUserGuidePath(locale: MainLocale): string {
+  const getUserGuidePath = (locale: MainLocale): string => {
     return app.isPackaged
       ? getPackagedUserGuidePath(locale)
       : getDevelopmentUserGuidePath(locale)
   }
 
-  function getUserGuideSeenPath(): string {
+  const getUserGuideSeenPath = (): string => {
     return join(app.getPath('userData'), 'storage', 'user-guide-seen.json')
   }
 
-  async function pathExists(target: string): Promise<boolean> {
+  const pathExists = async (target: string): Promise<boolean> => {
     try {
       await access(target)
       return true
@@ -102,7 +102,7 @@ if (!isSingleInstance) {
     }
   }
 
-  async function ensureSettingsFile(): Promise<string> {
+  const ensureSettingsFile = async (): Promise<string> => {
     if (!app.isPackaged) {
       const localPath = getDevelopmentSettingsPath()
       if (await pathExists(localPath)) {
@@ -122,11 +122,11 @@ if (!isSingleInstance) {
     return userSettingsPath
   }
 
-  async function getSettingsPath(): Promise<string> {
+  const getSettingsPath = async (): Promise<string> => {
     return ensureSettingsFile()
   }
 
-  async function getCurrentLanguage(): Promise<MainLocale> {
+  const getCurrentLanguage = async (): Promise<MainLocale> => {
     try {
       const raw = await readFile(await getSettingsPath(), 'utf-8')
       const parsed = JSON.parse(raw) as { language?: string }
@@ -136,7 +136,7 @@ if (!isSingleInstance) {
     }
   }
 
-  async function refreshLocalizedChrome(): Promise<void> {
+  const refreshLocalizedChrome = async (): Promise<void> => {
     currentLanguage = await getCurrentLanguage()
     mainWindow?.setTitle(tMain(currentLanguage, 'window.title'))
 
@@ -147,7 +147,7 @@ if (!isSingleInstance) {
     updateTrayMenu()
   }
 
-  async function openUserGuide(locale: MainLocale = currentLanguage): Promise<void> {
+  const openUserGuide = async (locale: MainLocale = currentLanguage): Promise<void> => {
     const guidePath = getUserGuidePath(locale)
     if (!(await pathExists(guidePath))) {
       throw new Error(`User guide not found: ${guidePath}`)
@@ -159,7 +159,7 @@ if (!isSingleInstance) {
     }
   }
 
-  async function maybeOpenUserGuideOnFirstLaunch(): Promise<void> {
+  const maybeOpenUserGuideOnFirstLaunch = async (): Promise<void> => {
     if (!app.isPackaged) {
       return
     }
@@ -183,13 +183,13 @@ if (!isSingleInstance) {
     }
   }
 
-  function getAppIconPath(): string {
+  const getAppIconPath = (): string => {
     return app.isPackaged
       ? join(process.resourcesPath, 'tray-icon.png')
       : join(app.getAppPath(), 'resources', 'tray-icon.png')
   }
 
-  function updateTrayMenu(): void {
+  const updateTrayMenu = (): void => {
     if (!tray) return
     
     const isOverlayVisible = getOverlayWindow()?.isVisible() ?? false
@@ -218,7 +218,7 @@ if (!isSingleInstance) {
     tray.setContextMenu(contextMenu)
   }
 
-  function createTray(): void {
+  const createTray = (): void => {
     try {
       if (tray) {
         tray.destroy()
@@ -251,7 +251,7 @@ if (!isSingleInstance) {
     }
   }
 
-  function destroyTray(): void {
+  const destroyTray = (): void => {
     if (!tray) {
       return
     }
@@ -265,7 +265,7 @@ if (!isSingleInstance) {
     tray = null
   }
 
-  async function createWindow() {
+  const createWindow = async () => {
     if (mainWindow) return
     
     Menu.setApplicationMenu(null)

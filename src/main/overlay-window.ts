@@ -1,4 +1,4 @@
-import { BrowserWindow, shell, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 

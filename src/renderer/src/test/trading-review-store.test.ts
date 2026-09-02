@@ -89,7 +89,7 @@ describe('Trading Review Store & Metrics', () => {
   })
 
   it('creates session and executes trade with SL and TP', async () => {
-    ;(fetch as any).mockImplementation(async (url: string, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (url: string, init?: RequestInit) => {
       if (url.endsWith('/trading-review/sessions') && init?.method === 'POST') {
         return {
           ok: true,

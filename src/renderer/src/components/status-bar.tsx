@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useI18n } from '@/i18n'
 import { useDashboardStore } from '@/stores/dashboard-store'
-import { useSettingsStore } from '@/stores/settings-store'
 import { useAlertsStore } from '@/stores/alerts-store'
-import { Activity, Bell, Command, Radio, Wifi, Clock } from 'lucide-react'
+import { Bell, Command, Radio, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface StatusBarProps {
@@ -11,9 +10,8 @@ interface StatusBarProps {
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({ onOpenCommandPalette }) => {
-  const { t, locale } = useI18n()
-  const { status, account } = useDashboardStore()
-  const { settings } = useSettingsStore()
+  const { locale } = useI18n()
+  const { status } = useDashboardStore()
   const { priceAlerts, volatilityAlerts, indicatorAlerts } = useAlertsStore()
   const [timeStr, setTimeStr] = useState<string>('')
 

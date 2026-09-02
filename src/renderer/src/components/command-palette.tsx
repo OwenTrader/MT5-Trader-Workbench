@@ -21,7 +21,6 @@ import {
   Languages,
   Search,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface CommandPaletteProps {
   open: boolean
@@ -30,7 +29,7 @@ interface CommandPaletteProps {
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
   const navigate = useNavigate()
-  const { t, locale } = useI18n()
+  const { locale } = useI18n()
   const { updateSettings } = useSettingsStore()
   const [search, setSearch] = useState('')
 

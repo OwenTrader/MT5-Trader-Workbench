@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { BookOpen, Search, Command } from 'lucide-react'
+import { BookOpen, Search } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { ModuleNav } from '@/components/module-nav'
 import { Button } from '@/components/ui/button'

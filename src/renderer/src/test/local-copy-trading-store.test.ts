@@ -26,7 +26,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('loads overview data from the local copy trading endpoint only', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading')
       return {
         ok: true,
@@ -53,7 +53,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('stores an error when overview loading fails', async () => {
-    ;(fetch as any).mockResolvedValue({ ok: false })
+    (fetch as any).mockResolvedValue({ ok: false })
 
     const { result } = renderHook(() => useLocalCopyTradingStore())
     await act(async () => {
@@ -66,7 +66,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('posts relationships to the local copy trading relationship endpoint', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading/relationships')
       expect(init?.method).toBe('POST')
       expect(init?.body).toContain('XAUUSD')
@@ -95,7 +95,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('surfaces backend validation detail for invalid relationships', async () => {
-    ;(fetch as any).mockResolvedValue({
+    (fetch as any).mockResolvedValue({
       ok: false,
       json: async () => ({ detail: 'Relationship must reference existing source and follower accounts' }),
     })
@@ -111,7 +111,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('posts runtime updates to the runtime endpoint', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading/runtime')
       expect(init?.method).toBe('POST')
       expect(init?.body).toContain('"enabled":true')
@@ -137,7 +137,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('deletes relationships through the local copy trading relationship endpoint', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading/relationships/rel-1')
       expect(init?.method).toBe('DELETE')
       return {

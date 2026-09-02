@@ -71,10 +71,6 @@ function getUserSettingsPath(): string {
   return path.join(app.getPath('userData'), 'storage', 'settings.json')
 }
 
-function getDevelopmentLocalSettingsPath(): string {
-  return path.join(app.getAppPath(), 'storage', 'settings.local.json')
-}
-
 function getDevelopmentDefaultSettingsPath(): string {
   return path.join(app.getAppPath(), 'storage', 'settings.default.json')
 }

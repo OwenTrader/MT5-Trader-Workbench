@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Activity, RefreshCw, Search, Filter } from 'lucide-react'
+import { Activity, RefreshCw, Search } from 'lucide-react'
 
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -57,7 +57,7 @@ export function EventLogPage() {
   const { overview, fetchOverview, isLoading: copyTradingLoading } = useLocalCopyTradingStore()
   const { config, fetchConfig, isLoading: orderSyncLoading } = useOrderSyncStore()
   const [searchTerm, setSearchTerm] = useState('')
-  const [sourceFilter, setSourceFilter] = useState('ALL')
+  const [sourceFilter] = useState('ALL')
   const isLoading = copyTradingLoading || orderSyncLoading
 
   useEffect(() => {

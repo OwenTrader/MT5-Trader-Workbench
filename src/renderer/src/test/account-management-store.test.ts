@@ -18,7 +18,7 @@ describe('Account Management Store', () => {
   })
 
   it('loads account lists from the local copy trading overview endpoint', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading')
       return {
         ok: true,
@@ -44,7 +44,7 @@ describe('Account Management Store', () => {
   })
 
   it('posts accounts to the dedicated account module store', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading/accounts')
       expect(init?.method).toBe('POST')
       expect(init?.body).toContain('Main A')
@@ -70,7 +70,7 @@ describe('Account Management Store', () => {
   })
 
   it('surfaces backend validation detail for invalid account credentials', async () => {
-    ;(fetch as any).mockResolvedValue({
+    (fetch as any).mockResolvedValue({
       ok: false,
       json: async () => ({ detail: 'MT5 credential verification failed' }),
     })
@@ -86,7 +86,7 @@ describe('Account Management Store', () => {
   })
 
   it('deletes accounts through the account management endpoint', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading/accounts/src-1')
       expect(init?.method).toBe('DELETE')
       return {
@@ -111,7 +111,7 @@ describe('Account Management Store', () => {
   })
 
   it('stores an error when account overview loading fails', async () => {
-    ;(fetch as any).mockResolvedValue({ ok: false })
+    (fetch as any).mockResolvedValue({ ok: false })
 
     const { result } = renderHook(() => useAccountManagementStore())
     await act(async () => {
