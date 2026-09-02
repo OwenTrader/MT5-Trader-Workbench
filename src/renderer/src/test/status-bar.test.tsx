@@ -7,7 +7,7 @@ import { I18nProvider } from '@/i18n'
 describe('StatusBar Component', () => {
   it('renders MT5 status and stream server info', () => {
     render(
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         <StatusBar />
       </I18nProvider>
     )
@@ -19,7 +19,7 @@ describe('StatusBar Component', () => {
   it('triggers onOpenCommandPalette on clicking shortcut button', () => {
     const handleOpen = vi.fn()
     render(
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         <StatusBar onOpenCommandPalette={handleOpen} />
       </I18nProvider>
     )

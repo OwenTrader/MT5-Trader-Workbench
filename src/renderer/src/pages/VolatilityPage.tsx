@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Trash2, Play, Pause, Edit3, RefreshCw, TrendingUp } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
+import { usePolling } from '@/lib/polling'
 import { toast } from 'sonner'
 import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
@@ -35,13 +36,13 @@ export const VolatilityPage: React.FC = () => {
   useEffect(() => {
     fetchSettings()
     fetchVolatilityAlerts()
-    
-    const interval = settings.api_refresh_interval || 2000
-    const timer = setInterval(() => {
-      fetchVolatilityAlerts({ silent: true })
-    }, interval)
-    return () => clearInterval(timer)
-  }, [settings.api_refresh_interval])
+  }, [])
+
+  usePolling(
+    () => fetchVolatilityAlerts({ silent: true }),
+    settings.api_refresh_interval || 2000,
+    { immediate: false },
+  )
 
   useAlertTriggerEffects({
     alerts: volatilityAlerts,

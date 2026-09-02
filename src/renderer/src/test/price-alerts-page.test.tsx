@@ -32,7 +32,6 @@ describe('PriceAlertsPage', () => {
         },
       ],
       isLoading: false,
-      error: null,
       fetchAlerts: vi.fn(),
       addPriceAlert: vi.fn(),
       updatePriceAlert: vi.fn(),
@@ -42,7 +41,6 @@ describe('PriceAlertsPage', () => {
     useSettingsStore.setState({
       settings: useSettingsStore.getInitialState().settings,
       isLoading: false,
-      error: null,
       fetchSettings: vi.fn(),
       updateSettings: vi.fn(),
     })
@@ -50,7 +48,7 @@ describe('PriceAlertsPage', () => {
     global.fetch = vi.fn(async () => ({
       ok: true,
       json: async () => ({}),
-    })) as typeof fetch
+    })) as unknown as typeof fetch
   })
 
   it('asks for confirmation before deleting an alert', async () => {
@@ -157,7 +155,7 @@ describe('PriceAlertsPage', () => {
       }
 
       return { ok: true, json: async () => ({}) } as Response
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     render(
       <I18nProvider language="en">

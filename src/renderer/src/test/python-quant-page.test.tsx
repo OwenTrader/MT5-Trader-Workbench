@@ -176,7 +176,7 @@ describe('PythonQuantPage', () => {
     global.fetch = vi.fn(async () => ({
       ok: true,
       json: async () => createOverview(),
-    })) as typeof fetch
+    })) as unknown as typeof fetch
 
     renderPage()
 
@@ -187,7 +187,7 @@ describe('PythonQuantPage', () => {
     global.fetch = vi.fn(async () => ({
       ok: true,
       json: async () => createOverview(),
-    })) as typeof fetch
+    })) as unknown as typeof fetch
 
     renderPage()
 
@@ -218,7 +218,7 @@ describe('PythonQuantPage', () => {
       }
 
       throw new Error(`Unhandled request: ${url}`)
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     renderApp()
 
@@ -228,7 +228,7 @@ describe('PythonQuantPage', () => {
       throw new Error('Workspaces group not found')
     }
 
-    expect(within(group).getByRole('button', { name: 'Quant & Review' })).toBeInTheDocument()
+    expect(within(group as HTMLElement).getByRole('button', { name: 'Quant & Review' })).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Quant', level: 1 })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Python Quant' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Quant Backtest' })).toBeInTheDocument()
@@ -334,7 +334,7 @@ describe('PythonQuantPage', () => {
       }
 
       throw new Error(`Unhandled request: ${method} ${url}`)
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     renderPage()
 
@@ -427,7 +427,7 @@ describe('PythonQuantPage', () => {
       }
 
       throw new Error(`Unhandled request: ${method} ${url}`)
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     renderPage()
 

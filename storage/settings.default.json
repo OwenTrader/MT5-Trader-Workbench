@@ -11,6 +11,7 @@
   "price_alerts_path": "",
   "account_monitoring_interval": 5,
   "volatility_check_interval": 60,
+  "api_refresh_interval": 2000,
   "overlay_font_size": 18,
   "overlay_font_color": "#30e718",
   "overlay_symbols": [

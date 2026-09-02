@@ -22,7 +22,7 @@ import { apiFetch } from '@/lib/api'
 function renderPage() {
   return render(
     <MemoryRouter>
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         <TradingReviewPage />
       </I18nProvider>
     </MemoryRouter>

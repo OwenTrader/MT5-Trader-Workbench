@@ -32,7 +32,7 @@ describe('AlertsCenterPage Component', () => {
 
   it('renders tabs for price, volatility, indicator, and broadcast', () => {
     render(
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         <AlertsCenterPage defaultTab="price" />
       </I18nProvider>
     )
@@ -47,7 +47,7 @@ describe('AlertsCenterPage Component', () => {
   it('switches tab when clicking tab triggers', async () => {
     const user = userEvent.setup()
     render(
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         <AlertsCenterPage defaultTab="price" />
       </I18nProvider>
     )

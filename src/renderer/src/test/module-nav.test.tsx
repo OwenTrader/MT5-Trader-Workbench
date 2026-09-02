@@ -7,7 +7,7 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 
 function renderModuleNav(activeModule: string, onModuleChange = vi.fn()) {
   return render(
-    <I18nProvider>
+    <I18nProvider language="zh-CN">
       <SidebarProvider>
         <ModuleNav activeModule={activeModule} onModuleChange={onModuleChange} />
       </SidebarProvider>
@@ -30,7 +30,7 @@ describe('ModuleNav Component', () => {
 
   it('correctly maps sub-modules to their corresponding parent hub active states', () => {
     const { rerender } = render(
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         <SidebarProvider>
           <ModuleNav activeModule="risk-control" onModuleChange={vi.fn()} />
         </SidebarProvider>
@@ -41,7 +41,7 @@ describe('ModuleNav Component', () => {
     expect(autoBtn).toHaveAttribute('data-active', 'true')
 
     rerender(
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         <SidebarProvider>
           <ModuleNav activeModule="price-alerts" onModuleChange={vi.fn()} />
         </SidebarProvider>

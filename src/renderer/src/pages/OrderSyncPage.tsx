@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/i18n'
 import { cn, debounce } from '@/lib/utils'
+import { usePolling } from '@/lib/polling'
 import { OrderSymbolMapping, TopStepAccountCredential, useOrderSyncStore } from '@/stores/order-sync-store'
 import { Edit3, Link2, Pause, Play, RefreshCw, RotateCw, Trash2 } from 'lucide-react'
 
@@ -48,9 +49,9 @@ export const OrderSyncPage: React.FC = () => {
 
   useEffect(() => {
     fetchConfig()
-    const timer = setInterval(() => fetchConfig({ silent: true }), 2000)
-    return () => clearInterval(timer)
   }, [])
+
+  usePolling(() => fetchConfig({ silent: true }), 2000, { immediate: false })
 
   const debouncedRefresh = React.useMemo(
     () => debounce(() => {

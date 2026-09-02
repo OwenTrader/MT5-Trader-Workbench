@@ -1,5 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, protocol } from 'electron'
-import { join } from 'path'
+import { join, isAbsolute, resolve } from 'path'
 import { mkdir, readFile, access, copyFile, writeFile } from 'fs/promises'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { MainLocale, tMain } from './i18n'
@@ -32,6 +32,14 @@ if (!isSingleInstance) {
   let mainWindow: BrowserWindow | null = null
   let tray: Tray | null = null
   let currentLanguage: MainLocale = 'zh-CN'
+
+  // Roots the `local-file://` protocol is permitted to serve from. The renderer
+  // registers extra roots (e.g. the user-chosen alert-sound directory) after
+  // loading settings, preventing arbitrary local-file reads from XSS.
+  const allowedLocalRoots = new Set<string>([
+    app.getPath('userData'),
+    app.isPackaged ? process.resourcesPath : app.getAppPath(),
+  ])
 
   function logShutdown(message: string): void {
     console.log(`[shutdown] ${message}`)
@@ -325,50 +333,82 @@ if (!isSingleInstance) {
       await openUserGuide(targetLocale)
     })
 
-    try {
-      if (is.dev) {
-        await stopPythonService({ killPort: true, reason: 'dev-prestart-cleanup' })
-        killBackendOnPort()
+    ipcMain.handle('app:register-local-root', (_event, root: string) => {
+      if (typeof root === 'string' && root) {
+        allowedLocalRoots.add(join(app.getPath('userData'), root))
+        allowedLocalRoots.add(root)
       }
+    })
 
-      const backendAlreadyRunning = await isBackendHealthy()
-      if (backendAlreadyRunning) {
-        if (app.isPackaged) {
-          // Packaged sessions should own the backend process so shutdown can reliably clean it up.
-          killBackendOnPort()
-        } else {
-          markBackendHealthyReuse()
-          console.log('Backend already healthy on port 8765, reusing existing service')
-        }
-      }
-
-      const backendProcess = !backendAlreadyRunning || app.isPackaged ? startPythonService() : null
-
-      await waitForBackendHealth({ childProcess: backendProcess })
-    } catch (err) {
-      markBackendStartupFailure(err)
-      console.error('Failed to start backend:', err)
-    }
-
+    // Create the window immediately so the user sees the UI without waiting for
+    // the (potentially slow) backend / MT5 startup.
     mainWindow = new BrowserWindow({
       width: 1440,
       height: 900,
       minHeight: 700,
+      show: false,
       icon: getAppIconPath(),
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
+        contextIsolation: true,
+        sandbox: true,
       },
     })
     await refreshLocalizedChrome()
-    
-    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    } else {
-      mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-    }
 
-    mainWindow.webContents.once('did-finish-load', () => {
-      void maybeOpenUserGuideOnFirstLaunch()
+    mainWindow.loadURL(
+      'data:text/html;charset=utf-8,' +
+        encodeURIComponent(
+          '<!doctype html><html><head><meta charset="utf-8"><style>' +
+            'html,body{height:100%;margin:0;background:#0b0e14;color:#9aa4b2;' +
+            'font-family:system-ui,Segoe UI,Roboto,sans-serif;display:flex;' +
+            'align-items:center;justify-content:center;font-size:14px}' +
+            '.dot{display:inline-block;width:8px;height:8px;border-radius:50%;' +
+            'background:#3b82f6;margin-right:8px;animation:p 1s infinite}' +
+            '@keyframes p{0%,100%{opacity:.3}50%{opacity:1}}' +
+            '</style></head><body><span class="dot"></span>正在启动 MT5 交易终端服务…</body></html>',
+        ),
+    )
+    mainWindow.once('ready-to-show', () => mainWindow?.show())
+
+    // Start the backend concurrently; swap to the real app once it is healthy.
+    const backendReady = (async () => {
+      try {
+        if (is.dev) {
+          await stopPythonService({ killPort: true, reason: 'dev-prestart-cleanup' })
+          killBackendOnPort()
+        }
+
+        const backendAlreadyRunning = await isBackendHealthy()
+        if (backendAlreadyRunning) {
+          if (app.isPackaged) {
+            // Packaged sessions should own the backend process so shutdown can reliably clean it up.
+            killBackendOnPort()
+          } else {
+            markBackendHealthyReuse()
+            console.log('Backend already healthy on port 8765, reusing existing service')
+          }
+        }
+
+        const backendProcess = !backendAlreadyRunning || app.isPackaged ? startPythonService() : null
+        await waitForBackendHealth({ childProcess: backendProcess })
+      } catch (err) {
+        markBackendStartupFailure(err)
+        console.error('Failed to start backend:', err)
+      }
+    })()
+
+    backendReady.finally(() => {
+      if (!mainWindow || mainWindow.isDestroyed()) return
+      if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+        mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+      } else {
+        mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+      }
+      // Open the user guide only after the real app has loaded.
+      mainWindow.webContents.once('did-finish-load', () => {
+        void maybeOpenUserGuideOnFirstLaunch()
+      })
     })
 
     mainWindow.on('close', (event) => {
@@ -398,7 +438,8 @@ if (!isSingleInstance) {
   })
 
   app.on('before-quit', (event) => {
-    destroyTray()
+    // Do NOT destroy the tray here: if shutdown is later cancelled by the
+    // coordinator, the app would keep running with no way to reach the tray.
     shutdownController.handleBeforeQuit(event, 'before-quit')
   })
 
@@ -409,11 +450,21 @@ if (!isSingleInstance) {
 
   app.whenReady().then(() => {
     protocol.registerFileProtocol('local-file', (request, callback) => {
-      const url = request.url.replace(/^local-file:\/\//, '')
       try {
-        return callback(decodeURIComponent(url))
+        const decoded = decodeURIComponent(request.url.replace(/^local-file:\/\//, ''))
+        const resolved = isAbsolute(decoded) ? resolve(decoded) : join(app.getPath('userData'), decoded)
+        const normalized = resolved.replace(/\\/g, '/')
+        const allowed = Array.from(allowedLocalRoots).some((root) =>
+          normalized.startsWith(root.replace(/\\/g, '/')),
+        )
+        if (!allowed) {
+          console.error(`local-file protocol blocked untrusted path: ${decoded}`)
+          return callback('')
+        }
+        return callback(resolved)
       } catch (error) {
         console.error(error)
+        return callback('')
       }
     })
   })

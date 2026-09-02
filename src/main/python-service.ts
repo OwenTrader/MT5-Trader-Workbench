@@ -2,6 +2,7 @@ import { app } from 'electron'
 import { spawn, ChildProcess } from 'node:child_process'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
+import fs from 'node:fs'
 import http from 'node:http'
 
 import { getPackagedBackendExecutablePath, getPackagedBackendWorkingDirectory } from './packaging-paths'
@@ -13,6 +14,33 @@ const BACKEND_PRECHECK_TIMEOUT_MS = 1000
 const BACKEND_STARTUP_TIMEOUT_MS = 15000
 const BACKEND_POLL_INTERVAL_MS = 250
 const MAX_BACKEND_LOG_LINES = 10
+const BACKEND_PID_FILE = path.join(app.getPath('userData'), 'mt5_service.pid')
+
+function writeBackendPidFile(pid: number): void {
+  try {
+    fs.writeFileSync(BACKEND_PID_FILE, String(pid), 'utf-8')
+  } catch {
+    // best effort
+  }
+}
+
+function readBackendPidFile(): number | null {
+  try {
+    const raw = fs.readFileSync(BACKEND_PID_FILE, 'utf-8').trim()
+    const pid = parseInt(raw, 10)
+    return Number.isFinite(pid) && pid > 0 ? pid : null
+  } catch {
+    return null
+  }
+}
+
+function clearBackendPidFile(): void {
+  try {
+    fs.unlinkSync(BACKEND_PID_FILE)
+  } catch {
+    // already gone
+  }
+}
 
 export type BackendStartupDiagnostics = {
   host: string
@@ -285,8 +313,13 @@ export function startPythonService(): ChildProcess {
       setBackendStartupError(message)
     }
     console.log(message)
+    clearBackendPidFile()
     stopPythonServicePromise = null
   })
+
+  if (pythonProcess.pid) {
+    writeBackendPidFile(pythonProcess.pid)
+  }
 
   return pythonProcess
 }
@@ -417,24 +450,52 @@ export function getBackendStartupDiagnostics(): BackendStartupDiagnostics {
 }
 
 export function killBackendOnPort(): void {
+  // Preferred: kill the PID we recorded on startup. Precise, and avoids the
+  // slow PowerShell cold-start and the risk of killing an unrelated listener.
+  const pid = readBackendPidFile()
+  if (pid) {
+    forceKillProcessTree(pid)
+    clearBackendPidFile()
+    return
+  }
+
+  // Fallback (e.g. a stale process from an older build): scan listeners on the
+  // port with native tools only — no PowerShell — then kill them.
   try {
     if (process.platform === 'win32') {
-      execFileSync(
-        'powershell.exe',
-        [
-          '-NoProfile',
-          '-Command',
-          `Get-NetTCPConnection -LocalPort ${BACKEND_PORT} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }`
-        ],
-        { stdio: 'ignore' }
-      )
-      return
+      const out = execFileSync('netstat', ['-ano', '-p', 'TCP'], {
+        encoding: 'utf-8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      })
+      const pids = new Set<string>()
+      for (const line of out.split(/\r?\n/)) {
+        const match = line.match(
+          new RegExp(`^\\s*TCP\\s+[^\\s]+:${BACKEND_PORT}\\s+[^\\s]+\\s+LISTENING\\s+(\\d+)`),
+        )
+        if (match) pids.add(match[1])
+      }
+      for (const p of pids) {
+        try {
+          execFileSync('taskkill.exe', ['/PID', p, '/T', '/F'], { stdio: 'ignore' })
+        } catch {
+          // process already gone
+        }
+      }
+    } else {
+      const out = execFileSync('sh', ['-lc', `lsof -ti tcp:${BACKEND_PORT}`], {
+        encoding: 'utf-8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      })
+      for (const p of out.split(/\s+/).filter(Boolean)) {
+        try {
+          process.kill(parseInt(p, 10), 'SIGKILL')
+        } catch {
+          // process already gone
+        }
+      }
     }
-
-    execFileSync('sh', ['-lc', `lsof -ti tcp:${BACKEND_PORT} | xargs -r kill -9`], {
-      stdio: 'ignore'
-    })
   } catch {
+    // best effort
   }
 }
 

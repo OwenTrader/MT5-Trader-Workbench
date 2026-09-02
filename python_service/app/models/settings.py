@@ -13,6 +13,7 @@ class Settings(BaseModel):
     price_alerts_path: str = ''
     account_monitoring_interval: int = 5
     volatility_check_interval: int = 60
+    api_refresh_interval: int = 2000
     overlay_font_size: int = 24
     overlay_font_color: str = "#4ade80"
     overlay_symbols: list[str] = ["XAUUSD", "USDJPY"]

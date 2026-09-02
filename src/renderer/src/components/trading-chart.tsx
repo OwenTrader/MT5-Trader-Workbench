@@ -1,12 +1,10 @@
-import React, { useEffect, useRef } from 'react'
-import {
-  createChart,
+import React, { useEffect, useRef, useState } from 'react'
+import type {
   IChartApi,
   ISeriesApi,
   IPriceLine,
   SeriesMarker,
   Time,
-  LineStyle,
 } from 'lightweight-charts'
 import { Kline, ReviewTrade } from '@/stores/trading-review-store'
 
@@ -50,86 +48,87 @@ export function TradingChart({
   const ema20SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
   const ema50SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
   const priceLinesRef = useRef<IPriceLine[]>([])
+  // lightweight-charts is loaded on demand so the charting library is not part
+  // of the initial bundle.
+  const lineStyleRef = useRef<{ Solid: number; Dashed: number } | null>(null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     if (!chartContainerRef.current) return
+    let cancelled = false
+    let chart: IChartApi | null = null
 
-    // Create chart
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { color: 'transparent' },
-        textColor: 'rgba(255, 255, 255, 0.85)',
-      },
-      grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
-      },
-      crosshair: {
-        mode: 1, // Magnet mode
-      },
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      autoSize: true,
-    })
-    chartRef.current = chart
+    void import('lightweight-charts').then((LWC) => {
+      if (cancelled || !chartContainerRef.current) return
+      const { createChart, LineStyle, CandlestickSeries, HistogramSeries, LineSeries, createSeriesMarkers } = LWC
+      lineStyleRef.current = LineStyle as { Solid: number; Dashed: number }
 
-    // 1. Candlestick Series
-    const candlestickSeries = chart.addCandlestickSeries({
-      upColor: '#22c55e',
-      downColor: '#ef4444',
-      borderVisible: false,
-      wickUpColor: '#22c55e',
-      wickDownColor: '#ef4444',
-    })
-    seriesRef.current = candlestickSeries
+      chart = createChart(chartContainerRef.current, {
+        layout: {
+          background: { color: 'transparent' },
+          textColor: 'rgba(255, 255, 255, 0.85)',
+        },
+        grid: {
+          vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+          horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        },
+        crosshair: {
+          mode: 1, // Magnet mode
+        },
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        autoSize: true,
+      })
+      chartRef.current = chart
 
-    // 2. Volume Histogram Series
-    const volumeSeries = chart.addHistogramSeries({
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: 'volume',
-    })
-    volumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.82,
-        bottom: 0,
-      },
-    })
-    volumeSeriesRef.current = volumeSeries
+      const candlestickSeries = chart.addSeries(CandlestickSeries, {
+        upColor: '#22c55e',
+        downColor: '#ef4444',
+        borderVisible: false,
+        wickUpColor: '#22c55e',
+        wickDownColor: '#ef4444',
+      })
+      seriesRef.current = candlestickSeries
 
-    // 3. EMA 20 & EMA 50
-    const ema20 = chart.addLineSeries({
-      color: '#eab308',
-      lineWidth: 2,
-      title: 'EMA 20',
-    })
-    ema20SeriesRef.current = ema20
+      const volumeSeries = chart.addSeries(HistogramSeries, {
+        priceFormat: { type: 'volume' },
+        priceScaleId: 'volume',
+      })
+      volumeSeries.priceScale().applyOptions({
+        scaleMargins: { top: 0.82, bottom: 0 },
+      })
+      volumeSeriesRef.current = volumeSeries
 
-    const ema50 = chart.addLineSeries({
-      color: '#3b82f6',
-      lineWidth: 2,
-      title: 'EMA 50',
+      const ema20 = chart.addSeries(LineSeries, { color: '#eab308', lineWidth: 2, title: 'EMA 20' })
+      ema20SeriesRef.current = ema20
+
+      const ema50 = chart.addSeries(LineSeries, { color: '#3b82f6', lineWidth: 2, title: 'EMA 50' })
+      ema50SeriesRef.current = ema50
+
+      setReady(true)
     })
-    ema50SeriesRef.current = ema50
 
     return () => {
-      chart.remove()
+      cancelled = true
+      chart?.remove()
       chartRef.current = null
       seriesRef.current = null
       volumeSeriesRef.current = null
       ema20SeriesRef.current = null
       ema50SeriesRef.current = null
       priceLinesRef.current = []
+      lineStyleRef.current = null
+      setReady(false)
     }
   }, [])
 
   useEffect(() => {
-    if (!seriesRef.current) return
+    if (!ready || !seriesRef.current) return
+    const LineStyle = lineStyleRef.current
+    if (!LineStyle) return
 
-    // Format candlestick data
     const sorted = [...klines].sort((a, b) => a.time - b.time)
     const unique = sorted.filter((v, i, a) => a.findIndex((t) => t.time === v.time) === i)
 
@@ -143,7 +142,6 @@ export function TradingChart({
 
     seriesRef.current.setData(formattedCandles)
 
-    // Volume Series Data
     if (volumeSeriesRef.current) {
       if (showVolume) {
         const volumeData = unique.map((k) => ({
@@ -157,20 +155,16 @@ export function TradingChart({
       }
     }
 
-    // EMA Series Data
     if (ema20SeriesRef.current && ema50SeriesRef.current) {
       if (showEMA) {
-        const ema20Data = calculateEMA(formattedCandles, 20)
-        const ema50Data = calculateEMA(formattedCandles, 50)
-        ema20SeriesRef.current.setData(ema20Data)
-        ema50SeriesRef.current.setData(ema50Data)
+        ema20SeriesRef.current.setData(calculateEMA(formattedCandles, 20))
+        ema50SeriesRef.current.setData(calculateEMA(formattedCandles, 50))
       } else {
         ema20SeriesRef.current.setData([])
         ema50SeriesRef.current.setData([])
       }
     }
 
-    // Setup Price Lines for active trades
     priceLinesRef.current.forEach((pl) => {
       try {
         seriesRef.current?.removePriceLine(pl)
@@ -183,7 +177,6 @@ export function TradingChart({
     const activeTrades = trades.filter((t) => t.close_time === null)
     activeTrades.forEach((t) => {
       if (!seriesRef.current) return
-      // Entry price line
       const entryLine = seriesRef.current.createPriceLine({
         price: t.open_price,
         color: t.type === 'buy' ? '#3b82f6' : '#f97316',
@@ -194,7 +187,6 @@ export function TradingChart({
       })
       priceLinesRef.current.push(entryLine)
 
-      // SL price line
       if (t.sl) {
         const slLine = seriesRef.current.createPriceLine({
           price: t.sl,
@@ -207,7 +199,6 @@ export function TradingChart({
         priceLinesRef.current.push(slLine)
       }
 
-      // TP price line
       if (t.tp) {
         const tpLine = seriesRef.current.createPriceLine({
           price: t.tp,
@@ -221,11 +212,9 @@ export function TradingChart({
       }
     })
 
-    // Setup markers for trade executions
     const markers: SeriesMarker<Time>[] = []
 
     trades.forEach((trade) => {
-      // Open trade marker
       markers.push({
         time: trade.open_time as Time,
         position: trade.type === 'buy' ? 'belowBar' : 'aboveBar',
@@ -234,7 +223,6 @@ export function TradingChart({
         text: `Open ${trade.type.toUpperCase()} ${trade.lots} @ ${trade.open_price}`,
       })
 
-      // Close trade marker
       if (trade.close_time && trade.close_price) {
         const isWin = (trade.profit ?? 0) >= 0
         markers.push({
@@ -248,8 +236,8 @@ export function TradingChart({
     })
 
     markers.sort((a, b) => (a.time as number) - (b.time as number))
-    seriesRef.current.setMarkers(markers)
-  }, [klines, trades, showEMA, showVolume])
+    createSeriesMarkers(seriesRef.current, markers)
+  }, [klines, trades, showEMA, showVolume, ready])
 
   return <div ref={chartContainerRef} className="w-full h-full min-h-[420px]" />
 }

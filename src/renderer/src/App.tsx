@@ -1,30 +1,41 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { HashRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { WorkbenchShell } from '@/layouts/workbench-shell'
-import { DashboardPage } from '@/pages/dashboard-page'
-import { AlertsCenterPage } from '@/pages/alerts/AlertsCenterPage'
-import { AutomationCenterPage } from '@/pages/automation/AutomationCenterPage'
-import { QuantLabPage } from '@/pages/quant/QuantLabPage'
-import { PythonQuantPage } from '@/pages/PythonQuantPage'
-import { QuantBacktestPage } from '@/pages/QuantBacktestPage'
-import { OrderBroadcastPage } from './pages/OrderBroadcastPage'
-import { SettingsPage } from './pages/SettingsPage'
-import { PriceAlertsPage } from './pages/PriceAlertsPage'
-import { VolatilityPage } from './pages/VolatilityPage'
-import { IndicatorAlertsPage } from './pages/IndicatorAlertsPage'
-import { OrderCenterPage } from './pages/OrderCenterPage'
-import { RiskControlPage } from './pages/RiskControlPage'
-import { TechnicalAnalysisPage } from './pages/TechnicalAnalysisPage'
-import { OrderSyncPage } from './pages/OrderSyncPage'
-import { SponsorPage } from './pages/SponsorPage'
-import { OverlayDisplayPage } from './pages/overlay-display-page'
-import { LocalCopyTradingPage } from './pages/LocalCopyTradingPage'
-import { EventLogPage } from './pages/EventLogPage'
-import { AccountListPage } from './pages/AccountListPage'
-import { DataManagementPage } from './pages/DataManagementPage'
-import { TradingReviewPage } from './pages/TradingReviewPage'
+import { OverlayDisplayPage } from '@/pages/overlay-display-page'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
+
+/** Lazily load a named export as a default-exported component for React.lazy. */
+function lazyNamed<M extends Record<string, React.ComponentType<any>>>(
+  loader: () => Promise<M>,
+  name: keyof M,
+): React.LazyExoticComponent<React.ComponentType<any>> {
+  return lazy(() => loader().then((mod) => ({ default: mod[name] })))
+}
+
+// Route-level code splitting: each page becomes its own chunk so the initial
+// bundle only needs the shell + dashboard, not all 24 pages + charting libs.
+const DashboardPage = lazyNamed(() => import('@/pages/dashboard-page'), 'DashboardPage')
+const AlertsCenterPage = lazyNamed(() => import('@/pages/alerts/AlertsCenterPage'), 'AlertsCenterPage')
+const AutomationCenterPage = lazyNamed(() => import('@/pages/automation/AutomationCenterPage'), 'AutomationCenterPage')
+const QuantLabPage = lazyNamed(() => import('@/pages/quant/QuantLabPage'), 'QuantLabPage')
+const PythonQuantPage = lazyNamed(() => import('@/pages/PythonQuantPage'), 'PythonQuantPage')
+const QuantBacktestPage = lazyNamed(() => import('@/pages/QuantBacktestPage'), 'QuantBacktestPage')
+const OrderBroadcastPage = lazyNamed(() => import('@/pages/OrderBroadcastPage'), 'OrderBroadcastPage')
+const SettingsPage = lazyNamed(() => import('@/pages/SettingsPage'), 'SettingsPage')
+const PriceAlertsPage = lazyNamed(() => import('@/pages/PriceAlertsPage'), 'PriceAlertsPage')
+const VolatilityPage = lazyNamed(() => import('@/pages/VolatilityPage'), 'VolatilityPage')
+const IndicatorAlertsPage = lazyNamed(() => import('@/pages/IndicatorAlertsPage'), 'IndicatorAlertsPage')
+const OrderCenterPage = lazyNamed(() => import('@/pages/OrderCenterPage'), 'OrderCenterPage')
+const RiskControlPage = lazyNamed(() => import('@/pages/RiskControlPage'), 'RiskControlPage')
+const TechnicalAnalysisPage = lazyNamed(() => import('@/pages/TechnicalAnalysisPage'), 'TechnicalAnalysisPage')
+const OrderSyncPage = lazyNamed(() => import('@/pages/OrderSyncPage'), 'OrderSyncPage')
+const SponsorPage = lazyNamed(() => import('@/pages/SponsorPage'), 'SponsorPage')
+const LocalCopyTradingPage = lazyNamed(() => import('@/pages/LocalCopyTradingPage'), 'LocalCopyTradingPage')
+const EventLogPage = lazyNamed(() => import('@/pages/EventLogPage'), 'EventLogPage')
+const AccountListPage = lazyNamed(() => import('@/pages/AccountListPage'), 'AccountListPage')
+const DataManagementPage = lazyNamed(() => import('@/pages/DataManagementPage'), 'DataManagementPage')
+const TradingReviewPage = lazyNamed(() => import('@/pages/TradingReviewPage'), 'TradingReviewPage')
 
 const VALID_MODULES = new Set([
   'dashboard',
@@ -51,6 +62,14 @@ const VALID_MODULES = new Set([
   'trading-review',
 ])
 
+function PageFallback() {
+  return (
+    <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+      加载中…
+    </div>
+  )
+}
+
 function ModuleRoute() {
   const navigate = useNavigate()
   const { module = 'dashboard' } = useParams()
@@ -62,28 +81,30 @@ function ModuleRoute() {
 
   return (
     <WorkbenchShell activeModule={activeModule} onModuleChange={(nextModule) => navigate(`/${nextModule}`)}>
-      {activeModule === 'dashboard' && <DashboardPage />}
-      {activeModule === 'alerts' && <AlertsCenterPage />}
-      {activeModule === 'automation' && <AutomationCenterPage />}
-      {activeModule === 'quant' && <QuantLabPage />}
-      {activeModule === 'quant-lab' && <QuantLabPage />}
-      {activeModule === 'python-quant' && <PythonQuantPage />}
-      {activeModule === 'quant-backtest' && <QuantBacktestPage />}
-      {activeModule === 'order-broadcast' && <OrderBroadcastPage />}
-      {activeModule === 'order-sync' && <OrderSyncPage />}
-      {activeModule === 'account-list' && <AccountListPage />}
-      {activeModule === 'local-copy-trading' && <LocalCopyTradingPage />}
-      {activeModule === 'event-log' && <EventLogPage />}
-      {activeModule === 'data-management' && <DataManagementPage />}
-      {activeModule === 'trading-review' && <TradingReviewPage />}
-      {activeModule === 'order-center' && <OrderCenterPage />}
-      {activeModule === 'price-alerts' && <PriceAlertsPage />}
-      {activeModule === 'volatility' && <VolatilityPage />}
-      {activeModule === 'indicator-alerts' && <IndicatorAlertsPage />}
-      {activeModule === 'risk-control' && <RiskControlPage />}
-      {activeModule === 'tech-analysis' ? <TechnicalAnalysisPage /> : null}
-      {activeModule === 'sponsor' && <SponsorPage />}
-      {activeModule === 'settings' && <SettingsPage />}
+      <Suspense fallback={<PageFallback />}>
+        {activeModule === 'dashboard' && <DashboardPage />}
+        {activeModule === 'alerts' && <AlertsCenterPage />}
+        {activeModule === 'automation' && <AutomationCenterPage />}
+        {activeModule === 'quant' && <QuantLabPage />}
+        {activeModule === 'quant-lab' && <QuantLabPage />}
+        {activeModule === 'python-quant' && <PythonQuantPage />}
+        {activeModule === 'quant-backtest' && <QuantBacktestPage />}
+        {activeModule === 'order-broadcast' && <OrderBroadcastPage />}
+        {activeModule === 'order-sync' && <OrderSyncPage />}
+        {activeModule === 'account-list' && <AccountListPage />}
+        {activeModule === 'local-copy-trading' && <LocalCopyTradingPage />}
+        {activeModule === 'event-log' && <EventLogPage />}
+        {activeModule === 'data-management' && <DataManagementPage />}
+        {activeModule === 'trading-review' && <TradingReviewPage />}
+        {activeModule === 'order-center' && <OrderCenterPage />}
+        {activeModule === 'price-alerts' && <PriceAlertsPage />}
+        {activeModule === 'volatility' && <VolatilityPage />}
+        {activeModule === 'indicator-alerts' && <IndicatorAlertsPage />}
+        {activeModule === 'risk-control' && <RiskControlPage />}
+        {activeModule === 'tech-analysis' ? <TechnicalAnalysisPage /> : null}
+        {activeModule === 'sponsor' && <SponsorPage />}
+        {activeModule === 'settings' && <SettingsPage />}
+      </Suspense>
     </WorkbenchShell>
   )
 }

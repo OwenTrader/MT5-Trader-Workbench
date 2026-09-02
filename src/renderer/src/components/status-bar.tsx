@@ -27,7 +27,12 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onOpenCommandPalette }) =>
     return () => clearInterval(timer)
   }, [locale])
 
-  const totalActiveAlerts = (priceAlerts || []).concat(volatilityAlerts || [], indicatorAlerts || []).filter(a => a.is_active).length
+  const allAlerts: { is_active: boolean }[] = [
+    ...(priceAlerts ?? []),
+    ...(volatilityAlerts ?? []),
+    ...(indicatorAlerts ?? []),
+  ]
+  const totalActiveAlerts = allAlerts.filter((a) => a.is_active).length
 
   const isConnected = status.is_connected
   const isRunning = status.is_running

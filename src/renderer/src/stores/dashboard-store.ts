@@ -1,5 +1,6 @@
 import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
+import { registerPollingJob, stopPollingJob } from '@/lib/polling'
 
 export interface AccountInfo {
   balance: number
@@ -39,8 +40,6 @@ interface DashboardState {
   startPolling: (interval?: number) => void
   stopPolling: () => void
 }
-
-let pollingInterval: NodeJS.Timeout | null = null
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   account: null,
@@ -88,23 +87,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
 
   startPolling: (interval: number = 2000) => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval)
-    }
-    get().fetchStatus()
-    get().fetchAccount()
-    get().fetchPositions()
-    pollingInterval = setInterval(() => {
-      get().fetchStatus()
-      get().fetchAccount()
-      get().fetchPositions()
-    }, interval)
+    registerPollingJob(
+      'dashboard',
+      () => {
+        get().fetchStatus()
+        get().fetchAccount()
+        get().fetchPositions()
+      },
+      interval,
+    )
   },
 
   stopPolling: () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval)
-      pollingInterval = null
-    }
-  }
+    stopPollingJob('dashboard')
+  },
 }))

@@ -18,7 +18,7 @@ vi.mock('@/lib/api', () => ({
 function renderWithRouter(ui: React.ReactElement) {
   return render(
     <MemoryRouter>
-      <I18nProvider>
+      <I18nProvider language="zh-CN">
         {ui}
       </I18nProvider>
     </MemoryRouter>

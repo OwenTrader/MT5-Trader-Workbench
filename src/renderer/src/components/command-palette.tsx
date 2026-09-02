@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@/i18n'
+import { useSettingsStore } from '@/stores/settings-store'
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,8 @@ interface CommandPaletteProps {
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
   const navigate = useNavigate()
-  const { t, locale, setLocale } = useI18n()
+  const { t, locale } = useI18n()
+  const { updateSettings } = useSettingsStore()
   const [search, setSearch] = useState('')
 
   const commands = [
@@ -122,7 +124,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
       category: '偏好设置',
       icon: Languages,
       action: () => {
-        setLocale(locale === 'zh-CN' ? 'en' : 'zh-CN')
+        void updateSettings({ language: locale === 'zh-CN' ? 'en' : 'zh-CN' })
         onOpenChange(false)
       },
     },

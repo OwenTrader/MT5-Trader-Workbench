@@ -214,7 +214,7 @@ describe('Account List Page', () => {
 
     expect(screen.getByRole('button', { name: 'Verifying and saving...' })).toBeDisabled()
 
-    resolveRequest?.({
+    ;(resolveRequest as ((value: Response) => void) | null)?.({
       ok: false,
       json: async () => ({ detail: 'MT5 credential verification failed' }),
     } as Response)

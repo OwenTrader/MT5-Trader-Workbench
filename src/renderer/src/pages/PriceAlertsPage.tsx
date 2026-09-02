@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { Trash2, Play, Pause, Edit3, Plus, RefreshCw, Bell } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
+import { usePolling } from '@/lib/polling'
 import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
 type PriceAlertFormData = Omit<PriceAlert, 'id' | 'is_active' | 'is_triggered' | 'price'> & { price: string }
@@ -93,13 +94,13 @@ export const PriceAlertsPage: React.FC = () => {
   useEffect(() => {
     fetchSettings()
     fetchAlerts()
-    
-    const interval = settings.api_refresh_interval || 2000
-    const timer = setInterval(() => {
-      fetchAlerts({ silent: true })
-    }, interval)
-    return () => clearInterval(timer)
-  }, [settings.api_refresh_interval])
+  }, [])
+
+  usePolling(
+    () => fetchAlerts({ silent: true }),
+    settings.api_refresh_interval || 2000,
+    { immediate: false },
+  )
 
   useAlertTriggerEffects({
     alerts: priceAlerts,

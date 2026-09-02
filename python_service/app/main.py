@@ -1,9 +1,10 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 import uvicorn
 import asyncio
 import os
 import subprocess
+import ctypes
 from contextlib import asynccontextmanager, suppress
 
 from python_service.app.routes.health import router as health_router
@@ -53,22 +54,32 @@ def get_parent_pid_from_env() -> int | None:
 
 
 def is_parent_process_alive(parent_pid: int) -> bool:
+    """Check whether the Electron parent process is still running.
+
+    Avoids spawning ``tasklist`` (which enumerates every process and stalls
+    the event loop); uses a lightweight kernel handle query on Windows and a
+    no-op signal on POSIX instead.
+    """
     if parent_pid <= 0:
         return False
 
     if os.name == 'nt':
         try:
-            output = subprocess.check_output(
-                ['tasklist', '/FI', f'PID eq {parent_pid}', '/FO', 'CSV', '/NH'],
-                text=True,
-                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
-                startupinfo=create_hidden_startupinfo(),
-            )
-        except Exception:
+            kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        except AttributeError:
             return False
-
-        normalized = output.strip()
-        return bool(normalized) and 'No tasks are running' not in normalized
+        PROCESS_QUERY_INFORMATION = 0x0400
+        process = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, parent_pid)
+        if process in (0, None):
+            return False
+        try:
+            exit_code = ctypes.c_ulong()
+            if kernel32.GetExitCodeProcess(process, ctypes.byref(exit_code)):
+                # 259 == STILL_ACTIVE
+                return exit_code.value == 259
+            return False
+        finally:
+            kernel32.CloseHandle(process)
 
     try:
         os.kill(parent_pid, 0)
@@ -84,7 +95,8 @@ def exit_backend_process(code: int = 0) -> None:
 async def parent_process_watchdog(parent_pid: int, interval_seconds: float = PARENT_CHECK_INTERVAL_SECONDS) -> None:
     while True:
         await asyncio.sleep(interval_seconds)
-        if is_parent_process_alive(parent_pid):
+        # Run the (cheap) process check off the event loop to keep it free.
+        if await asyncio.to_thread(is_parent_process_alive, parent_pid):
             continue
         print(f'Parent process {parent_pid} is gone, shutting down backend.')
         shutdown_mt5()
@@ -121,13 +133,39 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Enable CORS for development
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*'],
-    allow_methods=['*'],
-    allow_headers=['*'],
-)
+
+# CORS: strict origin allowlist. The local trading API must not be reachable from
+# arbitrary web pages (a malicious site could read accounts/positions or place
+# orders). The Electron renderer is either a file:// origin (packaged, Origin:
+# "null") or http://localhost/127.0.0.1 (dev). Anything else is rejected.
+_DEV_CORS_ORIGIN = os.environ.get('ALLOWED_CORS_ORIGIN')
+
+
+def _is_allowed_origin(origin: str | None) -> bool:
+    if origin is None or origin == 'null':
+        return True
+    if _DEV_CORS_ORIGIN and origin == _DEV_CORS_ORIGIN:
+        return True
+    return origin.startswith(('http://localhost:', 'http://127.0.0.1:'))
+
+
+@app.middleware('http')
+async def origin_guard(request: Request, call_next):
+    origin = request.headers.get('origin')
+    if request.method == 'OPTIONS':
+        response: Response = Response()
+        if _is_allowed_origin(origin):
+            response.headers['Access-Control-Allow-Origin'] = origin or 'null'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = '*'
+        return response
+    response = await call_next(request)
+    if _is_allowed_origin(origin):
+        response.headers['Access-Control-Allow-Origin'] = origin or 'null'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = '*'
+    return response
+
 
 app.include_router(health_router)
 app.include_router(settings_router)

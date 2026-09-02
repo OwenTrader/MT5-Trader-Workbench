@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { RefreshCw, Play, Pause, Trash2, Edit3, Plus, LineChart } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
+import { usePolling } from '@/lib/polling'
 import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
 
 export const IndicatorAlertsPage: React.FC = () => {
@@ -54,13 +55,13 @@ export const IndicatorAlertsPage: React.FC = () => {
   useEffect(() => {
     fetchSettings()
     fetchIndicatorAlerts()
-    
-    const interval = settings.api_refresh_interval || 2000
-    const timer = setInterval(() => {
-      fetchIndicatorAlerts({ silent: true })
-    }, interval)
-    return () => clearInterval(timer)
-  }, [settings.api_refresh_interval])
+  }, [])
+
+  usePolling(
+    () => fetchIndicatorAlerts({ silent: true }),
+    settings.api_refresh_interval || 2000,
+    { immediate: false },
+  )
 
   useAlertTriggerEffects({
     alerts: indicatorAlerts,

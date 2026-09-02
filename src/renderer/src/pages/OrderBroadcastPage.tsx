@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { RefreshCw, Megaphone, Edit3, Trash2, Play, Pause } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
+import { usePolling } from '@/lib/polling'
 
 const DEFAULT_SYMBOL = 'XAUUSD'
 
@@ -30,14 +31,7 @@ export const OrderBroadcastPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({ symbol: DEFAULT_SYMBOL })
 
-  useEffect(() => {
-    fetchOrderBroadcastRules()
-
-    const timer = setInterval(() => {
-      fetchOrderBroadcastRules({ silent: true })
-    }, 2000)
-    return () => clearInterval(timer)
-  }, [])
+  usePolling(() => fetchOrderBroadcastRules({ silent: true }), 2000)
 
   const handleSubmit = async () => {
     setError(null)

@@ -22,7 +22,10 @@
     "package:win:debug": "npm run build && npm run build:python:debug && npm run verify:packaging && node scripts/package-win.cjs --debug",
     "test:frontend": "vitest run",
     "test:electron": "playwright test tests/e2e/app-launch.spec.ts",
-    "test": "npm run test:frontend && npm run test:electron"
+    "test:python": "pytest tests/python",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "test": "npm run test:frontend && npm run test:electron && npm run test:python"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
@@ -61,6 +64,9 @@
     "electron": "^30.0.0",
     "electron-builder": "^24.9.1",
     "electron-vite": "^2.1.0",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "jimp": "^0.22.12",
     "jsdom": "^24.0.0",
     "postcss": "^8.4.38",

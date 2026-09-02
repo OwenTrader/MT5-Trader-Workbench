@@ -15,7 +15,8 @@ export function createOverlayWindow(): BrowserWindow {
     skipTaskbar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      contextIsolation: true,
+      sandbox: true
     }
   })
 

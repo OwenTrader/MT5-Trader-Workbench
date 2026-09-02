@@ -26,6 +26,21 @@ function getElectronBridge(): ElectronBridge | undefined {
   return (window as unknown as { electron?: ElectronBridge }).electron
 }
 
+function registerLocalRootsForSettings(settings: Settings): void {
+  const bridge = getElectronBridge()
+  if (!bridge?.ipcRenderer) return
+  const soundPath = settings.alert_sound_path
+  // Register the alert-sound directory so the local-file protocol can serve it.
+  // Only absolute paths (user-chosen files) need this; bundled/relative paths
+  // already live under an allowed root.
+  if (soundPath && /^[a-zA-Z]:[\\/]/.test(soundPath)) {
+    const dir = soundPath.replace(/[\\/][^\\/]+$/, '')
+    if (dir) {
+      void bridge.ipcRenderer.invoke('app:register-local-root', dir)
+    }
+  }
+}
+
 async function buildBackendUnavailableMessage(defaultMessage: string, error: unknown): Promise<string> {
   const details: string[] = []
 
@@ -157,14 +172,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const response = await apiFetch('/settings')
       if (!response.ok) throw new Error('Failed to fetch settings')
       const settings = await response.json()
-      set({
-        settings: {
-          ...DEFAULT_SETTINGS,
-          ...settings,
-          language: settings.language === 'en' ? 'en' : 'zh-CN',
-        },
-        isLoading: false,
-      })
+      const merged: Settings = {
+        ...DEFAULT_SETTINGS,
+        ...settings,
+        language: settings.language === 'en' ? 'en' : 'zh-CN',
+      }
+      set({ settings: merged, isLoading: false })
+      registerLocalRootsForSettings(merged)
     } catch (err: any) {
       const errorMessage = await buildBackendUnavailableMessage(backendUnavailableMessage, err)
       set({ error: errorMessage, isLoading: false })

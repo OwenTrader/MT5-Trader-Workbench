@@ -90,7 +90,7 @@ export function TradingReviewPage() {
       setTimeframe(found.timeframe)
       setStartDate(new Date(found.min_time * 1000).toISOString())
       setEndDate(new Date(found.max_time * 1000).toISOString())
-      toast.success(t('tradingReview.cachedDataHint'))
+      toastrade.success(t('tradingReview.cachedDataHint'))
     }
   }
 
@@ -99,13 +99,13 @@ export function TradingReviewPage() {
     try {
       const res = await store.nextCandle(limit)
       if (res.triggeredCount > 0) {
-        toast.info(t('tradingReview.autoTriggered', { count: res.triggeredCount }))
+        toastrade.info(t('tradingReview.autoTriggered', { count: res.triggeredCount }))
       }
       if (res.finished) {
-        toast.info(t('tradingReview.historyFinished'))
+        toastrade.info(t('tradingReview.historyFinished'))
       }
     } catch (err: any) {
-      toast.error(err.message)
+      toastrade.error(err.message)
     }
   }, [store, t])
 
@@ -121,9 +121,9 @@ export function TradingReviewPage() {
 
       try {
         await store.openTrade(type, lots, currentPrice, currentTime, sl, tp)
-        toast.success(t('tradingReview.openTradeSuccess', { type }))
+        toastrade.success(t('tradingReview.openTradeSuccess', { type }))
       } catch (err: any) {
-        toast.error(err.message || t('tradingReview.openTradeFailed'))
+        toastrade.error(err.message || t('tradingReview.openTradeFailed'))
       }
     },
     [store, lots, slPrice, tpPrice, t]
@@ -134,9 +134,9 @@ export function TradingReviewPage() {
     const currentCandle = store.klines[store.klines.length - 1]
     try {
       await store.closeAllTrades(currentCandle.close, currentCandle.time)
-      toast.success(t('tradingReview.closeTradeSuccess'))
+      toastrade.success(t('tradingReview.closeTradeSuccess'))
     } catch (err: any) {
-      toast.error(err.message || t('tradingReview.closeTradeFailed'))
+      toastrade.error(err.message || t('tradingReview.closeTradeFailed'))
     }
   }, [store, t])
 
@@ -189,14 +189,14 @@ export function TradingReviewPage() {
         try {
           const res = await store.nextCandle(1)
           if (res.triggeredCount > 0) {
-            toast.info(t('tradingReview.autoTriggered', { count: res.triggeredCount }))
+            toastrade.info(t('tradingReview.autoTriggered', { count: res.triggeredCount }))
           }
           if (res.finished) {
             store.togglePlayback()
-            toast.info(t('tradingReview.historyFinished'))
+            toastrade.info(t('tradingReview.historyFinished'))
           }
         } catch (err: any) {
-          toast.error(err.message)
+          toastrade.error(err.message)
           store.togglePlayback()
         }
       }, 1000 / store.playbackSpeed)
@@ -207,11 +207,11 @@ export function TradingReviewPage() {
   const handleCreateSession = async () => {
     try {
       const id = await store.createSession(symbol, timeframe, startDate, endDate, initialBalance)
-      toast.success(t('tradingReview.sessionCreated'))
+      toastrade.success(t('tradingReview.sessionCreated'))
       await store.fetchSessions()
       await store.loadSessionState(id)
     } catch (err: any) {
-      toast.error(err.message || t('tradingReview.sessionCreateFailed'))
+      toastrade.error(err.message || t('tradingReview.sessionCreateFailed'))
     }
   }
 
@@ -219,10 +219,10 @@ export function TradingReviewPage() {
     if (confirm(t('tradingReview.confirmDelete'))) {
       try {
         await store.deleteSession(id)
-        toast.success(t('tradingReview.sessionDeleted'))
+        toastrade.success(t('tradingReview.sessionDeleted'))
         store.fetchSessions()
       } catch {
-        toast.error(t('tradingReview.deleteFailed'))
+        toastrade.error(t('tradingReview.deleteFailed'))
       }
     }
   }
@@ -234,19 +234,19 @@ export function TradingReviewPage() {
     const currentCandle = store.klines[store.klines.length - 1]
     try {
       await store.closeTrade(tradeId, currentCandle.close, currentCandle.time)
-      toast.success(t('tradingReview.closeTradeSuccess'))
+      toastrade.success(t('tradingReview.closeTradeSuccess'))
     } catch (err: any) {
-      toast.error(err.message)
+      toastrade.error(err.message)
     }
   }
 
   // Active Workspace Calculations
   const activeTrades = useMemo(
-    () => store.trades.filter((t) => t.close_time === null),
+    () => store.trades.filter((t) => trade.close_time === null),
     [store.trades]
   )
   const closedTrades = useMemo(
-    () => store.trades.filter((t) => t.close_time !== null),
+    () => store.trades.filter((t) => trade.close_time !== null),
     [store.trades]
   )
   const lastCandle = store.klines[store.klines.length - 1]
@@ -489,7 +489,7 @@ export function TradingReviewPage() {
                       step="0.01"
                       className="h-8 text-xs font-mono"
                       value={lots}
-                      onChange={(e) => setLots(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => setLots(parseFloat(e.targetrade.value) || 0)}
                     />
                   </div>
                   <div className="space-y-1">
@@ -500,7 +500,7 @@ export function TradingReviewPage() {
                       placeholder="SL"
                       className="h-8 text-xs font-mono"
                       value={slPrice}
-                      onChange={(e) => setSlPrice(e.target.value)}
+                      onChange={(e) => setSlPrice(e.targetrade.value)}
                     />
                   </div>
                   <div className="space-y-1">
@@ -511,7 +511,7 @@ export function TradingReviewPage() {
                       placeholder="TP"
                       className="h-8 text-xs font-mono"
                       value={tpPrice}
-                      onChange={(e) => setTpPrice(e.target.value)}
+                      onChange={(e) => setTpPrice(e.targetrade.value)}
                     />
                   </div>
                 </div>
@@ -570,27 +570,27 @@ export function TradingReviewPage() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {activeTrades.map((t) => (
+                      {activeTrades.map((trade) => (
                         <div
-                          key={t.id}
+                          key={trade.id}
                           className="flex justify-between items-center p-2.5 border rounded-md text-xs bg-card/60"
                         >
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
                               <span
                                 className={`font-bold uppercase ${
-                                  t.type === 'buy' ? 'text-emerald-500' : 'text-rose-500'
+                                  trade.type === 'buy' ? 'text-emerald-500' : 'text-rose-500'
                                 }`}
                               >
-                                {t.type}
+                                {trade.type}
                               </span>
-                              <span className="font-mono">{t.lots} lots</span>
-                              <span className="text-muted-foreground font-mono">@{t.open_price}</span>
+                              <span className="font-mono">{trade.lots} lots</span>
+                              <span className="text-muted-foreground font-mono">@{trade.open_price}</span>
                             </div>
-                            {(t.sl || t.tp) && (
+                            {(trade.sl || trade.tp) && (
                               <div className="flex gap-2 text-[10px] text-muted-foreground font-mono">
-                                {t.sl && <span className="text-rose-400">SL: {t.sl}</span>}
-                                {t.tp && <span className="text-emerald-400">TP: {t.tp}</span>}
+                                {trade.sl && <span className="text-rose-400">SL: {trade.sl}</span>}
+                                {trade.tp && <span className="text-emerald-400">TP: {trade.tp}</span>}
                               </div>
                             )}
                           </div>
@@ -598,7 +598,7 @@ export function TradingReviewPage() {
                             size="sm"
                             variant="outline"
                             className="h-7 text-xs"
-                            onClick={() => handleCloseTrade(t.id)}
+                            onClick={() => handleCloseTrade(trade.id)}
                           >
                             {t('tradingReview.closePosition')}
                           </Button>
@@ -616,27 +616,27 @@ export function TradingReviewPage() {
                     </div>
                   ) : (
                     <div className="space-y-1.5">
-                      {closedTrades.map((t) => (
+                      {closedTrades.map((trade) => (
                         <div
-                          key={t.id}
+                          key={trade.id}
                           className="flex justify-between items-center p-2 border rounded-md text-xs bg-muted/30"
                         >
                           <div>
                             <span
                               className={`font-bold mr-1.5 uppercase ${
-                                t.type === 'buy' ? 'text-emerald-500' : 'text-rose-500'
+                                trade.type === 'buy' ? 'text-emerald-500' : 'text-rose-500'
                               }`}
                             >
-                              {t.type}
+                              {trade.type}
                             </span>
-                            <span className="font-mono text-muted-foreground">{t.lots} lots</span>
+                            <span className="font-mono text-muted-foreground">{trade.lots} lots</span>
                           </div>
                           <div
                             className={`font-mono font-bold ${
-                              (t.profit ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                              (trade.profit ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'
                             }`}
                           >
-                            {(t.profit ?? 0) >= 0 ? `+$${t.profit?.toFixed(2)}` : `-$${Math.abs(t.profit || 0).toFixed(2)}`}
+                            {(trade.profit ?? 0) >= 0 ? `+$${trade.profit?.toFixed(2)}` : `-$${Math.abs(trade.profit || 0).toFixed(2)}`}
                           </div>
                         </div>
                       ))}
@@ -685,15 +685,15 @@ export function TradingReviewPage() {
                             }`}
                           >
                             {metrics.netProfit >= 0
-                              ? `+$${metrics.netProfit.toFixed(2)}`
+                              ? `+$${metrics.netProfitrade.toFixed(2)}`
                               : `-$${Math.abs(metrics.netProfit).toFixed(2)}`}
-                            {' '}({metrics.returnPercent.toFixed(1)}%)
+                            {' '}({metrics.returnPercentrade.toFixed(1)}%)
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t('tradingReview.maxDrawdown')}:</span>
                           <span className="text-rose-500">
-                            ${metrics.maxDrawdown.toFixed(2)} ({metrics.maxDrawdownPercent.toFixed(1)}%)
+                            ${metrics.maxDrawdown.toFixed(2)} ({metrics.maxDrawdownPercentrade.toFixed(1)}%)
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -757,26 +757,26 @@ export function TradingReviewPage() {
 
             <div className="space-y-2">
               <Label>{t('tradingReview.symbol')}</Label>
-              <Input value={symbol} onChange={(e) => setSymbol(e.target.value)} />
+              <Input value={symbol} onChange={(e) => setSymbol(e.targetrade.value)} />
             </div>
             <div className="space-y-2">
               <Label>{t('tradingReview.timeframe')}</Label>
-              <Input value={timeframe} onChange={(e) => setTimeframe(e.target.value)} />
+              <Input value={timeframe} onChange={(e) => setTimeframe(e.targetrade.value)} />
             </div>
             <div className="space-y-2">
-              <Label>{t('dataManagement.startDate')} (ISO)</Label>
-              <Input value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <Label>{t('dataManagementrade.startDate')} (ISO)</Label>
+              <Input value={startDate} onChange={(e) => setStartDate(e.targetrade.value)} />
             </div>
             <div className="space-y-2">
-              <Label>{t('dataManagement.endDate')} (ISO)</Label>
-              <Input value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              <Label>{t('dataManagementrade.endDate')} (ISO)</Label>
+              <Input value={endDate} onChange={(e) => setEndDate(e.targetrade.value)} />
             </div>
             <div className="space-y-2">
               <Label>{t('tradingReview.initialBalance')}</Label>
               <Input
                 type="number"
                 value={initialBalance}
-                onChange={(e) => setInitialBalance(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setInitialBalance(parseFloat(e.targetrade.value) || 0)}
               />
             </div>
             <Button onClick={handleCreateSession} className="w-full">
