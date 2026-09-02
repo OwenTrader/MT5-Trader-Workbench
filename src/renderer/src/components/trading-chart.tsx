@@ -51,6 +51,12 @@ export function TradingChart({
   // lightweight-charts is loaded on demand so the charting library is not part
   // of the initial bundle.
   const lineStyleRef = useRef<{ Solid: number; Dashed: number } | null>(null)
+  // createSeriesMarkers is a top-level v5 factory resolved inside the dynamic
+  // import below; we stash it on a ref so the data-update effect (separate hook)
+  // can call it without re-importing the module.
+  const createSeriesMarkersRef = useRef<
+    ((series: ISeriesApi<'Candlestick'>, markers: SeriesMarker<Time>[]) => unknown) | null
+  >(null)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -62,6 +68,7 @@ export function TradingChart({
       if (cancelled || !chartContainerRef.current) return
       const { createChart, LineStyle, CandlestickSeries, HistogramSeries, LineSeries, createSeriesMarkers } = LWC
       lineStyleRef.current = LineStyle as { Solid: number; Dashed: number }
+      createSeriesMarkersRef.current = createSeriesMarkers
 
       chart = createChart(chartContainerRef.current, {
         layout: {
@@ -236,7 +243,7 @@ export function TradingChart({
     })
 
     markers.sort((a, b) => (a.time as number) - (b.time as number))
-    createSeriesMarkers(seriesRef.current, markers)
+    createSeriesMarkersRef.current?.(seriesRef.current, markers)
   }, [klines, trades, showEMA, showVolume, ready])
 
   return <div ref={chartContainerRef} className="w-full h-full min-h-[420px]" />

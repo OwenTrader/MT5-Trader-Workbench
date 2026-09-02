@@ -20,7 +20,7 @@ describe('Python Quant Store', () => {
   })
 
   it('loads quant overview from the backend', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/python-quant/overview')
       return {
         ok: true,
@@ -43,7 +43,7 @@ describe('Python Quant Store', () => {
   })
 
   it('creates a job and refreshes overview', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url === 'http://127.0.0.1:8765/python-quant/jobs') {
         expect(init?.method).toBe('POST')
@@ -92,6 +92,7 @@ describe('Python Quant Store', () => {
         symbol: 'XAUUSD',
         timeframe: 'M5',
         lot: 0.01,
+        execution_mode: 'live',
       })
     })
 
@@ -100,7 +101,7 @@ describe('Python Quant Store', () => {
   })
 
   it('surfaces backend validation detail when starting a job fails', async () => {
-    ;(fetch as any).mockResolvedValue({
+    (fetch as any).mockResolvedValue({
       ok: false,
       json: async () => ({ detail: 'Only one enabled quant job per account and symbol is allowed in V1' }),
     })
@@ -161,7 +162,7 @@ describe('Python Quant Store', () => {
   })
 
   it('fetches strategy code from backend', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/python-quant/strategies/rsi_reversal/code')
       return {
         ok: true,
@@ -184,7 +185,7 @@ describe('Python Quant Store', () => {
   })
 
   it('creates custom strategy and evaluates job', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.includes('/strategies/custom')) {
         expect(init?.method).toBe('POST')

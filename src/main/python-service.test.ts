@@ -22,6 +22,44 @@ const { electronAppMock, httpGetMock, execFileSyncMock, spawnMock } = vi.hoisted
   spawnMock: vi.fn()
 }))
 
+const fsMock = vi.hoisted(() => {
+  const store = new Map<string, string>()
+  return {
+    store,
+    writeFileSync: (p: string, data: string) => {
+      store.set(p, String(data))
+    },
+    readFileSync: (p: string) => {
+      const v = store.get(p)
+      if (v === undefined) {
+        const err: NodeJS.ErrnoException = new Error('ENOENT')
+        err.code = 'ENOENT'
+        throw err
+      }
+      return v
+    },
+    unlinkSync: (p: string) => {
+      store.delete(p)
+    },
+  }
+})
+
+vi.mock('node:fs', async () => {
+  const actual = await vi.importActual<typeof import('node:fs')>('node:fs')
+  return {
+    ...actual,
+    default: {
+      ...actual,
+      writeFileSync: fsMock.writeFileSync,
+      readFileSync: fsMock.readFileSync,
+      unlinkSync: fsMock.unlinkSync,
+    },
+    writeFileSync: fsMock.writeFileSync,
+    readFileSync: fsMock.readFileSync,
+    unlinkSync: fsMock.unlinkSync,
+  }
+})
+
 vi.mock('electron', () => ({
   app: electronAppMock
 }))
@@ -113,6 +151,7 @@ function createChildProcess(pid = 1234): MockChildProcess {
 
 describe('python-service startup health checks', () => {
   beforeEach(() => {
+    fsMock.store.clear()
     httpGetMock.mockReset()
     execFileSyncMock.mockReset()
     spawnMock.mockReset()
@@ -154,7 +193,7 @@ describe('python-service startup health checks', () => {
     })
 
     setTimeout(() => {
-      ;(childProcess as ChildProcess & { exitCode: number | null }).exitCode = 1
+      (childProcess as ChildProcess & { exitCode: number | null }).exitCode = 1
       childProcess.emit('close', 1, null)
     }, 10)
 
@@ -259,18 +298,35 @@ describe('python-service startup health checks', () => {
     childProcess.emit('close', 1, null)
     await stopPromise
 
-    expect(execFileSyncMock).toHaveBeenCalledTimes(2)
-    expect(execFileSyncMock).toHaveBeenNthCalledWith(1, 'taskkill.exe', ['/PID', '5678', '/T', '/F'], { stdio: 'ignore' })
-    expect(execFileSyncMock).toHaveBeenNthCalledWith(
-      2,
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-Command',
-        'Get-NetTCPConnection -LocalPort 8765 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }'
-      ],
-      { stdio: 'ignore' }
-    )
+    // The PID-file based kill must always win over the legacy PowerShell path.
+    expect(execFileSyncMock).not.toHaveBeenCalledWith('powershell.exe', expect.anything())
+
+    if (process.platform === 'win32') {
+      // The owned child times out (fake timers) and is force-killed once via
+      // taskkill. Its 'close' handler then clears the PID file, so killBackendOnPort
+      // falls back to a native netstat port scan — never the legacy PowerShell path.
+      expect(execFileSyncMock).toHaveBeenCalledTimes(2)
+      expect(execFileSyncMock).toHaveBeenNthCalledWith(
+        1,
+        'taskkill.exe',
+        ['/PID', '5678', '/T', '/F'],
+        { stdio: 'ignore' }
+      )
+      expect(execFileSyncMock).toHaveBeenNthCalledWith(
+        2,
+        'netstat',
+        ['-ano', '-p', 'TCP'],
+        { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }
+      )
+    } else {
+      expect(execFileSyncMock).toHaveBeenCalledTimes(1)
+      expect(execFileSyncMock).toHaveBeenNthCalledWith(
+        1,
+        'sh',
+        ['-lc', expect.stringContaining('lsof')],
+        expect.anything()
+      )
+    }
     vi.useRealTimers()
   })
 })

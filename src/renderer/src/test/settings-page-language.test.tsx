@@ -92,7 +92,7 @@ describe('Settings language switch', () => {
       expect(useSettingsStore.getState().settings.language).toBe('zh-CN')
     })
 
-    fireEvent.click(screen.getByLabelText('界面语言'))
+    fireEvent.click(await screen.findByLabelText('界面语言'))
     fireEvent.click(await screen.findByRole('option', { name: 'English' }))
     const saveButtons = await screen.findAllByRole('button', { name: /保存设置|Save Settings/ })
     fireEvent.click(saveButtons[0])
