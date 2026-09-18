@@ -1,5 +1,9 @@
+"""Acquire source-account positions through the shared MT5 session."""
+
+import json
+
 from python_service.app.local_copy_trading.models import LocalCopyTradingState
-from python_service.app.services.mt5_service import init_mt5_account, mt5, mt5_connection_lock, shutdown_mt5
+from python_service.app.services.mt5_session import Mt5SessionError, use_account
 
 
 def _as_dict(value) -> dict:
@@ -11,6 +15,11 @@ def _as_dict(value) -> dict:
 
 
 def get_source_positions(state: LocalCopyTradingState) -> list[dict]:
+    """Return every open position held by an active source account.
+
+    Each MT5-backed account is visited once. The connection is left open for
+    the next caller, so consecutive work on the same account is free.
+    """
     positions: list[dict] = []
     source_account_ids = {
         relationship.source_account_id
@@ -33,17 +42,51 @@ def get_source_positions(state: LocalCopyTradingState) -> list[dict]:
         if account.connection_type != 'mt5_terminal':
             continue
 
-        with mt5_connection_lock():
-            success, detail = init_mt5_account(account.terminal_path, account.login, account.password, account.server)
-            if not success:
-                raise RuntimeError(detail or f'Failed to connect source account {account.name}')
-
-            try:
-                for position in mt5.positions_get() or []:
+        try:
+            with use_account(
+                account.terminal_path,
+                account.login,
+                account.password,
+                account.server,
+            ) as client:
+                for position in client.positions_get() or []:
                     payload = _as_dict(position)
                     payload['source_account_id'] = account.id
                     payload['position_id'] = str(payload.get('ticket') or payload.get('identifier') or '')
                     positions.append(payload)
-            finally:
-                shutdown_mt5()
+        except Mt5SessionError as error:
+            raise RuntimeError(str(error)) from error
+
     return positions
+
+
+def positions_signature(positions: list[dict]) -> str:
+    """Reduce a source snapshot to a comparable value.
+
+    Only fields that can change what the engine would do are included, so
+    unrelated churn in the MT5 position payload does not trigger work.
+    """
+    relevant = sorted(
+        (
+            str(position.get('source_account_id') or ''),
+            str(position.get('position_id') or position.get('ticket') or ''),
+            str(position.get('symbol') or ''),
+            str(position.get('type') or ''),
+            str(position.get('volume') or ''),
+            str(position.get('sl') or ''),
+            str(position.get('tp') or ''),
+        )
+        for position in positions
+    )
+    return json.dumps(relevant, ensure_ascii=False, separators=(',', ':'))
+
+
+def should_process_tick(previous_signature: str | None, positions: list[dict]) -> tuple[bool, str]:
+    """Decide whether this tick needs to touch any follower connection.
+
+    Returns ``(should_process, signature)``. When the source snapshot is
+    unchanged there is nothing to open, close, or reconcile, so the tick can be
+    skipped without connecting to a single follower.
+    """
+    signature = positions_signature(positions)
+    return signature != previous_signature, signature

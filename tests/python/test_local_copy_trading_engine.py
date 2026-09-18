@@ -135,3 +135,162 @@ def test_engine_does_not_close_same_copied_position_twice():
     assert len(first_close) == 1
     assert first_close[0].status == 'closed'
     assert second_close == []
+
+
+def test_engine_groups_copy_actions_by_follower_account():
+    state = LocalCopyTradingState(
+        enabled=True,
+        accounts=[
+            Account(id='src-1', name='Main'),
+            Account(id='fol-a', name='Follower A'),
+            Account(id='fol-b', name='Follower B'),
+        ],
+        relationships=[
+            CopyRelationship(id='rel-a1', source_account_id='src-1', follower_account_id='fol-a', symbol='XAUUSD'),
+            CopyRelationship(id='rel-b1', source_account_id='src-1', follower_account_id='fol-b', symbol='EURUSD'),
+            CopyRelationship(id='rel-a2', source_account_id='src-1', follower_account_id='fol-a', symbol='GBPUSD'),
+        ],
+    )
+    source_positions = [
+        {'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD'},
+        {'position_id': 'pos-2', 'source_account_id': 'src-1', 'symbol': 'EURUSD'},
+        {'position_id': 'pos-3', 'source_account_id': 'src-1', 'symbol': 'GBPUSD'},
+    ]
+    visited = []
+
+    def fake_copy(follower, relationship, position):
+        visited.append(follower.id)
+        return True, 'ok', f"fp-{position['position_id']}", ''
+
+    process_tick(state, source_positions, execute_copy=fake_copy)
+
+    assert visited == ['fol-a', 'fol-a', 'fol-b']
+
+
+def test_engine_groups_close_actions_by_follower_account():
+    state = LocalCopyTradingState(
+        enabled=True,
+        accounts=[
+            Account(id='src-1', name='Main'),
+            Account(id='fol-a', name='Follower A'),
+            Account(id='fol-b', name='Follower B'),
+        ],
+        relationships=[
+            CopyRelationship(id='rel-a1', source_account_id='src-1', follower_account_id='fol-a', symbol='XAUUSD'),
+            CopyRelationship(id='rel-b1', source_account_id='src-1', follower_account_id='fol-b', symbol='EURUSD'),
+            CopyRelationship(id='rel-a2', source_account_id='src-1', follower_account_id='fol-a', symbol='GBPUSD'),
+        ],
+    )
+
+    def fake_copy(follower, relationship, position):
+        return True, 'ok', f"fp-{position['position_id']}", ''
+
+    source_positions = [
+        {'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD'},
+        {'position_id': 'pos-2', 'source_account_id': 'src-1', 'symbol': 'EURUSD'},
+        {'position_id': 'pos-3', 'source_account_id': 'src-1', 'symbol': 'GBPUSD'},
+    ]
+    process_tick(state, source_positions, execute_copy=fake_copy)
+
+    closed = []
+
+    def fake_close(follower, relationship, copied_event):
+        closed.append(follower.id)
+        return True, 'closed'
+
+    process_tick(state, [], execute_close=fake_close)
+
+    assert closed == ['fol-a', 'fol-a', 'fol-b']
+
+
+def _copied_state() -> LocalCopyTradingState:
+    """A state that has already copied pos-1 once."""
+    state = LocalCopyTradingState(
+        enabled=True,
+        accounts=[Account(id='src-1', name='Main A'), Account(id='fol-1', name='Follower A')],
+        relationships=[
+            CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')
+        ],
+    )
+    process_tick(
+        state,
+        source_positions=[{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.1}],
+    )
+    return state
+
+
+def test_engine_leaves_a_copied_position_alone_without_a_volume_reader():
+    """Without a reader the engine cannot prove drift, so it must not guess."""
+    state = _copied_state()
+
+    events = process_tick(
+        state,
+        source_positions=[{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.5}],
+    )
+
+    assert events == []
+
+
+def test_engine_leaves_a_copied_position_alone_when_the_source_size_is_unchanged():
+    state = _copied_state()
+
+    events = process_tick(
+        state,
+        source_positions=[{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.1}],
+        recorded_volume=lambda relationship_id, position_id: 0.1,
+    )
+
+    assert events == []
+
+
+def test_engine_resends_a_copied_position_when_the_source_size_moves():
+    state = _copied_state()
+    seen = []
+
+    def fake_copy(follower, relationship, position):
+        seen.append(position['volume'])
+        return True, 'Resized', '789', '456'
+
+    events = process_tick(
+        state,
+        source_positions=[{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.4}],
+        execute_copy=fake_copy,
+        recorded_volume=lambda relationship_id, position_id: 0.1,
+    )
+
+    assert seen == [0.4]
+    assert len(events) == 1
+
+
+def test_engine_ignores_a_copied_position_with_no_recorded_volume():
+    state = _copied_state()
+
+    events = process_tick(
+        state,
+        source_positions=[{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.4}],
+        recorded_volume=lambda relationship_id, position_id: None,
+    )
+
+    assert events == []
+
+
+def test_engine_records_a_guard_skip_as_its_own_status():
+    from python_service.app.local_copy_trading.models import CopyResult
+
+    state = LocalCopyTradingState(
+        enabled=True,
+        accounts=[Account(id='src-1', name='Main A'), Account(id='fol-1', name='Follower A')],
+        relationships=[
+            CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')
+        ],
+    )
+
+    events = process_tick(
+        state,
+        source_positions=[{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.1}],
+        execute_copy=lambda follower, relationship, position: CopyResult(False, 'skipped', 'limit reached'),
+    )
+
+    assert len(events) == 1
+    assert events[0].status == 'skipped'
+    assert events[0].message == 'limit reached'
