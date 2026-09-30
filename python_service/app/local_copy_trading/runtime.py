@@ -219,7 +219,11 @@ def build_overview(state: LocalCopyTradingState) -> dict:
             'last_error': state.last_error,
             'last_checked_at': state.last_checked_at,
         },
-        'accounts': [account.model_dump() for account in state.accounts],
+        'accounts': [
+            # API responses never carry the credential back out; storage keeps it.
+            {**account.model_dump(), 'password': ''}
+            for account in state.accounts
+        ],
         'relationships': [relationship.model_dump() for relationship in state.relationships],
         'events': [event.model_dump() for event in state.events],
     }

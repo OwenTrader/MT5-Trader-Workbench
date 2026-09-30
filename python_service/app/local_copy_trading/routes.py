@@ -80,9 +80,15 @@ def create_account(account: Account):
 
 @router.put('/accounts/{account_id}')
 def edit_account(account_id: str, account: Account):
+    state = get_state()
+    current = next((item for item in state.accounts if item.id == account_id), None)
+    # The UI never receives the password back, so an empty password means
+    # "keep the stored one", not "erase it".
+    if current is not None and not account.password:
+        account = account.model_copy(update={'password': current.password})
     _validate_account_connection(account)
     try:
-        state = update_account(get_state(), account_id, account)
+        state = update_account(state, account_id, account)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
     save_state(state)

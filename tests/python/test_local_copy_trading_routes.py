@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from python_service.app.local_copy_trading import copy_trading_db, routes as local_copy_trading_routes
 from python_service.app.local_copy_trading.routes import router as local_copy_trading_router
-from python_service.app.local_copy_trading.runtime import reset_state
+from python_service.app.local_copy_trading.runtime import get_state, reset_state
 
 
 @pytest.fixture(autouse=True)
@@ -351,7 +351,7 @@ def test_delete_account_route_removes_account_and_relationships(tmp_path, monkey
             'terminal_path': 'D:/MT5/terminal64.exe',
             'login': '2001',
             'server': 'demo',
-            'password': 'secret',
+            'password': '',
             'is_active': True,
         },
     ]
@@ -504,3 +504,47 @@ def test_get_overview_works_before_the_order_map_exists(tmp_path, monkeypatch):
 
     assert response.status_code == 200
     assert response.json()['open_record_counts'] == {}
+
+
+def test_overview_does_not_return_account_passwords(tmp_path, monkeypatch):
+    reset_state()
+    monkeypatch.setattr(local_copy_trading_routes, 'verify_mt5_credentials', lambda **kwargs: (True, None))
+    app = build_test_app()
+    client = TestClient(app)
+    client.post('/local-copy-trading/accounts', json={
+        'name': 'Main A', 'connection_type': 'mt5_terminal',
+        'terminal_path': 'C:/MT5/terminal64.exe', 'login': '1001',
+        'server': 'demo', 'password': 'secret', 'is_active': True,
+    })
+
+    response = client.get('/local-copy-trading')
+
+    assert response.json()['accounts'][0]['password'] == ''
+    assert get_state().accounts[0].password == 'secret'
+
+
+def test_edit_account_with_empty_password_keeps_the_stored_one(tmp_path, monkeypatch):
+    reset_state()
+    captured = {}
+    monkeypatch.setattr(
+        local_copy_trading_routes,
+        'verify_mt5_credentials',
+        lambda **kwargs: (captured.update(kwargs), (True, None))[1],
+    )
+    app = build_test_app()
+    client = TestClient(app)
+    client.post('/local-copy-trading/accounts', json={
+        'id': 'src-1', 'name': 'Main A', 'connection_type': 'mt5_terminal',
+        'terminal_path': 'C:/MT5/terminal64.exe', 'login': '1001',
+        'server': 'demo', 'password': 'secret', 'is_active': True,
+    })
+
+    response = client.put('/local-copy-trading/accounts/src-1', json={
+        'name': 'Main A', 'connection_type': 'mt5_terminal',
+        'terminal_path': 'C:/MT5/terminal64.exe', 'login': '1001',
+        'server': 'demo', 'password': '', 'is_active': True,
+    })
+
+    assert response.status_code == 200
+    assert captured.get('password') == 'secret'
+    assert get_state().accounts[0].password == 'secret'
