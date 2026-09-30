@@ -1,4 +1,4 @@
-from python_service.app.local_copy_trading.engine import process_tick
+from python_service.app.local_copy_trading.engine import has_pending_work, process_tick
 from python_service.app.local_copy_trading.models import Account, CopyRelationship, LocalCopyTradingState
 
 
@@ -294,3 +294,45 @@ def test_engine_records_a_guard_skip_as_its_own_status():
     assert len(events) == 1
     assert events[0].status == 'skipped'
     assert events[0].message == 'limit reached'
+
+
+# --- outstanding-work detection ---------------------------------------------
+
+
+def test_has_pending_work_detects_a_close_still_owing():
+    state = _copied_state()
+
+    assert has_pending_work(state, []) is True
+
+
+def test_has_pending_work_is_false_once_the_close_settled():
+    state = _copied_state()
+    process_tick(state, [], execute_close=lambda follower, relationship, copied_event: (True, 'closed'))
+
+    assert has_pending_work(state, []) is False
+
+
+def test_has_pending_work_is_false_when_the_source_size_matches():
+    state = _copied_state()
+
+    assert (
+        has_pending_work(
+            state,
+            [{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.1}],
+            recorded_volume=lambda relationship_id, position_id: 0.1,
+        )
+        is False
+    )
+
+
+def test_has_pending_work_is_true_when_the_source_size_moved():
+    state = _copied_state()
+
+    assert (
+        has_pending_work(
+            state,
+            [{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD', 'volume': 0.4}],
+            recorded_volume=lambda relationship_id, position_id: 0.1,
+        )
+        is True
+    )

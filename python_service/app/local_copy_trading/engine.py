@@ -81,29 +81,23 @@ def _needs_volume_sync(
     return abs(float(recorded) - current) > VOLUME_EPSILON
 
 
-def process_tick(
+def _collect_pending(
     state: LocalCopyTradingState,
     source_positions: list[dict],
-    execute_copy: CopyExecutor | None = None,
-    execute_close: CloseExecutor | None = None,
-    recorded_volume: VolumeReader | None = None,
-) -> list[SyncEvent]:
-    """Run one synchronisation tick.
+    recorded_volume: VolumeReader | None,
+) -> tuple[list[SyncEvent], list[tuple[str, CopyRelationship, dict]]]:
+    """Return ``(pending_closes, pending_copies)`` for one tick.
 
-    Work is grouped by follower account before execution so that a follower
-    holding several relationships only pays for one MT5 connection.
+    Shared by :func:`process_tick` and :func:`has_pending_work` so the two can
+    never disagree about what counts as outstanding work.
     """
-    copy_executor = execute_copy or _default_copy_executor
-    close_executor = execute_close or _default_close_executor
     active_accounts = {account.id: account for account in state.accounts if account.is_active}
-    events: list[SyncEvent] = []
+    relationships = {relationship.id: relationship for relationship in state.relationships if relationship.is_active}
     active_source_position_ids = {
         str(position.get('position_id') or position.get('ticket') or '')
         for position in source_positions
         if str(position.get('position_id') or position.get('ticket') or '')
     }
-
-    relationships = {relationship.id: relationship for relationship in state.relationships if relationship.is_active}
 
     pending_closes: list[SyncEvent] = []
     for copied_event in get_open_copied_events(state):
@@ -137,6 +131,45 @@ def process_tick(
             ):
                 continue
             pending_copies.append((follower.id, relationship, position))
+
+    return pending_closes, pending_copies
+
+
+def has_pending_work(
+    state: LocalCopyTradingState,
+    source_positions: list[dict],
+    *,
+    recorded_volume: VolumeReader | None = None,
+) -> bool:
+    """True when a tick would attempt at least one copy or close.
+
+    The trading loop uses this to force a tick whose source snapshot signature
+    is unchanged: a rejected order or a failed close must be retried, which the
+    signature filter alone would never do.
+    """
+    pending_closes, pending_copies = _collect_pending(state, source_positions, recorded_volume)
+    return bool(pending_closes or pending_copies)
+
+
+def process_tick(
+    state: LocalCopyTradingState,
+    source_positions: list[dict],
+    execute_copy: CopyExecutor | None = None,
+    execute_close: CloseExecutor | None = None,
+    recorded_volume: VolumeReader | None = None,
+) -> list[SyncEvent]:
+    """Run one synchronisation tick.
+
+    Work is grouped by follower account before execution so that a follower
+    holding several relationships only pays for one MT5 connection.
+    """
+    copy_executor = execute_copy or _default_copy_executor
+    close_executor = execute_close or _default_close_executor
+    active_accounts = {account.id: account for account in state.accounts if account.is_active}
+    events: list[SyncEvent] = []
+
+    pending_closes, pending_copies = _collect_pending(state, source_positions, recorded_volume)
+    relationships = {relationship.id: relationship for relationship in state.relationships if relationship.is_active}
 
     for _, relationship, position in sorted(pending_copies, key=lambda item: item[0]):
         follower = active_accounts[relationship.follower_account_id]

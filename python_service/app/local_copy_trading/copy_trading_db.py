@@ -15,6 +15,11 @@ DEFAULT_DB_PATH = Path('storage/local_copy_trading.db')
 
 OPEN_STATUSES = ('pending', 'confirmed')
 
+# A record in one of these states may still describe a live follower position
+# whose size can drift: pending (outcome unknown after a crash), confirmed, or
+# failed (the last adjustment was rejected but the position is still ours).
+SYNCABLE_STATUSES = ('pending', 'confirmed', 'failed')
+
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS copy_order_map (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -208,17 +213,22 @@ def get_recorded_volume(
     *,
     db_path: Path | str = DEFAULT_DB_PATH,
 ) -> float | None:
-    """Return the source volume last matched for this pair, or None if unknown."""
+    """Return the source volume last matched for this pair, or None if unknown.
+
+    Also None when the record is settled (skipped, drifted, closed): a settled
+    record must not trigger volume synchronisation again, because no follower
+    position is expected to exist for it.
+    """
     connection = connect(db_path)
     try:
         row = connection.execute(
             """
             SELECT source_volume FROM copy_order_map
-             WHERE relationship_id = ? AND source_position_id = ?
+             WHERE relationship_id = ? AND source_position_id = ? AND status IN (?, ?, ?)
              ORDER BY id DESC
              LIMIT 1
             """,
-            (relationship_id, source_position_id),
+            (relationship_id, source_position_id, *SYNCABLE_STATUSES),
         ).fetchone()
         if row is None:
             return None
@@ -298,6 +308,9 @@ def list_open_records(*, db_path: Path | str = DEFAULT_DB_PATH) -> list[dict]:
 
 
 def delete_by_relationship(relationship_id: str, *, db_path: Path | str = DEFAULT_DB_PATH) -> None:
+    # Routes can remove a relationship before the trading loop has ever
+    # initialised the database, so the schema is ensured here.
+    init_db(db_path)
     connection = connect(db_path)
     try:
         connection.execute(

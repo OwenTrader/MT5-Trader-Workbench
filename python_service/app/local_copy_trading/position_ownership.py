@@ -37,7 +37,11 @@ def is_owned_position(payload: dict, *, relationship_id: str, position_id: str) 
     """True when this exact position belongs to this relationship/source pair."""
     if not is_copy_trading_position(payload):
         return False
-    return str(payload.get('comment') or '').strip() == build_comment(relationship_id, position_id)
+    comment = str(payload.get('comment') or '').strip()
+    expected = build_comment(relationship_id, position_id)
+    # Some brokers append their own text to the order comment; a prefix match
+    # keeps ownership resolvable (and the position closeable) when that happens.
+    return comment == expected or comment.startswith(expected)
 
 
 def select_owned_position(positions, *, relationship_id: str, position_id: str) -> dict | None:

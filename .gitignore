@@ -70,3 +70,5 @@ storage/*.local.json
 storage/python_quant/
 storage/python_quant/strategies/
 storage/custom_strategies/
+storage/local_copy_trading.db
+storage/copy-trading-risk.json

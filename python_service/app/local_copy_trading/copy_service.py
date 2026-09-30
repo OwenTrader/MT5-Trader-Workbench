@@ -18,6 +18,8 @@ Two things happen here that deliberately do not happen in the pure engine:
 
 from __future__ import annotations
 
+import logging
+from datetime import datetime, timezone
 from pathlib import Path
 
 from python_service.app.local_copy_trading import copy_trading_db, follower_executor, guards, volume_planner
@@ -32,6 +34,14 @@ from python_service.app.local_copy_trading.runtime import utc_now_iso
 from python_service.app.services.mt5_session import Mt5SessionError, use_account
 
 
+logger = logging.getLogger(__name__)
+
+
+# MT5 deal entry directions that close (fully or partly) a position.
+_DEAL_ENTRY_OUT = 1
+_DEAL_ENTRY_OUT_BY = 3
+
+
 def build_client_key(relationship_id: str, source_position_id: str) -> str:
     """Identity of one source position copied through one relationship."""
     return f'{relationship_id}:{source_position_id}'
@@ -39,6 +49,33 @@ def build_client_key(relationship_id: str, source_position_id: str) -> str:
 
 def _source_volume(source_position: dict) -> float:
     return float(source_position.get('volume') or 0)
+
+
+def _daily_realized_profit(client) -> float:
+    """Sum today's closed-deal result (profit + commission + swap) for the account.
+
+    Returns 0.0 when the terminal cannot answer, because a guard that cannot
+    read its input must not turn into a hard failure of the copy path.
+    """
+    history_get = getattr(client, 'history_deals_get', None)
+    if history_get is None:
+        return 0.0
+
+    now = datetime.now(timezone.utc)
+    day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    try:
+        deals = history_get(day_start, now)
+    except Exception:
+        return 0.0
+
+    total = 0.0
+    for deal in deals or []:
+        if int(getattr(deal, 'entry', 1) or 1) not in (_DEAL_ENTRY_OUT, _DEAL_ENTRY_OUT_BY):
+            continue
+        total += float(getattr(deal, 'profit', 0) or 0)
+        total += float(getattr(deal, 'commission', 0) or 0)
+        total += float(getattr(deal, 'swap', 0) or 0)
+    return total
 
 
 def _guard_decision(
@@ -63,6 +100,11 @@ def _guard_decision(
         if raw_account_info is not None:
             account_info = follower_executor.as_dict(raw_account_info)
         positions = follower_executor.list_positions(client)
+
+    # A caller that knows the realised result passes it; the trading loop does
+    # not track it, so it is read from the terminal's deal history here.
+    if daily_realized_profit == 0.0 and settings.max_daily_loss > 0 and client is not None:
+        daily_realized_profit = _daily_realized_profit(client)
 
     return guards.evaluate_open_guard(
         relationship,
@@ -124,6 +166,28 @@ def _sync_existing_position(
                 follower_order_id,
             )
 
+        owned = follower_executor.find_owned_position(
+            client,
+            symbol,
+            relationship_id=relationship.id,
+            position_id=existing['source_position_id'],
+        )
+        if owned is None:
+            message = f'Drift: follower position for source position {existing["source_position_id"]} is missing'
+            copy_trading_db.mark_drifted(
+                client_key,
+                message=message,
+                updated_at=utc_now_iso(),
+                db_path=db_path,
+            )
+            logger.warning(
+                'Relationship %s source position %s: %s',
+                relationship.id,
+                existing['source_position_id'],
+                message,
+            )
+            return CopyResult(False, 'failed', message, follower_position_id, follower_order_id)
+
         follower_equity = None
         if relationship.volume_mode == 'equity_ratio':
             account_info = client.account_info()
@@ -148,30 +212,45 @@ def _sync_existing_position(
         expected_volume=expected_volume,
     )
 
+    # The source volume is only recorded on success: recording it for a
+    # rejected adjustment would tell the engine the sizes already match, and
+    # the drift would never be retried.
+    if not success:
+        copy_trading_db.mark_failed(
+            client_key,
+            message=message,
+            updated_at=utc_now_iso(),
+            db_path=db_path,
+        )
+        logger.warning(
+            'Relationship %s source position %s: volume sync failed: %s',
+            relationship.id,
+            existing['source_position_id'],
+            message,
+        )
+        return CopyResult(False, 'failed', message, follower_position_id, follower_order_id)
+
+    copy_trading_db.confirm_order(
+        client_key,
+        follower_position_ticket=follower_position_id,
+        follower_order_id=follower_order_id,
+        message=message,
+        updated_at=utc_now_iso(),
+        db_path=db_path,
+    )
     copy_trading_db.record_source_volume(
         client_key,
         source_volume=_source_volume(source_position),
         updated_at=utc_now_iso(),
         db_path=db_path,
     )
-    if success:
-        copy_trading_db.confirm_order(
-            client_key,
-            follower_position_ticket=follower_position_id,
-            follower_order_id=follower_order_id,
-            message=message,
-            updated_at=utc_now_iso(),
-            db_path=db_path,
-        )
-        return CopyResult(True, 'copied', message, follower_position_id, follower_order_id)
-
-    copy_trading_db.mark_failed(
-        client_key,
-        message=message,
-        updated_at=utc_now_iso(),
-        db_path=db_path,
+    logger.info(
+        'Relationship %s source position %s: %s',
+        relationship.id,
+        existing['source_position_id'],
+        message,
     )
-    return CopyResult(False, 'failed', message, follower_position_id, follower_order_id)
+    return CopyResult(True, 'copied', message, follower_position_id, follower_order_id)
 
 
 def execute_copy(
@@ -196,7 +275,12 @@ def execute_copy(
 
     client_key = build_client_key(relationship.id, source_position_id)
     existing = copy_trading_db.find_by_client_key(client_key, db_path=db_path)
-    open_existing = existing is not None and existing['status'] == 'confirmed'
+    # A row carrying a follower ticket means a follower position may still be
+    # open even when the last action on it failed; such a row must be synced,
+    # never re-placed as a second independent order for the same source ticket.
+    open_existing = existing is not None and (
+        existing['status'] == 'confirmed' or bool(existing.get('follower_position_ticket'))
+    )
 
     # A confirmed row that still matches the source size is already done. A
     # confirmed row whose source size moved needs the follower adjusted, and
@@ -271,6 +355,7 @@ def execute_copy(
             updated_at=utc_now_iso(),
             db_path=db_path,
         )
+        logger.error('Relationship %s source position %s: session error: %s', relationship.id, source_position_id, error)
         return CopyResult(False, 'failed', str(error))
 
 
@@ -317,6 +402,13 @@ def _place_order(
                 updated_at=utc_now_iso(),
                 db_path=db_path,
             )
+            logger.info(
+                'Relationship %s source position %s: guard %s refused the copy: %s',
+                relationship.id,
+                source_position.get('position_id') or source_position.get('ticket') or '',
+                decision.rule,
+                decision.message,
+            )
             return CopyResult(False, 'skipped', decision.message)
 
     result = follower_executor.send_copy_order(client, follower, relationship, plan, source_position)
@@ -347,6 +439,7 @@ def _settle(
             updated_at=utc_now_iso(),
             db_path=db_path,
         )
+        logger.info('%s', message)
     else:
         copy_trading_db.mark_failed(
             client_key,
@@ -354,6 +447,7 @@ def _settle(
             updated_at=utc_now_iso(),
             db_path=db_path,
         )
+        logger.warning('Copy %s failed: %s', client_key, message)
 
     return CopyResult(
         bool(success),
@@ -396,5 +490,13 @@ def execute_close(
             message=message,
             updated_at=utc_now_iso(),
             db_path=db_path,
+        )
+        logger.info('Relationship %s source position %s: %s', relationship.id, copied_event.position_id, message)
+    else:
+        logger.warning(
+            'Relationship %s source position %s: close failed: %s',
+            relationship.id,
+            copied_event.position_id,
+            message,
         )
     return success, message

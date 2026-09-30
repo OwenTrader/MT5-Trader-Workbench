@@ -35,6 +35,17 @@ def test_is_owned_position_matches_the_exact_position():
     assert position_ownership.is_owned_position(payload, relationship_id='rel-1', position_id='pos-1') is True
 
 
+def test_is_owned_position_matches_when_the_broker_appended_to_the_comment():
+    """Brokers sometimes append their own text; ownership must survive that."""
+    payload = {
+        'ticket': 789,
+        'magic': position_ownership.COPY_TRADING_MAGIC,
+        'comment': f"{position_ownership.build_comment('rel-1', 'pos-1')} tp-hit",
+    }
+
+    assert position_ownership.is_owned_position(payload, relationship_id='rel-1', position_id='pos-1') is True
+
+
 def test_is_owned_position_rejects_a_manual_position():
     payload = {'ticket': 111, 'magic': 0, 'comment': position_ownership.build_comment('rel-1', 'pos-1')}
 

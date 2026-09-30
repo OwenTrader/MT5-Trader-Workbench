@@ -1,6 +1,12 @@
 from fastapi import APIRouter, HTTPException
 
-from python_service.app.local_copy_trading.models import Account, CopyRelationship, LocalCopyTradingRuntimeUpdate
+from python_service.app.local_copy_trading import copy_trading_db, guards
+from python_service.app.local_copy_trading.models import (
+    Account,
+    CopyRelationship,
+    CopyTradingRiskSettings,
+    LocalCopyTradingRuntimeUpdate,
+)
 from python_service.app.local_copy_trading.runtime import (
     add_account,
     add_relationship,
@@ -76,7 +82,17 @@ def create_relationship(relationship: CopyRelationship):
 
 @router.delete('/accounts/{account_id}')
 def delete_account(account_id: str):
-    state = remove_account(get_state(), account_id)
+    state = get_state()
+    # Order-map rows of the relationships being removed can no longer be
+    # managed; deleting them lets the orphan sweep surface leftover positions.
+    removed_relationship_ids = [
+        relationship.id
+        for relationship in state.relationships
+        if relationship.source_account_id == account_id or relationship.follower_account_id == account_id
+    ]
+    state = remove_account(state, account_id)
+    for relationship_id in removed_relationship_ids:
+        copy_trading_db.delete_by_relationship(relationship_id)
     save_state(state)
     return build_overview(state)
 
@@ -84,8 +100,20 @@ def delete_account(account_id: str):
 @router.delete('/relationships/{relationship_id}')
 def delete_relationship(relationship_id: str):
     state = remove_relationship(get_state(), relationship_id)
+    copy_trading_db.delete_by_relationship(relationship_id)
     save_state(state)
     return build_overview(state)
+
+
+@router.get('/risk-settings')
+def get_risk_settings():
+    return guards.load_risk_settings().model_dump()
+
+
+@router.put('/risk-settings')
+def update_risk_settings(settings: CopyTradingRiskSettings):
+    guards.save_risk_settings(settings)
+    return settings.model_dump()
 
 
 @router.post('/runtime')

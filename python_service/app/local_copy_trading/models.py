@@ -169,3 +169,17 @@ class CopyTradingRiskSettings(BaseModel):
     max_daily_loss: float = 0
     min_margin_level: float = 0
     max_consecutive_failures: int = 3
+
+    @field_validator(
+        'max_volume_per_symbol',
+        'max_positions_per_symbol',
+        'max_daily_open_count',
+        'max_daily_loss',
+        'min_margin_level',
+        'max_consecutive_failures',
+    )
+    @classmethod
+    def validate_non_negative(cls, value: float) -> float:
+        if value < 0:
+            raise ValueError('risk limits must not be negative; 0 disables the rule')
+        return value

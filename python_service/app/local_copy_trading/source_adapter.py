@@ -1,9 +1,13 @@
 """Acquire source-account positions through the shared MT5 session."""
 
 import json
+import logging
 
 from python_service.app.local_copy_trading.models import LocalCopyTradingState
 from python_service.app.services.mt5_session import Mt5SessionError, use_account
+
+
+logger = logging.getLogger(__name__)
 
 
 def _as_dict(value) -> dict:
@@ -21,6 +25,7 @@ def get_source_positions(state: LocalCopyTradingState) -> list[dict]:
     the next caller, so consecutive work on the same account is free.
     """
     positions: list[dict] = []
+    failures: list[str] = []
     source_account_ids = {
         relationship.source_account_id
         for relationship in state.relationships
@@ -55,7 +60,13 @@ def get_source_positions(state: LocalCopyTradingState) -> list[dict]:
                     payload['position_id'] = str(payload.get('ticket') or payload.get('identifier') or '')
                     positions.append(payload)
         except Mt5SessionError as error:
-            raise RuntimeError(str(error)) from error
+            # One unreachable terminal must not stop the healthy accounts from
+            # being copied; only total failure aborts the tick.
+            failures.append(f'{account.id}: {error}')
+            logger.warning('Failed to read source account %s positions: %s', account.id, error)
+
+    if failures and not positions:
+        raise RuntimeError('; '.join(failures))
 
     return positions
 

@@ -121,87 +121,13 @@ def test_delete_by_relationship_removes_only_that_relationship(tmp_path):
     assert copy_trading_db.find_by_client_key('rel-2:pos-1', db_path=db) is not None
 
 
-def test_a_new_record_starts_with_no_recorded_source_volume(tmp_path):
-    db = tmp_path / 'copy.db'
-    copy_trading_db.init_db(db)
-    _insert(db)
+def test_delete_by_relationship_works_before_the_schema_exists(tmp_path):
+    """Routes can delete a relationship before the trading loop ever ran."""
+    db = tmp_path / 'fresh.db'
 
-    assert copy_trading_db.get_recorded_volume('rel-1', 'pos-1', db_path=db) == 0.0
-
-
-def test_record_source_volume_round_trips(tmp_path):
-    db = tmp_path / 'copy.db'
-    copy_trading_db.init_db(db)
-    _insert(db)
-
-    copy_trading_db.record_source_volume(
-        'rel-1:pos-1', source_volume=0.35, updated_at='2026-09-18T00:00:05+00:00', db_path=db
-    )
-
-    assert copy_trading_db.get_recorded_volume('rel-1', 'pos-1', db_path=db) == 0.35
-
-
-def test_recorded_volume_is_unknown_for_an_absent_pair(tmp_path):
-    db = tmp_path / 'copy.db'
-    copy_trading_db.init_db(db)
-
-    assert copy_trading_db.get_recorded_volume('rel-9', 'pos-9', db_path=db) is None
-
-
-def test_a_marked_skip_is_not_an_open_record(tmp_path):
-    db = tmp_path / 'copy.db'
-    copy_trading_db.init_db(db)
-    _insert(db)
-    copy_trading_db.mark_skipped(
-        'rel-1:pos-1', message='limit reached', updated_at='2026-09-18T00:00:06+00:00', db_path=db
-    )
+    copy_trading_db.delete_by_relationship('rel-1', db_path=db)
 
     assert copy_trading_db.list_open_records(db_path=db) == []
-    assert copy_trading_db.find_by_client_key('rel-1:pos-1', db_path=db)['status'] == 'skipped'
-
-
-def test_init_db_upgrades_a_database_written_before_source_volume_existed(tmp_path):
-    """An install upgrading in place must not lose its existing order map."""
-    db = tmp_path / 'legacy.db'
-    copy_trading_db.connect(db).close()
-    import sqlite3
-
-    connection = sqlite3.connect(db)
-    connection.executescript(
-        """
-        CREATE TABLE copy_order_map (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            client_key TEXT NOT NULL UNIQUE,
-            relationship_id TEXT NOT NULL,
-            source_account_id TEXT NOT NULL,
-            follower_account_id TEXT NOT NULL,
-            source_position_id TEXT NOT NULL,
-            status TEXT NOT NULL,
-            follower_position_ticket TEXT NOT NULL DEFAULT '',
-            follower_order_id TEXT NOT NULL DEFAULT '',
-            message TEXT NOT NULL DEFAULT '',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-        INSERT INTO copy_order_map (
-            client_key, relationship_id, source_account_id, follower_account_id,
-            source_position_id, status, created_at, updated_at
-        ) VALUES ('rel-1:pos-1', 'rel-1', 'src-1', 'fol-1', 'pos-1', 'confirmed',
-                  '2026-09-18T00:00:00+00:00', '2026-09-18T00:00:00+00:00');
-        """
-    )
-    connection.commit()
-    connection.close()
-
-    copy_trading_db.init_db(db)
-
-    record = copy_trading_db.find_by_client_key('rel-1:pos-1', db_path=db)
-    assert record['status'] == 'confirmed'
-    assert record['source_volume'] == 0
-    copy_trading_db.record_source_volume(
-        'rel-1:pos-1', source_volume=0.2, updated_at='2026-09-18T00:00:07+00:00', db_path=db
-    )
-    assert copy_trading_db.get_recorded_volume('rel-1', 'pos-1', db_path=db) == 0.2
 
 
 def test_a_new_record_starts_with_no_recorded_source_volume(tmp_path):
@@ -229,6 +155,43 @@ def test_recorded_volume_is_unknown_for_an_absent_pair(tmp_path):
     copy_trading_db.init_db(db)
 
     assert copy_trading_db.get_recorded_volume('rel-9', 'pos-9', db_path=db) is None
+
+
+def test_recorded_volume_is_none_once_the_record_is_settled(tmp_path):
+    """Settled records must not trigger volume synchronisation again."""
+    db = tmp_path / 'copy.db'
+    copy_trading_db.init_db(db)
+
+    for status_setter in (copy_trading_db.mark_drifted, copy_trading_db.mark_closed, copy_trading_db.mark_skipped):
+        position_id = f'pos-{status_setter.__name__}'
+        client_key = f'rel-1:{position_id}'
+        _insert(db, client_key=client_key, source_position_id=position_id)
+        copy_trading_db.record_source_volume(
+            client_key, source_volume=0.4, updated_at='2026-09-18T00:00:05+00:00', db_path=db
+        )
+        status_setter(client_key, message='settled', updated_at='2026-09-18T00:00:06+00:00', db_path=db)
+
+        assert copy_trading_db.get_recorded_volume('rel-1', position_id, db_path=db) is None
+
+
+def test_recorded_volume_survives_a_failed_adjustment(tmp_path):
+    db = tmp_path / 'copy.db'
+    copy_trading_db.init_db(db)
+    _insert(db, client_key='rel-1:pos-1')
+    copy_trading_db.confirm_order(
+        'rel-1:pos-1',
+        follower_position_ticket='789',
+        updated_at='2026-09-18T00:00:01+00:00',
+        db_path=db,
+    )
+    copy_trading_db.record_source_volume(
+        'rel-1:pos-1', source_volume=0.3, updated_at='2026-09-18T00:00:02+00:00', db_path=db
+    )
+    copy_trading_db.mark_failed(
+        'rel-1:pos-1', message='Retcode: 10004', updated_at='2026-09-18T00:00:03+00:00', db_path=db
+    )
+
+    assert copy_trading_db.get_recorded_volume('rel-1', 'pos-1', db_path=db) == 0.3
 
 
 def test_a_marked_skip_is_not_an_open_record(tmp_path):

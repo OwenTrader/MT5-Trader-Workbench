@@ -121,3 +121,83 @@ def test_source_adapter_reports_source_connection_failure(monkeypatch):
 
     with pytest.raises(RuntimeError, match='source login failed'):
         source_adapter.get_source_positions(state)
+
+
+def test_source_adapter_keeps_healthy_accounts_when_one_terminal_is_unreachable(monkeypatch):
+    """One dead terminal must not stop the other accounts from being copied."""
+    state = LocalCopyTradingState(
+        accounts=[
+            Account(
+                id='src-1',
+                name='Main A',
+                connection_type='mt5_terminal',
+                terminal_path='C:/MT5/a/terminal64.exe',
+                login='1001',
+                password='secret',
+                server='Demo',
+            ),
+            Account(
+                id='src-2',
+                name='Main B',
+                connection_type='mt5_terminal',
+                terminal_path='C:/MT5/b/terminal64.exe',
+                login='2002',
+                password='secret',
+                server='Demo',
+            ),
+        ],
+        relationships=[
+            CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD'),
+            CopyRelationship(id='rel-2', source_account_id='src-2', follower_account_id='fol-1', symbol='XAUUSD'),
+        ],
+    )
+
+    @contextmanager
+    def fake_use_account(terminal_path, login, password, server):
+        if login == '1001':
+            raise Mt5SessionError('terminal a offline')
+        yield FakeClient()
+
+    monkeypatch.setattr(source_adapter, 'use_account', fake_use_account)
+
+    positions = source_adapter.get_source_positions(state)
+
+    assert [position['source_account_id'] for position in positions] == ['src-2']
+
+
+def test_source_adapter_raises_when_every_terminal_is_unreachable(monkeypatch):
+    state = LocalCopyTradingState(
+        accounts=[
+            Account(
+                id='src-1',
+                name='Main A',
+                connection_type='mt5_terminal',
+                terminal_path='C:/MT5/a/terminal64.exe',
+                login='1001',
+                password='secret',
+                server='Demo',
+            ),
+            Account(
+                id='src-2',
+                name='Main B',
+                connection_type='mt5_terminal',
+                terminal_path='C:/MT5/b/terminal64.exe',
+                login='2002',
+                password='secret',
+                server='Demo',
+            ),
+        ],
+        relationships=[
+            CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD'),
+            CopyRelationship(id='rel-2', source_account_id='src-2', follower_account_id='fol-1', symbol='XAUUSD'),
+        ],
+    )
+
+    @contextmanager
+    def fake_use_account(terminal_path, login, password, server):
+        raise Mt5SessionError(f'terminal {login} offline')
+
+    monkeypatch.setattr(source_adapter, 'use_account', fake_use_account)
+
+    with pytest.raises(RuntimeError, match='src-1: terminal 1001 offline; src-2: terminal 2002 offline'):
+        source_adapter.get_source_positions(state)

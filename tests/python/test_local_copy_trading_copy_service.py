@@ -18,6 +18,7 @@ SymbolInfo = namedtuple('SymbolInfo', ['volume_min', 'volume_step', 'volume_max'
 OrderResult = namedtuple('OrderResult', ['retcode', 'order', 'deal', 'comment'])
 AccountInfo = namedtuple('AccountInfo', ['equity', 'margin_level'])
 Position = namedtuple('Position', ['ticket', 'identifier', 'symbol', 'type', 'volume', 'magic', 'comment'])
+Deal = namedtuple('Deal', ['entry', 'profit', 'commission', 'swap'])
 
 
 class FakeClient:
@@ -36,6 +37,8 @@ class FakeClient:
         self.sent_requests = []
         self.positions = list(positions or [])
         self.margin_level = margin_level
+        self.retcode = 10009
+        self.deals = []
 
     def symbol_select(self, symbol, enabled):
         return enabled is True
@@ -57,10 +60,13 @@ class FakeClient:
 
     def order_send(self, request):
         self.sent_requests.append(request)
-        return OrderResult(retcode=10009, order=456, deal=0, comment='done')
+        return OrderResult(retcode=self.retcode, order=456, deal=0, comment='done')
 
     def positions_get(self, symbol=None):
         return self.positions
+
+    def history_deals_get(self, date_from, date_to):
+        return self.deals
 
     def last_error(self):
         return (0, 'ok')
@@ -463,8 +469,8 @@ def test_execute_copy_reports_a_sizing_failure_on_an_existing_position(db, sessi
     assert record['status'] == 'confirmed'
 
 
-def test_execute_copy_does_nothing_when_the_owned_position_is_gone(db, session):
-    """Ownership resolving to nothing must not fall back to another position."""
+def test_execute_copy_marks_drift_when_the_owned_position_is_gone_during_sync(db, session):
+    """Ownership resolving to nothing must settle as drift, not retry forever."""
     _seed_confirmed(db)
     session.positions.append(Position(111, 111, 'XAUUSD.m', 0, 0.9, 0, ''))
 
@@ -474,5 +480,53 @@ def test_execute_copy_does_nothing_when_the_owned_position_is_gone(db, session):
 
     assert result.status == 'failed'
     assert session.sent_requests == []
-    assert 'No owned follower position' in result.message
+    assert 'Drift' in result.message
+    record = copy_trading_db.find_by_client_key('rel-1:pos-1', db_path=db)
+    assert record['status'] == 'drifted'
+    assert copy_trading_db.get_recorded_volume('rel-1', 'pos-1', db_path=db) is None
+
+
+def test_a_failed_volume_sync_is_retried_as_an_adjustment_not_a_new_order(db, session):
+    """A rejected partial close must be retried, never answered with a second position."""
+    _seed_confirmed(db)
+    copy_trading_db.record_source_volume(
+        'rel-1:pos-1', source_volume=0.3, updated_at='2026-09-18T00:00:02+00:00', db_path=db
+    )
+    session.positions.append(_owned(volume=0.3))
+    payload = {'position_id': 'pos-1', 'volume': 0.1}
+
+    session.retcode = 10004
+    first = copy_service.execute_copy(_follower(), _relationship(), payload, db_path=db)
+
+    assert first.status == 'failed'
+    record = copy_trading_db.find_by_client_key('rel-1:pos-1', db_path=db)
+    assert record['status'] == 'failed'
+    assert record['follower_position_ticket'] == '789'
+    assert copy_trading_db.get_recorded_volume('rel-1', 'pos-1', db_path=db) == 0.3
+
+    session.retcode = 10009
+    second = copy_service.execute_copy(_follower(), _relationship(), payload, db_path=db)
+
+    assert second.status == 'copied'
+    request = session.sent_requests[-1]
+    assert request['position'] == 789
+    assert request['volume'] == 0.2
+    assert copy_trading_db.get_recorded_volume('rel-1', 'pos-1', db_path=db) == 0.1
+
+
+def test_a_guarded_copy_reads_the_daily_loss_from_deal_history(db, session):
+    session.deals = [Deal(entry=1, profit=-250.0, commission=0.0, swap=0.0)]
+    settings = CopyTradingRiskSettings(max_daily_loss=200)
+
+    result = copy_service.execute_copy(
+        _follower(),
+        _relationship(),
+        {'position_id': 'pos-1', 'volume': 0.1},
+        db_path=db,
+        risk_settings=settings,
+    )
+
+    assert result.status == 'skipped'
+    assert 'loss limit' in result.message
+    assert session.sent_requests == []
 
