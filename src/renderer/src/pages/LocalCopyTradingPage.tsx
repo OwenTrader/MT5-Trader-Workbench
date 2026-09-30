@@ -68,6 +68,16 @@ function getAccountLabelById(
   return getAccountOptionLabel(account)
 }
 
+function getRelationshipLabel(
+  relationship: { source_account_id: string; follower_account_id: string; symbol: string; source_symbol?: string; follower_symbol?: string } | undefined,
+  accounts: Array<{ id: string; name: string; login: string }>,
+) {
+  if (!relationship) {
+    return ''
+  }
+  return `${getAccountLabelById(accounts, relationship.source_account_id)} → ${getAccountLabelById(accounts, relationship.follower_account_id)} · ${getRelationshipSourceSymbol(relationship)}→${getRelationshipFollowerSymbol(relationship)}`
+}
+
 function formatDateTime(value: string) {
   if (!value) {
     return '-'
@@ -99,6 +109,7 @@ export function LocalCopyTradingPage() {
   const [pendingDeleteRelationshipId, setPendingDeleteRelationshipId] = React.useState<string | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [pendingRuntimeEnabled, setPendingRuntimeEnabled] = React.useState(false)
+  const [pendingRuntimeDisabled, setPendingRuntimeDisabled] = React.useState(false)
   const [runtimeSubmitError, setRuntimeSubmitError] = React.useState<string | null>(null)
   const [relationshipSourceSymbol, setRelationshipSourceSymbol] = React.useState('XAUUSD')
   const [relationshipFollowerSymbol, setRelationshipFollowerSymbol] = React.useState('XAUUSD')
@@ -110,6 +121,7 @@ export function LocalCopyTradingPage() {
   const hasRelationships = overview.relationships.length > 0
   const canCreateRelationship = hasAccounts
   const canEnableRuntime = hasAccounts && hasRelationships
+  const totalOpenRecords = Object.values(overview.open_record_counts ?? {}).reduce((sum, count) => sum + count, 0)
 
   const closeRelationshipDialog = React.useCallback(() => {
     setRelationshipDialogOpen(false)
@@ -153,6 +165,12 @@ export function LocalCopyTradingPage() {
   const handleRuntimeToggle = (checked: boolean) => {
     setRuntimeSubmitError(null)
     if (!checked) {
+      // Disabling stops the automatic closes; make the exposure explicit
+      // while copied positions are still open.
+      if (totalOpenRecords > 0) {
+        setPendingRuntimeDisabled(true)
+        return
+      }
       void updateRuntime({ enabled: false })
       return
     }
@@ -163,6 +181,11 @@ export function LocalCopyTradingPage() {
     }
 
     setPendingRuntimeEnabled(true)
+  }
+
+  const handleConfirmDisableRuntime = async () => {
+    await updateRuntime({ enabled: false })
+    setPendingRuntimeDisabled(false)
   }
 
   const handleConfirmEnableRuntime = async () => {
@@ -200,8 +223,16 @@ export function LocalCopyTradingPage() {
     }
   }
 
+  const openCountForPendingRelationship = overview.open_record_counts?.[pendingDeleteRelationshipId] ?? 0
   const deleteDescription = pendingDeleteRelationshipId
-    ? t('localCopyTrading.confirmDeleteRelationship', { name: pendingDeleteRelationshipId })
+    ? t('localCopyTrading.confirmDeleteRelationship', {
+        name: getRelationshipLabel(
+          overview.relationships.find((item) => item.id === pendingDeleteRelationshipId),
+          overview.accounts,
+        ),
+      }) + (openCountForPendingRelationship > 0
+        ? ' ' + t('localCopyTrading.confirmDeleteRelationshipOpenPositions', { count: openCountForPendingRelationship })
+        : '')
     : ''
 
   return (
@@ -224,7 +255,7 @@ export function LocalCopyTradingPage() {
              <Badge variant="outline">{t('accountList.accountCount', { count: overview.accounts.length })}</Badge>
             <label className="flex items-center gap-2 text-sm">
               <span>{t('localCopyTrading.enabled')}</span>
-              <Switch checked={overview.runtime.enabled} onCheckedChange={handleRuntimeToggle} />
+              <Switch aria-label={t('localCopyTrading.runtimeSwitch')} checked={overview.runtime.enabled} onCheckedChange={handleRuntimeToggle} />
             </label>
             <Button variant="outline" size="sm" onClick={() => navigate('/account-list')}>{t('localCopyTrading.manageAccounts')}</Button>
             <Button variant="outline" size="sm" disabled={!canCreateRelationship} onClick={() => setRelationshipDialogOpen(true)}>{t('localCopyTrading.addRelationship')}</Button>
@@ -237,7 +268,7 @@ export function LocalCopyTradingPage() {
             <div className="mt-4 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2">
               <AlertTriangle className="size-4 mt-0.5 shrink-0" />
               <div>
-                <div className="font-semibold mb-1">Backend Engine Error</div>
+                <div className="font-semibold mb-1">{t('localCopyTrading.backendError')}</div>
                 <div className="break-all">{overview.runtime.last_error}</div>
               </div>
             </div>
@@ -451,6 +482,22 @@ export function LocalCopyTradingPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setPendingRuntimeEnabled(false)}>{t('priceAlerts.cancel')}</Button>
             <Button onClick={() => void handleConfirmEnableRuntime()}>{t('localCopyTrading.confirmEnable')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={pendingRuntimeDisabled} onOpenChange={setPendingRuntimeDisabled}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('localCopyTrading.confirmDisableTitle')}</DialogTitle>
+            <DialogDescription>{t('localCopyTrading.confirmDisableDescription', { count: totalOpenRecords })}</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-200">
+            {t('localCopyTrading.confirmDisableWarning')}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingRuntimeDisabled(false)}>{t('priceAlerts.cancel')}</Button>
+            <Button variant="destructive" onClick={() => void handleConfirmDisableRuntime()}>{t('localCopyTrading.confirmDisable')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

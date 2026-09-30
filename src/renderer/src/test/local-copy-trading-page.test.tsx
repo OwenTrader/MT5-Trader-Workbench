@@ -185,7 +185,7 @@ describe('Local Copy Trading Page', () => {
 
     renderPage()
 
-    await user.click(await screen.findByRole('switch'))
+    await user.click(await screen.findByRole('switch', { name: 'Local Copy Trading' }))
     expect(await screen.findByText('Enable Local Copy Trading?')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Enable' }))
 
@@ -209,7 +209,7 @@ describe('Local Copy Trading Page', () => {
 
     renderPage()
 
-    await user.click(await screen.findByRole('switch'))
+    await user.click(await screen.findByRole('switch', { name: 'Local Copy Trading' }))
 
     expect(await screen.findByText('Add at least 2 accounts and 1 relationship before enabling.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add Relationship' })).toBeDisabled()
@@ -340,7 +340,7 @@ describe('Local Copy Trading Page', () => {
     const relationshipPanel = screen.getByRole('tabpanel', { name: 'Relationships' })
     const deleteButtons = relationshipPanel.querySelectorAll('button')
     await user.click(deleteButtons[0] as HTMLButtonElement)
-    expect(await screen.findByText('Delete relationship rel-1? Related events will also be removed.')).toBeInTheDocument()
+    expect(await screen.findByText('Delete relationship Main A (10001) → Follower A (20001) · XAUUSD→XAUUSD.m? Related events will also be removed.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     await waitFor(() => {
@@ -438,5 +438,113 @@ describe('Local Copy Trading Page', () => {
     expect(failedBadge.className).toContain('destructive')
     const skippedBadge = screen.getByText('Skipped')
     expect(skippedBadge.className).toContain('amber')
+  })
+
+  it('warns before disabling when copied positions are still open', async () => {
+    const user = userEvent.setup()
+    let disableRequested = false
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/runtime') {
+        expect(init?.method).toBe('POST')
+        expect(init?.body).toContain('"enabled":false')
+        disableRequested = true
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: '2026-05-11T00:00:00+00:00' },
+          accounts: [
+            { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: '', login: '10001', server: 'Broker-A', password: '', is_active: true },
+            { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: '', login: '20001', server: 'Broker-C', password: '', is_active: true },
+          ],
+          relationships: [
+            { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true },
+          ],
+          events: [],
+          open_record_counts: { 'rel-1': 2 },
+        }),
+      } as Response
+    }) as any
+
+    renderPage()
+
+    await user.click(await screen.findByRole('switch', { name: 'Local Copy Trading' }))
+
+    expect(await screen.findByText('Disable Local Copy Trading?')).toBeInTheDocument()
+    expect(screen.getByText(/2 copied follower positions/)).toBeInTheDocument()
+    expect(disableRequested).toBe(false)
+
+    await user.click(screen.getByRole('button', { name: 'Disable' }))
+
+    await waitFor(() => {
+      expect(disableRequested).toBe(true)
+    })
+  })
+
+  it('disables immediately when no copied positions are open', async () => {
+    const user = userEvent.setup()
+    let disableRequested = false
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/runtime') {
+        expect(init?.body).toContain('"enabled":false')
+        disableRequested = true
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+          accounts: [
+            { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: '', login: '10001', server: 'Broker-A', password: '', is_active: true },
+            { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: '', login: '20001', server: 'Broker-C', password: '', is_active: true },
+          ],
+          relationships: [
+            { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true },
+          ],
+          events: [],
+          open_record_counts: {},
+        }),
+      } as Response
+    }) as any
+
+    renderPage()
+
+    await user.click(await screen.findByRole('switch', { name: 'Local Copy Trading' }))
+
+    await waitFor(() => {
+      expect(disableRequested).toBe(true)
+    })
+    expect(screen.queryByText('Disable Local Copy Trading?')).not.toBeInTheDocument()
+  })
+
+  it('warns about orphaned positions when deleting a relationship with open records', async () => {
+    const user = userEvent.setup()
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+        accounts: [
+          { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: '', login: '10001', server: 'Broker-A', password: '', is_active: true },
+          { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: '', login: '20001', server: 'Broker-C', password: '', is_active: true },
+        ],
+        relationships: [
+          { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true },
+        ],
+        events: [],
+        open_record_counts: { 'rel-1': 1 },
+      }),
+    })) as any
+
+    renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Relationships' }))
+    await screen.findByText('Main A (10001)')
+    const relationshipPanel = screen.getByRole('tabpanel', { name: 'Relationships' })
+    const deleteButtons = relationshipPanel.querySelectorAll('button')
+    await user.click(deleteButtons[0] as HTMLButtonElement)
+
+    expect(await screen.findByText(/no longer be closed automatically/)).toBeInTheDocument()
+    expect(screen.getByText(/1 copied position/)).toBeInTheDocument()
   })
 })
