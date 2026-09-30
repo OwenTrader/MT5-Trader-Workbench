@@ -408,4 +408,35 @@ describe('Local Copy Trading Page', () => {
       expect(fetchMock.mock.calls.length).toBeGreaterThan(before)
     })
   })
+
+  it('renders a destructive localized badge for failed events and an amber badge for skipped ones', async () => {
+    const user = userEvent.setup()
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: '2026-05-11T00:00:00+00:00' },
+        accounts: [
+          { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: '', login: '10001', server: 'Broker-A', password: '', is_active: true },
+          { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: '', login: '20001', server: 'Broker-C', password: '', is_active: true },
+        ],
+        relationships: [
+          { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true },
+        ],
+        events: [
+          { id: 'evt-1', relationship_id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', position_id: 'ticket-1', symbol: 'XAUUSD', status: 'failed', message: 'MT5 order_send failed. Retcode: 10004.', created_at: '2026-05-11T00:00:00+00:00' },
+          { id: 'evt-2', relationship_id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', position_id: 'ticket-2', symbol: 'XAUUSD', status: 'skipped', message: 'XAUUSD already holds 1 positions', created_at: '2026-05-11T00:00:01+00:00' },
+        ],
+        open_record_counts: {},
+      }),
+    })) as any
+
+    renderPage()
+    await user.click(screen.getByRole('tab', { name: 'Events' }))
+
+    const failedBadge = await screen.findByText('Failed')
+    expect(failedBadge).toBeInTheDocument()
+    expect(failedBadge.className).toContain('destructive')
+    const skippedBadge = screen.getByText('Skipped')
+    expect(skippedBadge.className).toContain('amber')
+  })
 })

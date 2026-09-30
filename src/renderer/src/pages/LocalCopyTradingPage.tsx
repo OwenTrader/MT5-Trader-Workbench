@@ -18,16 +18,27 @@ function isRelationshipFormComplete(sourceId: string, followerId: string, source
   return Boolean(sourceId.trim() && followerId.trim() && sourceSymbol.trim() && followerSymbol.trim() && Number(lotMultiplier) > 0)
 }
 
-function getStatusBadge(status: string) {
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  copied: 'localCopyTrading.eventStatus.copied',
+  closed: 'localCopyTrading.eventStatus.closed',
+  failed: 'localCopyTrading.eventStatus.failed',
+  skipped: 'localCopyTrading.eventStatus.skipped',
+  queued: 'localCopyTrading.eventStatus.queued',
+}
+
+function getStatusBadge(status: string, t: (key: string, params?: Record<string, string | number>) => string) {
+  const label = STATUS_LABEL_KEYS[status] ? t(STATUS_LABEL_KEYS[status]) : status
   switch (status) {
     case 'copied':
-      return <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-transparent dark:text-emerald-400">{status}</Badge>
+      return <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-transparent dark:text-emerald-400">{label}</Badge>
     case 'closed':
-      return <Badge variant="secondary">{status}</Badge>
-    case 'error':
-      return <Badge variant="destructive">{status}</Badge>
+      return <Badge variant="secondary">{label}</Badge>
+    case 'failed':
+      return <Badge variant="destructive">{label}</Badge>
+    case 'skipped':
+      return <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">{label}</Badge>
     default:
-      return <Badge variant="outline">{status}</Badge>
+      return <Badge variant="outline">{label}</Badge>
   }
 }
 
@@ -344,7 +355,7 @@ export function LocalCopyTradingPage() {
                     [...overview.events].reverse().slice(0, 100).map((event) => (
                       <TableRow key={event.id}>
                         <TableCell>{event.symbol}</TableCell>
-                        <TableCell>{getStatusBadge(event.status)}</TableCell>
+                        <TableCell>{getStatusBadge(event.status, t)}</TableCell>
                          <TableCell>{getAccountLabelById(overview.accounts, event.source_account_id)}</TableCell>
                          <TableCell>{getAccountLabelById(overview.accounts, event.follower_account_id)}</TableCell>
                         <TableCell>{event.position_id || '-'}</TableCell>
