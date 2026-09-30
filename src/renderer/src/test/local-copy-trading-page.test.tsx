@@ -619,4 +619,49 @@ describe('Local Copy Trading Page', () => {
     expect(await screen.findByText('Fixed Lots')).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Volume Mode' })).toBeInTheDocument()
   })
+
+  it('renders the risk guard card and saves changes', async () => {
+    const user = userEvent.setup()
+    let savedBody: string | null = null
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/risk-settings') {
+        if (init?.method === 'PUT') {
+          savedBody = String(init?.body ?? '')
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            max_volume_per_symbol: 0,
+            max_positions_per_symbol: 0,
+            max_daily_open_count: 0,
+            max_daily_loss: 0,
+            min_margin_level: 0,
+            max_consecutive_failures: 3,
+          }),
+        } as Response
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: false, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+          accounts: [],
+          relationships: [],
+          events: [],
+          open_record_counts: {},
+        }),
+      } as Response
+    }) as any
+
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Pre-trade Risk Guards' })).toBeInTheDocument()
+    await user.clear(screen.getByLabelText('Daily Loss'))
+    await user.type(screen.getByLabelText('Daily Loss'), '500')
+    await user.click(screen.getByRole('button', { name: 'Save Risk Settings' }))
+
+    await waitFor(() => {
+      expect(savedBody).toContain('"max_daily_loss":500')
+    })
+  })
 })

@@ -133,3 +133,52 @@ export function pickLocalCopyTradingAccountOverview(
     open_record_counts: overview.open_record_counts ?? {},
   }
 }
+
+export interface CopyTradingRiskSettings {
+  max_volume_per_symbol: number
+  max_positions_per_symbol: number
+  max_daily_open_count: number
+  max_daily_loss: number
+  min_margin_level: number
+  max_consecutive_failures: number
+}
+
+export const DEFAULT_COPY_TRADING_RISK_SETTINGS: CopyTradingRiskSettings = {
+  max_volume_per_symbol: 0,
+  max_positions_per_symbol: 0,
+  max_daily_open_count: 0,
+  max_daily_loss: 0,
+  min_margin_level: 0,
+  max_consecutive_failures: 3,
+}
+
+export async function parseRiskSettingsResponse(
+  response: Response,
+  fallbackMessage = 'Failed to fetch risk settings',
+): Promise<CopyTradingRiskSettings> {
+  if (!response.ok) {
+    let detail = fallbackMessage
+    try {
+      const payload = await response.json()
+      if (payload && typeof payload === 'object' && 'detail' in payload) {
+        const rawDetail = (payload as { detail: unknown }).detail
+        if (typeof rawDetail === 'string') {
+          detail = rawDetail
+        } else if (Array.isArray(rawDetail)) {
+          detail = rawDetail
+            .map((item) => (item && typeof item === 'object' && 'msg' in item ? String((item as { msg: unknown }).msg) : String(item)))
+            .join('; ')
+        }
+      }
+    } catch {
+    }
+    throw new Error(detail)
+  }
+
+  const payload = await response.json() as Record<string, unknown>
+  const numericEntries = Object.entries(payload).filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+  return {
+    ...DEFAULT_COPY_TRADING_RISK_SETTINGS,
+    ...Object.fromEntries(numericEntries),
+  } as CopyTradingRiskSettings
+}

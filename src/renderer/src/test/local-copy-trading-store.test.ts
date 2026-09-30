@@ -207,4 +207,68 @@ describe('Local Copy Trading Store', () => {
 
     expect(result.current.error).toContain('Input should be greater than 0')
   })
+
+  it('fetches risk settings from the risk settings endpoint', async () => {
+    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
+      expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading/risk-settings')
+      return {
+        ok: true,
+        json: async () => ({
+          max_volume_per_symbol: 2.5,
+          max_positions_per_symbol: 4,
+          max_daily_open_count: 10,
+          max_daily_loss: 500,
+          min_margin_level: 150,
+          max_consecutive_failures: 2,
+        }),
+      } as Response
+    })
+
+    const { result } = renderHook(() => useLocalCopyTradingStore())
+    await act(async () => {
+      await result.current.fetchRiskSettings()
+    })
+
+    expect(result.current.riskSettings.max_daily_loss).toBe(500)
+    expect(result.current.riskSettings.max_consecutive_failures).toBe(2)
+  })
+
+  it('saves risk settings through the risk settings endpoint', async () => {
+    let savedBody: string | null = null
+    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/risk-settings') {
+        expect(init?.method).toBe('PUT')
+        savedBody = String(init?.body ?? '')
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          max_volume_per_symbol: 0,
+          max_positions_per_symbol: 0,
+          max_daily_open_count: 0,
+          max_daily_loss: 500,
+          min_margin_level: 0,
+          max_consecutive_failures: 3,
+        }),
+      } as Response
+    })
+
+    const { result } = renderHook(() => useLocalCopyTradingStore())
+    let success = false
+    await act(async () => {
+      success = await result.current.updateRiskSettings({
+        max_volume_per_symbol: 0,
+        max_positions_per_symbol: 0,
+        max_daily_open_count: 0,
+        max_daily_loss: 500,
+        min_margin_level: 0,
+        max_consecutive_failures: 3,
+      })
+    })
+
+    expect(success).toBe(true)
+    expect(savedBody).toContain('"max_daily_loss":500')
+    expect(result.current.riskSettings.max_daily_loss).toBe(500)
+  })
 })

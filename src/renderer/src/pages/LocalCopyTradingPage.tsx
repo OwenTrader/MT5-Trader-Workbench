@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/i18n'
 import { useLocalCopyTradingStore } from '@/stores/local-copy-trading-store'
+import { toast } from 'sonner'
 
 function isRelationshipFormComplete(
   sourceId: string,
@@ -124,8 +125,12 @@ export function LocalCopyTradingPage() {
     overview,
     isLoading,
     error,
+    riskSettings,
+    isSavingRiskSettings,
     fetchOverview,
+    fetchRiskSettings,
     updateRuntime,
+    updateRiskSettings,
     createRelationship,
     deleteRelationship,
   } = useLocalCopyTradingStore()
@@ -167,13 +172,50 @@ export function LocalCopyTradingPage() {
 
   useEffect(() => {
     void fetchOverview()
+    void fetchRiskSettings()
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
         void fetchOverview({ silent: true })
       }
     }, OVERVIEW_POLL_INTERVAL_MS)
     return () => window.clearInterval(interval)
-  }, [fetchOverview])
+  }, [fetchOverview, fetchRiskSettings])
+
+  const [riskForm, setRiskForm] = React.useState({
+    max_volume_per_symbol: '0',
+    max_positions_per_symbol: '0',
+    max_daily_open_count: '0',
+    max_daily_loss: '0',
+    min_margin_level: '0',
+    max_consecutive_failures: '3',
+  })
+
+  useEffect(() => {
+    setRiskForm({
+      max_volume_per_symbol: String(riskSettings.max_volume_per_symbol),
+      max_positions_per_symbol: String(riskSettings.max_positions_per_symbol),
+      max_daily_open_count: String(riskSettings.max_daily_open_count),
+      max_daily_loss: String(riskSettings.max_daily_loss),
+      min_margin_level: String(riskSettings.min_margin_level),
+      max_consecutive_failures: String(riskSettings.max_consecutive_failures),
+    })
+  }, [riskSettings])
+
+  const handleSaveRiskSettings = async () => {
+    const success = await updateRiskSettings({
+      max_volume_per_symbol: Number(riskForm.max_volume_per_symbol) || 0,
+      max_positions_per_symbol: Math.trunc(Number(riskForm.max_positions_per_symbol) || 0),
+      max_daily_open_count: Math.trunc(Number(riskForm.max_daily_open_count) || 0),
+      max_daily_loss: Number(riskForm.max_daily_loss) || 0,
+      min_margin_level: Number(riskForm.min_margin_level) || 0,
+      max_consecutive_failures: Math.trunc(Number(riskForm.max_consecutive_failures) || 0),
+    })
+    if (success) {
+      toast.success(t('localCopyTrading.riskGuards.saved'))
+      return
+    }
+    toast.error(useLocalCopyTradingStore.getState().error ?? t('localCopyTrading.riskGuards.saveFailed'))
+  }
 
   const handleCreateRelationship = async () => {
     const sourceId = selectedSourceId.trim()
@@ -316,6 +358,52 @@ export function LocalCopyTradingPage() {
           <p className="mt-3 text-sm text-muted-foreground">{t('localCopyTrading.accountListHint')}</p>
           {runtimeSubmitError ? <p className="mt-3 text-sm text-destructive">{runtimeSubmitError}</p> : null}
           {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('localCopyTrading.riskGuards.title')}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t('localCopyTrading.riskGuards.description')}</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="flex flex-col gap-2 text-sm">
+              <span>{t('localCopyTrading.riskGuards.maxVolumePerSymbol')}</span>
+              <Input type="number" min="0" step="0.01" aria-label={t('localCopyTrading.riskGuards.maxVolumePerSymbol')} value={riskForm.max_volume_per_symbol} onChange={(event) => setRiskForm((current) => ({ ...current, max_volume_per_symbol: event.target.value }))} />
+              <span className="text-xs text-muted-foreground">{t('localCopyTrading.riskGuards.zeroMeansDisabled')}</span>
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span>{t('localCopyTrading.riskGuards.maxPositionsPerSymbol')}</span>
+              <Input type="number" min="0" step="1" aria-label={t('localCopyTrading.riskGuards.maxPositionsPerSymbol')} value={riskForm.max_positions_per_symbol} onChange={(event) => setRiskForm((current) => ({ ...current, max_positions_per_symbol: event.target.value }))} />
+              <span className="text-xs text-muted-foreground">{t('localCopyTrading.riskGuards.zeroMeansDisabled')}</span>
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span>{t('localCopyTrading.riskGuards.maxDailyOpenCount')}</span>
+              <Input type="number" min="0" step="1" aria-label={t('localCopyTrading.riskGuards.maxDailyOpenCount')} value={riskForm.max_daily_open_count} onChange={(event) => setRiskForm((current) => ({ ...current, max_daily_open_count: event.target.value }))} />
+              <span className="text-xs text-muted-foreground">{t('localCopyTrading.riskGuards.zeroMeansDisabled')}</span>
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span>{t('localCopyTrading.riskGuards.maxDailyLoss')}</span>
+              <Input type="number" min="0" step="1" aria-label={t('localCopyTrading.riskGuards.maxDailyLoss')} value={riskForm.max_daily_loss} onChange={(event) => setRiskForm((current) => ({ ...current, max_daily_loss: event.target.value }))} />
+              <span className="text-xs text-muted-foreground">{t('localCopyTrading.riskGuards.zeroMeansDisabled')}</span>
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span>{t('localCopyTrading.riskGuards.minMarginLevel')}</span>
+              <Input type="number" min="0" step="1" aria-label={t('localCopyTrading.riskGuards.minMarginLevel')} value={riskForm.min_margin_level} onChange={(event) => setRiskForm((current) => ({ ...current, min_margin_level: event.target.value }))} />
+              <span className="text-xs text-muted-foreground">{t('localCopyTrading.riskGuards.zeroMeansDisabled')}</span>
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span>{t('localCopyTrading.riskGuards.maxConsecutiveFailures')}</span>
+              <Input type="number" min="0" step="1" aria-label={t('localCopyTrading.riskGuards.maxConsecutiveFailures')} value={riskForm.max_consecutive_failures} onChange={(event) => setRiskForm((current) => ({ ...current, max_consecutive_failures: event.target.value }))} />
+              <span className="text-xs text-muted-foreground">{t('localCopyTrading.riskGuards.zeroMeansNoBreaker')}</span>
+            </label>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <Button size="sm" disabled={isSavingRiskSettings} onClick={() => void handleSaveRiskSettings()}>
+              {isSavingRiskSettings ? t('localCopyTrading.riskGuards.saving') : t('localCopyTrading.riskGuards.save')}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
