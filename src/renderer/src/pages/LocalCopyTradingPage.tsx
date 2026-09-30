@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Trash2, Loader2, AlertTriangle } from 'lucide-react'
+import { Trash2, Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -70,6 +70,8 @@ function formatDateTime(value: string) {
   return date.toLocaleString()
 }
 
+const OVERVIEW_POLL_INTERVAL_MS = 3000
+
 export function LocalCopyTradingPage() {
   const navigate = useNavigate()
   const {
@@ -109,6 +111,12 @@ export function LocalCopyTradingPage() {
 
   useEffect(() => {
     void fetchOverview()
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void fetchOverview({ silent: true })
+      }
+    }, OVERVIEW_POLL_INTERVAL_MS)
+    return () => window.clearInterval(interval)
   }, [fetchOverview])
 
   const handleCreateRelationship = async () => {
@@ -209,6 +217,10 @@ export function LocalCopyTradingPage() {
             </label>
             <Button variant="outline" size="sm" onClick={() => navigate('/account-list')}>{t('localCopyTrading.manageAccounts')}</Button>
             <Button variant="outline" size="sm" disabled={!canCreateRelationship} onClick={() => setRelationshipDialogOpen(true)}>{t('localCopyTrading.addRelationship')}</Button>
+            <Button variant="outline" size="sm" onClick={() => void fetchOverview()} disabled={isLoading}>
+              <RefreshCw className={isLoading ? 'animate-spin' : ''} />
+              {t('localCopyTrading.refresh')}
+            </Button>
           </div>
           {overview.runtime.last_error ? (
             <div className="mt-4 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2">

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import React from 'react'
@@ -345,6 +345,67 @@ describe('Local Copy Trading Page', () => {
 
     await waitFor(() => {
       expect(deleteCalled).toBe(true)
+    })
+  })
+
+  it('refreshes the overview periodically while mounted', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const fetchMock = vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: false, poll_interval_seconds: 2, last_error: null, last_checked_at: '2026-05-11T00:00:00+00:00' },
+          accounts: [],
+          relationships: [],
+          events: [],
+          open_record_counts: {},
+        }),
+      }))
+      global.fetch = fetchMock as any
+      renderPage()
+
+      expect(await screen.findByText('Local Copy Trading')).toBeInTheDocument()
+      const afterMount = fetchMock.mock.calls.length
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3200)
+      })
+
+      expect(fetchMock.mock.calls.length).toBeGreaterThan(afterMount)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('offers a manual refresh that refetches the overview', async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: '2026-05-11T00:00:00+00:00' },
+        accounts: [
+          { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-a/terminal64.exe', login: '10001', server: 'Broker-A', password: '', is_active: true },
+          { id: 'src-2', name: 'Main B', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-b/terminal64.exe', login: '10002', server: 'Broker-B', password: '', is_active: true },
+          { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-a/terminal64.exe', login: '20001', server: 'Broker-C', password: '', is_active: true },
+          { id: 'fol-2', name: 'Follower B', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-b/terminal64.exe', login: '20002', server: 'Broker-D', password: '', is_active: true },
+        ],
+        relationships: [
+          { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, is_active: true },
+        ],
+        events: [],
+        open_record_counts: {},
+      }),
+    }))
+    global.fetch = fetchMock as any
+    renderPage()
+
+    expect(await screen.findByRole('button', { name: 'Refresh' })).toBeInTheDocument()
+    const before = fetchMock.mock.calls.length
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }))
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.length).toBeGreaterThan(before)
     })
   })
 })
