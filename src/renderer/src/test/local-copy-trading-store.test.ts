@@ -160,4 +160,51 @@ describe('Local Copy Trading Store', () => {
     expect(success).toBe(true)
     expect(result.current.overview.relationships).toHaveLength(0)
   })
+
+  it('silent fetch does not flip isLoading', async () => {
+    ;(fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        runtime: { enabled: false, poll_interval_seconds: 1, last_error: null, last_checked_at: null },
+        accounts: [
+          { id: 'src-1', name: 'Main A', connection_type: 'simulated', terminal_path: '', login: '', server: '', password: '', is_active: true },
+        ],
+        relationships: [],
+        events: [],
+        open_record_counts: {},
+      }),
+    } as Response)
+    let sawLoading = false
+    const unsubscribe = useLocalCopyTradingStore.subscribe((state) => {
+      if (state.isLoading) {
+        sawLoading = true
+      }
+    })
+
+    const { result } = renderHook(() => useLocalCopyTradingStore())
+    await act(async () => {
+      await result.current.fetchOverview({ silent: true })
+    })
+
+    unsubscribe()
+    expect(sawLoading).toBe(false)
+    expect(result.current.overview.accounts).toHaveLength(1)
+  })
+
+  it('surfaces FastAPI 422 detail arrays as readable messages', async () => {
+    ;(fetch as any).mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({
+        detail: [{ loc: ['body', 'lot_multiplier'], msg: 'Input should be greater than 0' }],
+      }),
+    } as Response)
+
+    const { result } = renderHook(() => useLocalCopyTradingStore())
+    await act(async () => {
+      await result.current.fetchOverview()
+    })
+
+    expect(result.current.error).toContain('Input should be greater than 0')
+  })
 })

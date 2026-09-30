@@ -13,7 +13,7 @@ interface LocalCopyTradingStore {
   overview: LocalCopyTradingOverview
   isLoading: boolean
   error: string | null
-  fetchOverview: () => Promise<void>
+  fetchOverview: (options?: { silent?: boolean }) => Promise<void>
   updateRuntime: (payload: { enabled?: boolean; poll_interval_seconds?: number }) => Promise<boolean>
   createRelationship: (payload: Omit<LocalCopyTradingRelationship, 'id'> & { id?: string }) => Promise<boolean>
   deleteRelationship: (relationshipId: string) => Promise<boolean>
@@ -23,8 +23,9 @@ export const useLocalCopyTradingStore = create<LocalCopyTradingStore>((set) => (
   overview: DEFAULT_LOCAL_COPY_TRADING_OVERVIEW,
   isLoading: false,
   error: null,
-  fetchOverview: async () => {
-    set({ isLoading: true, error: null })
+  fetchOverview: async (options) => {
+    const silent = options?.silent === true
+    set(silent ? { error: null } : { isLoading: true, error: null })
     try {
       const response = await apiFetch(LOCAL_COPY_TRADING_API_BASE)
       const overview = await parseLocalCopyTradingOverviewResponse(response)

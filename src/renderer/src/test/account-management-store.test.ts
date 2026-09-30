@@ -11,6 +11,8 @@ describe('Account Management Store', () => {
     useAccountManagementStore.setState({
       overview: {
         accounts: [],
+        relationships: [],
+        open_record_counts: {},
       },
       isLoading: false,
       error: null,

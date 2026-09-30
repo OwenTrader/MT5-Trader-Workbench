@@ -29,6 +29,10 @@ export interface LocalCopyTradingRelationship {
   source_symbol?: string
   follower_symbol?: string
   lot_multiplier: number
+  volume_mode?: 'multiplier' | 'fixed' | 'equity_ratio' | 'risk_percent' | string
+  max_lot?: number
+  risk_percent?: number
+  sync_sl_tp?: boolean
   is_active: boolean
 }
 
@@ -51,10 +55,13 @@ export interface LocalCopyTradingOverview {
   accounts: LocalCopyTradingAccount[]
   relationships: LocalCopyTradingRelationship[]
   events: LocalCopyTradingEvent[]
+  open_record_counts?: Record<string, number>
 }
 
 export interface LocalCopyTradingAccountOverview {
   accounts: LocalCopyTradingAccount[]
+  relationships: LocalCopyTradingRelationship[]
+  open_record_counts: Record<string, number>
 }
 
 export const DEFAULT_LOCAL_COPY_TRADING_OVERVIEW: LocalCopyTradingOverview = {
@@ -67,10 +74,13 @@ export const DEFAULT_LOCAL_COPY_TRADING_OVERVIEW: LocalCopyTradingOverview = {
   accounts: [],
   relationships: [],
   events: [],
+  open_record_counts: {},
 }
 
 export const DEFAULT_LOCAL_COPY_TRADING_ACCOUNT_OVERVIEW: LocalCopyTradingAccountOverview = {
   accounts: [],
+  relationships: [],
+  open_record_counts: {},
 }
 
 export async function parseLocalCopyTradingOverviewResponse(
@@ -81,8 +91,15 @@ export async function parseLocalCopyTradingOverviewResponse(
     let detail = fallbackMessage
     try {
       const payload = await response.json()
-      if (payload && typeof payload === 'object' && 'detail' in payload && typeof payload.detail === 'string') {
-        detail = payload.detail
+      if (payload && typeof payload === 'object' && 'detail' in payload) {
+        const rawDetail = (payload as { detail: unknown }).detail
+        if (typeof rawDetail === 'string') {
+          detail = rawDetail
+        } else if (Array.isArray(rawDetail)) {
+          detail = rawDetail
+            .map((item) => (item && typeof item === 'object' && 'msg' in item ? String((item as { msg: unknown }).msg) : String(item)))
+            .join('; ')
+        }
       }
     } catch {
     }
@@ -112,5 +129,7 @@ export function pickLocalCopyTradingAccountOverview(
 ): LocalCopyTradingAccountOverview {
   return {
     accounts: overview.accounts,
+    relationships: overview.relationships,
+    open_record_counts: overview.open_record_counts ?? {},
   }
 }
