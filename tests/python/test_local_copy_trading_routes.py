@@ -471,3 +471,36 @@ def test_delete_account_route_cleans_the_order_map(tmp_path, monkeypatch):
 
     assert response.status_code == 200
     assert copy_trading_db.find_by_client_key('rel-1:pos-1') is None
+
+
+def test_get_overview_reports_open_record_counts_per_relationship(tmp_path, monkeypatch):
+    reset_state()
+    copy_trading_db.init_db()
+    for client_key, relationship_id in (('rel-1:pos-1', 'rel-1'), ('rel-1:pos-2', 'rel-1'), ('rel-2:pos-1', 'rel-2')):
+        copy_trading_db.insert_pending(
+            client_key=client_key,
+            relationship_id=relationship_id,
+            source_account_id='src-1',
+            follower_account_id='fol-1',
+            source_position_id=client_key.split(':')[1],
+            created_at='2026-09-18T00:00:00+00:00',
+        )
+    app = build_test_app()
+    client = TestClient(app)
+
+    response = client.get('/local-copy-trading')
+
+    assert response.status_code == 200
+    assert response.json()['open_record_counts'] == {'rel-1': 2, 'rel-2': 1}
+
+
+def test_get_overview_works_before_the_order_map_exists(tmp_path, monkeypatch):
+    """The overview is polled from app start; it must not 500 on a fresh install."""
+    reset_state()
+    app = build_test_app()
+    client = TestClient(app)
+
+    response = client.get('/local-copy-trading')
+
+    assert response.status_code == 200
+    assert response.json()['open_record_counts'] == {}

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
+import sqlite3
+
 from python_service.app.local_copy_trading import copy_trading_db, guards
 from python_service.app.local_copy_trading.models import (
     Account,
@@ -36,6 +38,23 @@ def _validate_account_connection(account: Account) -> None:
         raise HTTPException(status_code=400, detail=detail or 'Failed to verify MT5 account credentials')
 
 
+def _open_record_counts() -> dict[str, int]:
+    """Open order-map records per relationship.
+
+    Empty when the order map has never been initialised (fresh install): the
+    overview is the UI's polling endpoint and must not fail there.
+    """
+    try:
+        records = copy_trading_db.list_open_records()
+    except sqlite3.OperationalError:
+        return {}
+    counts: dict[str, int] = {}
+    for record in records:
+        relationship_id = record['relationship_id']
+        counts[relationship_id] = counts.get(relationship_id, 0) + 1
+    return counts
+
+
 def _ensure_runtime_can_enable() -> None:
     state = get_state()
     if len(state.accounts) < 2 or not state.relationships:
@@ -47,7 +66,8 @@ def _ensure_runtime_can_enable() -> None:
 
 @router.get('')
 def get_overview():
-    return build_overview(get_state())
+    overview = build_overview(get_state())
+    return {**overview, 'open_record_counts': _open_record_counts()}
 
 
 @router.post('/accounts')
