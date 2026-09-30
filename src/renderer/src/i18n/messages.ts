@@ -60,6 +60,9 @@ export const messages = {
       accountCount: '账户数: {count}',
       assignmentHint: '这里不再区分主账户或跟单账户。请先维护账户，再到“本地跟单”页面里自由选择源账户和目标账户。',
       confirmDelete: '确定要删除账户 {name} 吗？相关的关系映射和事件也会一并移除。',
+      confirmDeleteOpenPositions: '注意：该账户关联的跟单关系下仍有 {count} 个已复制持仓，删除后将不再被自动平仓。',
+      activeToggle: '启用 {name}',
+      passwordKeepHint: '留空保持已存密码不变',
     },
     pythonQuant: {
       title: 'Python 量化',
@@ -914,6 +917,9 @@ export const messages = {
       accountCount: 'Accounts: {count}',
       assignmentHint: 'This page no longer separates source and follower accounts. Maintain the account pool here, then assign source and target roles freely on the Local Copy Trading page.',
       confirmDelete: 'Delete account {name}? Related relationships and events will also be removed.',
+      confirmDeleteOpenPositions: 'Warning: {count} copied positions still exist under this account\'s relationships; they will no longer be closed automatically.',
+      activeToggle: 'Enable {name}',
+      passwordKeepHint: 'Leave blank to keep the stored password',
     },
     pythonQuant: {
       title: 'Python Quant',

@@ -270,4 +270,64 @@ describe('Account List Page', () => {
       expect(deleteCalled).toBe(true)
     })
   })
+
+  it('toggles account active state through the API', async () => {
+    const user = userEvent.setup()
+    let togglePayload: Record<string, unknown> | null = null
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/accounts/src-1' && init?.method === 'PUT') {
+        togglePayload = JSON.parse(String(init?.body ?? '{}'))
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+          accounts: [
+            { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-a/terminal64.exe', login: '10001', server: 'Broker-A', password: '', is_active: true },
+            { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-a/terminal64.exe', login: '20001', server: 'Broker-C', password: '', is_active: true },
+          ],
+          relationships: [],
+          events: [],
+        }),
+      } as Response
+    }) as any
+
+    renderPage()
+
+    await user.click(await screen.findByRole('switch', { name: 'Enable Main A' }))
+
+    await waitFor(() => {
+      expect(togglePayload).toMatchObject({ is_active: false, password: '', name: 'Main A' })
+    })
+  })
+
+  it('warns about open copied positions when deleting an account', async () => {
+    const user = userEvent.setup()
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+        accounts: [
+          { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: 'C:/MT5/source-a/terminal64.exe', login: '10001', server: 'Broker-A', password: '', is_active: true },
+          { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: 'D:/MT5/follower-a/terminal64.exe', login: '20001', server: 'Broker-C', password: '', is_active: true },
+        ],
+        relationships: [
+          { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', lot_multiplier: 1, is_active: true },
+        ],
+        events: [],
+        open_record_counts: { 'rel-1': 3 },
+      }),
+    })) as any
+
+    renderPage()
+
+    expect(await screen.findByText('Main A')).toBeInTheDocument()
+    const buttons = screen.getAllByRole('button')
+    const deleteButtons = buttons.filter((button) => button.getAttribute('aria-label') === 'Confirm Deletion')
+    await user.click(deleteButtons[0] as HTMLButtonElement)
+
+    expect(await screen.findByText(/no longer be closed automatically/)).toBeInTheDocument()
+    expect(screen.getByText(/3 copied positions/)).toBeInTheDocument()
+  })
 })

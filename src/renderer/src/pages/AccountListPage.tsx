@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useI18n } from '@/i18n'
+import type { LocalCopyTradingAccount } from '@/lib/local-copy-trading'
 import { useAccountManagementStore } from '@/stores/account-management-store'
 
 type AccountFormState = {
@@ -26,12 +28,13 @@ const EMPTY_ACCOUNT_FORM: AccountFormState = {
   server: '',
 }
 
-function isAccountFormComplete(form: AccountFormState) {
+function isAccountFormComplete(form: AccountFormState, isEditing = false) {
+  // When editing, an empty password means "keep the stored credential".
   return Boolean(
     form.name.trim()
       && form.terminalPath.trim()
       && form.login.trim()
-      && form.password
+      && (isEditing || form.password)
       && form.server.trim(),
   )
 }
@@ -125,6 +128,19 @@ export function AccountListPage() {
     setForm((current) => ({ ...current, terminalPath: path }))
   }
 
+  const handleToggleAccount = async (account: LocalCopyTradingAccount, isActive: boolean) => {
+    await updateAccount(account.id, {
+      name: account.name,
+      connection_type: account.connection_type,
+      terminal_path: account.terminal_path,
+      login: account.login,
+      server: account.server,
+      password: '',
+      is_active: isActive,
+    })
+    void fetchOverview()
+  }
+
   const handleConfirmDelete = async () => {
     if (!pendingDeleteId) {
       return
@@ -139,8 +155,12 @@ export function AccountListPage() {
   }
 
   const pendingDeleteLabel = overview.accounts.find((account) => account.id === pendingDeleteId)
+  const openCountForAccount = (overview.relationships ?? [])
+    .filter((relationship) => relationship.source_account_id === pendingDeleteId || relationship.follower_account_id === pendingDeleteId)
+    .reduce((sum, relationship) => sum + (overview.open_record_counts?.[relationship.id] ?? 0), 0)
   const deleteDescription = pendingDeleteLabel
     ? t('accountList.confirmDelete', { name: getAccountOptionLabel(pendingDeleteLabel) })
+      + (openCountForAccount > 0 ? ' ' + t('accountList.confirmDeleteOpenPositions', { count: openCountForAccount }) : '')
     : ''
 
   return (
@@ -175,6 +195,7 @@ export function AccountListPage() {
                 <TableHead>{t('localCopyTrading.columns.login')}</TableHead>
                 <TableHead>{t('localCopyTrading.columns.server')}</TableHead>
                 <TableHead>{t('localCopyTrading.columns.terminalPath')}</TableHead>
+                <TableHead>{t('localCopyTrading.columns.status')}</TableHead>
                 <TableHead>{t('localCopyTrading.columns.actions')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -187,6 +208,13 @@ export function AccountListPage() {
                   <TableCell>{account.server || '-'}</TableCell>
                   <TableCell className="max-w-[22rem] truncate">{account.terminal_path || '-'}</TableCell>
                   <TableCell>
+                    <Switch
+                      aria-label={t('accountList.activeToggle', { name: account.name })}
+                      checked={account.is_active}
+                      onCheckedChange={(checked) => void handleToggleAccount(account, checked)}
+                    />
+                  </TableCell>
+                  <TableCell>
                     <Button variant="ghost" size="icon" aria-label={t('accountList.editAccount')} onClick={() => startEdit(account)}>
                       <Pencil />
                     </Button>
@@ -198,7 +226,7 @@ export function AccountListPage() {
               ))}
               {!hasAccounts ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">{t('accountList.emptyAccounts')}</TableCell>
+                  <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">{t('accountList.emptyAccounts')}</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>
@@ -244,7 +272,7 @@ export function AccountListPage() {
             </label>
             <label className="flex flex-col gap-2 text-sm">
               <span>{t('localCopyTrading.password')}</span>
-              <Input type="password" aria-label={t('localCopyTrading.password')} value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
+              <Input type="password" placeholder={editingAccountId ? t('accountList.passwordKeepHint') : undefined} aria-label={t('localCopyTrading.password')} value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
             </label>
             <label className="flex flex-col gap-2 text-sm">
               <span>{t('localCopyTrading.server')}</span>
@@ -254,7 +282,7 @@ export function AccountListPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" disabled={isSubmitting} onClick={closeDialog}>{t('priceAlerts.cancel')}</Button>
-            <Button disabled={isSubmitting || !isAccountFormComplete(form)} onClick={() => void handleSaveAccount()}>{isSubmitting ? t('accountList.savingAccount') : editingAccountId ? t('accountList.updateAccount') : t('accountList.saveAccount')}</Button>
+            <Button disabled={isSubmitting || !isAccountFormComplete(form, Boolean(editingAccountId))} onClick={() => void handleSaveAccount()}>{isSubmitting ? t('accountList.savingAccount') : editingAccountId ? t('accountList.updateAccount') : t('accountList.saveAccount')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
