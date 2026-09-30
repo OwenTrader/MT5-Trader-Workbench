@@ -547,4 +547,76 @@ describe('Local Copy Trading Page', () => {
     expect(await screen.findByText(/no longer be closed automatically/)).toBeInTheDocument()
     expect(screen.getByText(/1 copied position/)).toBeInTheDocument()
   })
+
+  it('submits phase-2 sizing fields with a new relationship', async () => {
+    const user = userEvent.setup()
+    let relationshipPayload: Record<string, unknown> | null = null
+    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url === 'http://127.0.0.1:8765/local-copy-trading/relationships') {
+        relationshipPayload = JSON.parse(String(init?.body ?? '{}'))
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          runtime: { enabled: true, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+          accounts: [
+            { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: '', login: '10001', server: 'Broker-A', password: '', is_active: true },
+            { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: '', login: '20001', server: 'Broker-C', password: '', is_active: true },
+          ],
+          relationships: [
+            { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, volume_mode: 'risk_percent', max_lot: 1, risk_percent: 2, sync_sl_tp: true, is_active: true },
+          ],
+          events: [],
+          open_record_counts: {},
+        }),
+      } as Response
+    }) as any
+
+    renderPage()
+
+    await user.click(await screen.findByRole('button', { name: 'Add Relationship' }))
+    await user.selectOptions(await screen.findByLabelText('Source Account'), 'src-1')
+    await user.selectOptions(screen.getByLabelText('Follower Account'), 'fol-1')
+    await user.selectOptions(screen.getByLabelText('Volume Mode'), 'risk_percent')
+    await user.clear(screen.getByLabelText('Risk Percent (%)'))
+    await user.type(screen.getByLabelText('Risk Percent (%)'), '2')
+    await user.clear(screen.getByLabelText('Max Lot per Position'))
+    await user.type(screen.getByLabelText('Max Lot per Position'), '1')
+    await user.click(screen.getByRole('switch', { name: 'Sync Stop Loss / Take Profit' }))
+    await user.click(screen.getByRole('button', { name: 'Save Relationship' }))
+
+    await waitFor(() => {
+      expect(relationshipPayload).toMatchObject({
+        volume_mode: 'risk_percent',
+        risk_percent: 2,
+        max_lot: 1,
+        sync_sl_tp: true,
+        lot_multiplier: 1,
+      })
+    })
+  })
+
+  it('shows the volume mode column in the relationships table', async () => {
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        runtime: { enabled: false, poll_interval_seconds: 2, last_error: null, last_checked_at: null },
+        accounts: [
+          { id: 'src-1', name: 'Main A', connection_type: 'mt5_terminal', terminal_path: '', login: '10001', server: 'Broker-A', password: '', is_active: true },
+          { id: 'fol-1', name: 'Follower A', connection_type: 'mt5_terminal', terminal_path: '', login: '20001', server: 'Broker-C', password: '', is_active: true },
+        ],
+        relationships: [
+          { id: 'rel-1', source_account_id: 'src-1', follower_account_id: 'fol-1', symbol: 'XAUUSD', source_symbol: 'XAUUSD', follower_symbol: 'XAUUSD.m', lot_multiplier: 1, volume_mode: 'fixed', is_active: true },
+        ],
+        events: [],
+        open_record_counts: {},
+      }),
+    })) as any
+
+    renderPage()
+
+    expect(await screen.findByText('Fixed Lots')).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'Volume Mode' })).toBeInTheDocument()
+  })
 })

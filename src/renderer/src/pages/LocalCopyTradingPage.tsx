@@ -14,8 +14,33 @@ import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/i18n'
 import { useLocalCopyTradingStore } from '@/stores/local-copy-trading-store'
 
-function isRelationshipFormComplete(sourceId: string, followerId: string, sourceSymbol: string, followerSymbol: string, lotMultiplier: string) {
-  return Boolean(sourceId.trim() && followerId.trim() && sourceSymbol.trim() && followerSymbol.trim() && Number(lotMultiplier) > 0)
+function isRelationshipFormComplete(
+  sourceId: string,
+  followerId: string,
+  sourceSymbol: string,
+  followerSymbol: string,
+  lotMultiplier: string,
+  volumeMode: string,
+  riskPercent: string,
+) {
+  const sizingOk = Boolean(sourceId.trim() && followerId.trim() && sourceSymbol.trim() && followerSymbol.trim() && Number(lotMultiplier) > 0)
+  const riskOk = volumeMode !== 'risk_percent' || Number(riskPercent) > 0
+  return sizingOk && riskOk
+}
+
+const VOLUME_MODE_LABEL_KEYS: Record<string, string> = {
+  multiplier: 'localCopyTrading.volumeModes.multiplier',
+  fixed: 'localCopyTrading.volumeModes.fixed',
+  equity_ratio: 'localCopyTrading.volumeModes.equity_ratio',
+  risk_percent: 'localCopyTrading.volumeModes.risk_percent',
+}
+
+function renderVolumeModeLabel(
+  volumeMode: string | undefined,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  const mode = volumeMode ?? 'multiplier'
+  return VOLUME_MODE_LABEL_KEYS[mode] ? t(VOLUME_MODE_LABEL_KEYS[mode]) : mode
 }
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
@@ -114,6 +139,10 @@ export function LocalCopyTradingPage() {
   const [relationshipSourceSymbol, setRelationshipSourceSymbol] = React.useState('XAUUSD')
   const [relationshipFollowerSymbol, setRelationshipFollowerSymbol] = React.useState('XAUUSD')
   const [relationshipLotMultiplier, setRelationshipLotMultiplier] = React.useState('1')
+  const [relationshipVolumeMode, setRelationshipVolumeMode] = React.useState('multiplier')
+  const [relationshipRiskPercent, setRelationshipRiskPercent] = React.useState('1')
+  const [relationshipMaxLot, setRelationshipMaxLot] = React.useState('0')
+  const [relationshipSyncSlTp, setRelationshipSyncSlTp] = React.useState(false)
   const [selectedSourceId, setSelectedSourceId] = React.useState('')
   const [selectedFollowerId, setSelectedFollowerId] = React.useState('')
 
@@ -128,6 +157,10 @@ export function LocalCopyTradingPage() {
     setRelationshipSourceSymbol('XAUUSD')
     setRelationshipFollowerSymbol('XAUUSD')
     setRelationshipLotMultiplier('1')
+    setRelationshipVolumeMode('multiplier')
+    setRelationshipRiskPercent('1')
+    setRelationshipMaxLot('0')
+    setRelationshipSyncSlTp(false)
     setSelectedSourceId('')
     setSelectedFollowerId('')
   }, [])
@@ -155,6 +188,10 @@ export function LocalCopyTradingPage() {
       source_symbol: relationshipSourceSymbol,
       follower_symbol: relationshipFollowerSymbol,
       lot_multiplier: Number(relationshipLotMultiplier),
+      volume_mode: relationshipVolumeMode,
+      max_lot: Number(relationshipMaxLot) || 0,
+      risk_percent: Number(relationshipRiskPercent) || 1,
+      sync_sl_tp: relationshipSyncSlTp,
       is_active: true,
     })
     if (success) {
@@ -301,6 +338,7 @@ export function LocalCopyTradingPage() {
                     <TableHead>{t('localCopyTrading.columns.follower')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.sourceSymbol')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.followerSymbol')}</TableHead>
+                    <TableHead>{t('localCopyTrading.columns.volumeMode')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.lotMultiplier')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.status')}</TableHead>
                     <TableHead>{t('localCopyTrading.columns.actions')}</TableHead>
@@ -309,7 +347,7 @@ export function LocalCopyTradingPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                         <div className="flex items-center justify-center gap-2">
                           <Loader2 className="size-4 animate-spin" />
                           {t('common.loading')}
@@ -323,6 +361,7 @@ export function LocalCopyTradingPage() {
                          <TableCell>{getAccountLabelById(overview.accounts, relationship.follower_account_id)}</TableCell>
                         <TableCell>{getRelationshipSourceSymbol(relationship)}</TableCell>
                         <TableCell>{getRelationshipFollowerSymbol(relationship)}</TableCell>
+                        <TableCell>{renderVolumeModeLabel(relationship.volume_mode, t)}</TableCell>
                         <TableCell>{relationship.lot_multiplier}</TableCell>
                         <TableCell>{relationship.is_active ? t('localCopyTrading.active') : t('localCopyTrading.inactive')}</TableCell>
                         <TableCell>
@@ -334,7 +373,7 @@ export function LocalCopyTradingPage() {
                     ))
                   ) : (
                     <TableRow>
-                       <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                       <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                          {canCreateRelationship ? (
                            t('localCopyTrading.emptyRelationships')
                          ) : (
@@ -460,12 +499,42 @@ export function LocalCopyTradingPage() {
             <Input aria-label={t('localCopyTrading.relationshipFollowerSymbol')} value={relationshipFollowerSymbol} onChange={(event) => setRelationshipFollowerSymbol(event.target.value)} />
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span>{t('localCopyTrading.lotMultiplier')}</span>
+            <span>{t('localCopyTrading.volumeMode')}</span>
+            <Select value={relationshipVolumeMode} onValueChange={setRelationshipVolumeMode}>
+              <SelectTrigger aria-label={t('localCopyTrading.volumeMode')}>
+                <SelectValue placeholder={t('localCopyTrading.volumeMode')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {Object.entries(VOLUME_MODE_LABEL_KEYS).map(([mode, key]) => (
+                    <SelectItem key={mode} value={mode}>{t(key)}</SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            <span>{relationshipVolumeMode === 'fixed' ? t('localCopyTrading.fixedLots') : t('localCopyTrading.lotMultiplier')}</span>
             <Input type="number" min="0.01" step="0.01" aria-label={t('localCopyTrading.lotMultiplier')} value={relationshipLotMultiplier} onChange={(event) => setRelationshipLotMultiplier(event.target.value)} />
+          </label>
+          {relationshipVolumeMode === 'risk_percent' ? (
+            <label className="flex flex-col gap-2 text-sm">
+              <span>{t('localCopyTrading.riskPercent')}</span>
+              <Input type="number" min="0.01" step="0.01" aria-label={t('localCopyTrading.riskPercent')} value={relationshipRiskPercent} onChange={(event) => setRelationshipRiskPercent(event.target.value)} />
+            </label>
+          ) : null}
+          <label className="flex flex-col gap-2 text-sm">
+            <span>{t('localCopyTrading.maxLot')}</span>
+            <Input type="number" min="0" step="0.01" aria-label={t('localCopyTrading.maxLot')} value={relationshipMaxLot} onChange={(event) => setRelationshipMaxLot(event.target.value)} />
+            <span className="text-xs text-muted-foreground">{t('localCopyTrading.maxLotHint')}</span>
+          </label>
+          <label className="flex items-center justify-between gap-2 text-sm">
+            <span>{t('localCopyTrading.syncSlTp')}</span>
+            <Switch aria-label={t('localCopyTrading.syncSlTp')} checked={relationshipSyncSlTp} onCheckedChange={setRelationshipSyncSlTp} />
           </label>
           <DialogFooter>
             <Button variant="outline" onClick={closeRelationshipDialog}>{t('priceAlerts.cancel')}</Button>
-            <Button disabled={!isRelationshipFormComplete(selectedSourceId, selectedFollowerId, relationshipSourceSymbol, relationshipFollowerSymbol, relationshipLotMultiplier)} onClick={() => void handleCreateRelationship()}>{t('localCopyTrading.saveRelationship')}</Button>
+            <Button disabled={!isRelationshipFormComplete(selectedSourceId, selectedFollowerId, relationshipSourceSymbol, relationshipFollowerSymbol, relationshipLotMultiplier, relationshipVolumeMode, relationshipRiskPercent)} onClick={() => void handleCreateRelationship()}>{t('localCopyTrading.saveRelationship')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
