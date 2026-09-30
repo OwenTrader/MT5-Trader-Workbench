@@ -162,7 +162,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('silent fetch does not flip isLoading', async () => {
-    ;(fetch as any).mockResolvedValue({
+    (fetch as any).mockResolvedValue({
       ok: true,
       json: async () => ({
         runtime: { enabled: false, poll_interval_seconds: 1, last_error: null, last_checked_at: null },
@@ -192,7 +192,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('surfaces FastAPI 422 detail arrays as readable messages', async () => {
-    ;(fetch as any).mockResolvedValue({
+    (fetch as any).mockResolvedValue({
       ok: false,
       status: 422,
       json: async () => ({
@@ -209,7 +209,7 @@ describe('Local Copy Trading Store', () => {
   })
 
   it('fetches risk settings from the risk settings endpoint', async () => {
-    ;(fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
+    (fetch as any).mockImplementation(async (input: RequestInfo | URL) => {
       expect(String(input)).toBe('http://127.0.0.1:8765/local-copy-trading/risk-settings')
       return {
         ok: true,

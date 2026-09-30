@@ -302,7 +302,9 @@ export function LocalCopyTradingPage() {
     }
   }
 
-  const openCountForPendingRelationship = overview.open_record_counts?.[pendingDeleteRelationshipId] ?? 0
+  const openCountForPendingRelationship = pendingDeleteRelationshipId
+    ? (overview.open_record_counts?.[pendingDeleteRelationshipId] ?? 0)
+    : 0
   const deleteDescription = pendingDeleteRelationshipId
     ? t('localCopyTrading.confirmDeleteRelationship', {
         name: getRelationshipLabel(
