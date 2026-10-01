@@ -6,8 +6,9 @@
 - `npm run build` is the real app build. It produces `out/main`, `out/preload`, and `out/renderer` via `electron-vite`.
 - `npm run test:frontend` runs all Vitest tests matched under `src/**/*.{test,spec}.*`. This includes renderer tests and Node-environment tests in `src/main`.
 - `npm run test:electron` only runs `tests/e2e/app-launch.spec.ts`, and that spec launches `out/main/index.js`. Build first with `npm run build` or the smoke test will not have the compiled Electron app.
-- Python tests are present under `tests/python`, but they are not wired into `npm test`. Run them directly with `pytest tests/python` when changing `python_service` code.
-- There are no repo scripts for linting or TypeScript typechecking. Do not invent `npm run lint` or `npm run typecheck` steps in this repo.
+- Python tests are present under `tests/python`; `npm test` also runs them via `npm run test:python`. Note: on machines where `python` resolves to the Windows Store stub (exit code 49, no output), run them with `uv run --python 3.14 --with-requirements python_service/requirements.txt -- python -m pytest tests/python -q` instead. Judge results by pytest's own summary line, not by pipeline exit codes.
+- `npm run lint` runs ESLint over `src/**/*.{ts,tsx}` and `npm run typecheck` runs `tsc --noEmit`; both must stay at zero problems.
+- `.github/workflows/ci.yml` runs lint + typecheck + frontend + Python tests on every push/PR; `.github/workflows/release.yml` builds installers on `v*` tags.
 
 ## Architecture
 
@@ -45,4 +46,5 @@
 
 ## Existing Test Coverage Gaps
 
-- `npm test` does not cover the Python test suite. If you touch `python_service/app/**`, run `pytest tests/python` in addition to the npm tests you need.
+- `npm run typecheck` covers only `src/renderer/src` today; `src/main` and `src/preload` are not typechecked (see `tsconfig.node.json`).
+- `tests/e2e` (Playwright, launched by `npm run test:electron`) requires `npm run build` first and is not part of PR CI.

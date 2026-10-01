@@ -1,8 +1,30 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 
 let overlayWindow: BrowserWindow | null = null
+
+// Registered once at module level: re-creating the overlay (tray reopen after
+// Alt+F4) would otherwise throw "second handler" and break resizing for good.
+ipcMain.handle('overlay:set-size', (_event, width: number, height: number) => {
+  if (overlayWindow && !overlayWindow.isDestroyed()) {
+    overlayWindow.setSize(width, height)
+  }
+})
+
+function hardenOverlayNavigation(contents: Electron.WebContents): void {
+  contents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) {
+      void shell.openExternal(url)
+    }
+    return { action: 'deny' }
+  })
+  contents.on('will-navigate', (event, url) => {
+    if (!/^file:|^data:|^about:/i.test(url)) {
+      event.preventDefault()
+    }
+  })
+}
 
 export function createOverlayWindow(): BrowserWindow {
   overlayWindow = new BrowserWindow({
@@ -19,6 +41,7 @@ export function createOverlayWindow(): BrowserWindow {
       sandbox: true
     }
   })
+  hardenOverlayNavigation(overlayWindow.webContents)
 
   // Set initial position if saved (defaulting for now)
   overlayWindow.setPosition(40, 40)
@@ -33,13 +56,6 @@ export function createOverlayWindow(): BrowserWindow {
 
   overlayWindow.on('closed', () => {
     overlayWindow = null
-  })
-
-  // Add resizing handler
-  ipcMain.handle('overlay:set-size', (_event, width: number, height: number) => {
-    if (overlayWindow && !overlayWindow.isDestroyed()) {
-      overlayWindow.setSize(width, height)
-    }
   })
 
   return overlayWindow

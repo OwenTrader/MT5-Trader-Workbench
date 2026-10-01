@@ -156,13 +156,20 @@ async def origin_guard(request: Request, call_next):
         response: Response = Response()
         if _is_allowed_origin(origin):
             response.headers['Access-Control-Allow-Origin'] = origin or 'null'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
             response.headers['Access-Control-Allow-Headers'] = '*'
         return response
+    # A browser always sends Origin on cross-site fetches; a disallowed one
+    # means a foreign web page is calling the local trading API. Omitting the
+    # CORS headers is not enough -- the request body would still execute --
+    # so it is rejected outright. Requests without Origin (Electron file://,
+    # curl, health probes) keep working as before.
+    if origin is not None and not _is_allowed_origin(origin):
+        return JSONResponse({'detail': 'Origin not allowed'}, status_code=403)
     response = await call_next(request)
     if _is_allowed_origin(origin):
         response.headers['Access-Control-Allow-Origin'] = origin or 'null'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = '*'
     return response
 

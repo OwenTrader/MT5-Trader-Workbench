@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -270,7 +271,9 @@ async def run_enabled_jobs_once(*, db_path: Path | str = DEFAULT_MARKET_DATA_PAT
             continue
 
         try:
-            updated_jobs.append(run_job_once(job, db_path=db_path))
+            # run_job_once pulls MT5 bars and runs a full backtrader pass;
+            # on a worker thread so the event loop keeps serving requests.
+            updated_jobs.append(await asyncio.to_thread(run_job_once, job, db_path=db_path))
         except Exception as error:
             record_job_event(job, 'strategy_error', str(error), {
                 'execution_mode': job.execution_mode,

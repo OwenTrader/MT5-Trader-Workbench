@@ -10,6 +10,22 @@ from datetime import datetime, timezone
 _mt5_lock = threading.RLock()
 
 
+def _invalidate_session_tracking() -> None:
+    """Tell mt5_session its cached account key no longer matches the live connection.
+
+    Every function in this module that shuts down or re-initializes the
+    process-wide MT5 connection switches it away from whatever account
+    mt5_session believes is connected. Without this call, use_account would
+    reuse a dead or wrong-account connection -- for copy trading that means
+    orders sent to the wrong broker account.
+
+    Imported lazily because mt5_session imports this module (circular import).
+    """
+    from python_service.app.services import mt5_session
+
+    mt5_session.reset_session_tracking()
+
+
 @contextmanager
 def mt5_connection_lock():
     with _mt5_lock:
@@ -157,11 +173,21 @@ def init_mt5(path: str | None = None, *, allow_launch: bool = True, prefer_exist
 
 
 def _init_mt5_unlocked(path: str | None = None, *, allow_launch: bool = True, prefer_existing: bool = True) -> bool:
+    # 0. The process-wide connection can already be healthy; switching it here
+    # would tear down whatever account mt5_session connected (and costs a full
+    # shutdown/initialize round-trip on every call).
+    try:
+        if mt5.terminal_info() is not None and mt5.account_info() is not None:
+            return True
+    except Exception:
+        pass
+
     if prefer_existing:
         # 1. 优先复用已运行的 MT5 终端；如果有多个，则逐个尝试直到找到已登录可用的终端。
         if _connect_running_mt5_terminals_unlocked(path):
+            _invalidate_session_tracking()
             return True
-    
+
     if not allow_launch:
         return False
 
@@ -174,22 +200,28 @@ def _init_mt5_unlocked(path: str | None = None, *, allow_launch: bool = True, pr
             print(f"Attempting to initialize MT5 at: {actual_path} (Attempt {i+1}/{max_retries})")
             try:
                 if mt5.initialize(path=actual_path):
+                    _invalidate_session_tracking()
                     return True
                 else:
                     print(f"Attempt {i+1}/{max_retries} failed, error code = {mt5.last_error()}")
             except Exception as e:
                 print(f"MT5 initialization crashed: {e}")
-        
+
         if i < max_retries - 1:
             time.sleep(1) # 在重试之间等待 1 秒
-            
+
     print(f"MT5 initialization failed after {max_retries} attempts.")
+    _invalidate_session_tracking()
     return False
 
 
 def verify_mt5_credentials(path: str, login: str, password: str, server: str) -> tuple[bool, str | None]:
     with _mt5_lock:
-        return _verify_mt5_credentials_unlocked(path, login, password, server)
+        result = _verify_mt5_credentials_unlocked(path, login, password, server)
+    # The verification shut the process-wide connection down; make sure no
+    # module keeps believing its account is still connected.
+    _invalidate_session_tracking()
+    return result
 
 
 def _verify_mt5_credentials_unlocked(path: str, login: str, password: str, server: str) -> tuple[bool, str | None]:
@@ -274,36 +306,43 @@ def shutdown_mt5() -> None:
             mt5.shutdown()
         except Exception:
             pass
+    _invalidate_session_tracking()
 
 
 def verify_mt5_path_connection(path: str) -> tuple[bool, str | None, dict | None]:
     with _mt5_lock:
-        actual_path = _resolve_mt5_executable_path(path)
-        if not actual_path or not os.path.exists(actual_path):
-            return False, 'MT5 terminal path is invalid or does not exist', None
+        result = _verify_mt5_path_connection_unlocked(path)
+    _invalidate_session_tracking()
+    return result
 
+
+def _verify_mt5_path_connection_unlocked(path: str) -> tuple[bool, str | None, dict | None]:
+    actual_path = _resolve_mt5_executable_path(path)
+    if not actual_path or not os.path.exists(actual_path):
+        return False, 'MT5 terminal path is invalid or does not exist', None
+
+    try:
+        mt5.shutdown()
+    except Exception:
+        pass
+
+    try:
+        success = mt5.initialize(path=actual_path)
+        if not success:
+            return False, f'Failed to connect to MT5 at the specified path. Error code: {mt5.last_error()}', None
+
+        terminal_info = mt5.terminal_info()
+        if terminal_info is None:
+            return False, f'MT5 connected but terminal information is unavailable. Error: {mt5.last_error()}', None
+
+        return True, None, terminal_info._asdict()
+    except Exception as error:
+        return False, f'Failed to connect to MT5 at the specified path. Error: {error}', None
+    finally:
         try:
             mt5.shutdown()
         except Exception:
             pass
-
-        try:
-            success = mt5.initialize(path=actual_path)
-            if not success:
-                return False, f'Failed to connect to MT5 at the specified path. Error code: {mt5.last_error()}', None
-
-            terminal_info = mt5.terminal_info()
-            if terminal_info is None:
-                return False, f'MT5 connected but terminal information is unavailable. Error: {mt5.last_error()}', None
-
-            return True, None, terminal_info._asdict()
-        except Exception as error:
-            return False, f'Failed to connect to MT5 at the specified path. Error: {error}', None
-        finally:
-            try:
-                mt5.shutdown()
-            except Exception:
-                pass
 
 def get_settings_path():
     try:

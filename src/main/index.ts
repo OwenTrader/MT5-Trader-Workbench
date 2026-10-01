@@ -1,5 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, protocol } from 'electron'
-import { join, isAbsolute, resolve } from 'path'
+import { join, isAbsolute, resolve, dirname } from 'path'
 import { mkdir, readFile, access, copyFile, writeFile } from 'fs/promises'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { MainLocale, tMain } from './i18n'
@@ -43,6 +43,26 @@ if (!isSingleInstance) {
 
   const logShutdown = (message: string): void => {
     console.log(`[shutdown] ${message}`)
+  }
+
+  // Window navigation hardening: the app only ever loads local content, so any
+  // window.open or in-page navigation to a remote URL is denied; genuine http
+  // links are routed through the validated openExternal path instead.
+  const hardenWindowNavigation = (contents: Electron.WebContents): void => {
+    contents.setWindowOpenHandler(({ url }) => {
+      if (/^https?:\/\//i.test(url)) {
+        void shell.openExternal(url)
+      } else {
+        console.error(`Blocked window.open to non-http target: ${url}`)
+      }
+      return { action: 'deny' }
+    })
+    contents.on('will-navigate', (event, url) => {
+      if (!/^file:|^data:|^about:/i.test(url)) {
+        console.error(`Blocked navigation to: ${url}`)
+        event.preventDefault()
+      }
+    })
   }
 
   const shutdownController = createShutdownController({
@@ -325,6 +345,12 @@ if (!isSingleInstance) {
     })
 
     ipcMain.handle('app:openExternal', async (_event, target: string) => {
+      // Only remote http(s) URLs may be handed to the OS; anything else
+      // (file://, smb://, custom protocols) could execute local content.
+      if (typeof target !== 'string' || !/^https?:\/\//i.test(target)) {
+        console.error(`openExternal blocked non-http(s) target: ${target}`)
+        return
+      }
       await shell.openExternal(target)
     })
 
@@ -334,10 +360,17 @@ if (!isSingleInstance) {
     })
 
     ipcMain.handle('app:register-local-root', (_event, root: string) => {
-      if (typeof root === 'string' && root) {
-        allowedLocalRoots.add(join(app.getPath('userData'), root))
-        allowedLocalRoots.add(root)
+      // The only legitimate use is exposing a user-chosen alert sound, so the
+      // renderer may register the *directory of an audio file* -- nothing else.
+      // Without this check any string would unlock local-file reads on it.
+      if (typeof root !== 'string' || !root) {
+        return
       }
+      if (!/\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(root)) {
+        console.error(`register-local-root blocked non-audio path: ${root}`)
+        return
+      }
+      allowedLocalRoots.add(dirname(resolve(root)))
     })
 
     // Create the window immediately so the user sees the UI without waiting for
@@ -354,6 +387,7 @@ if (!isSingleInstance) {
         sandbox: true,
       },
     })
+    hardenWindowNavigation(mainWindow.webContents)
     await refreshLocalizedChrome()
 
     mainWindow.loadURL(
@@ -454,9 +488,13 @@ if (!isSingleInstance) {
         const decoded = decodeURIComponent(request.url.replace(/^local-file:\/\//, ''))
         const resolved = isAbsolute(decoded) ? resolve(decoded) : join(app.getPath('userData'), decoded)
         const normalized = resolved.replace(/\\/g, '/')
-        const allowed = Array.from(allowedLocalRoots).some((root) =>
-          normalized.startsWith(root.replace(/\\/g, '/')),
-        )
+        // Compare with a trailing separator so a root can never match a
+        // sibling directory that merely shares its prefix (C:/a/b vs C:/a/bX).
+        const allowed = Array.from(allowedLocalRoots).some((root) => {
+          const normalizedRoot = root.replace(/\\/g, '/')
+          const boundedRoot = normalizedRoot.endsWith('/') ? normalizedRoot : normalizedRoot + '/'
+          return normalized === normalizedRoot || normalized.startsWith(boundedRoot)
+        })
         if (!allowed) {
           console.error(`local-file protocol blocked untrusted path: ${decoded}`)
           return callback('')

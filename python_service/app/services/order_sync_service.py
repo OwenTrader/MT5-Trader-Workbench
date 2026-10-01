@@ -157,7 +157,9 @@ async def process_order_sync_tick() -> None:
         _save()
         return
 
-    positions = get_positions()
+    # get_positions may launch/reconnect the terminal (seconds, under the MT5
+    # lock); it must not freeze the event loop.
+    positions = await asyncio.to_thread(get_positions)
     active_tickets = {_position_ticket(position) for position in positions}
     active_tickets.discard(None)
     open_synced_orders = [order for order in _state.synced_orders if order.status == 'open']

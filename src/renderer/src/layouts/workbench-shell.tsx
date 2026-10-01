@@ -20,7 +20,7 @@ export function WorkbenchShell({ activeModule, onModuleChange, children }: Workb
 
   const handleOpenUserGuide = async () => {
     try {
-      await (window as any).electron?.openUserGuide?.(locale)
+      await (window as any).electron?.ipcRenderer?.invoke('app:open-user-guide', locale)
     } catch (error) {
       console.error('Failed to open user guide:', error)
       toast.error(t('help.openFailed'))

@@ -7,11 +7,12 @@ Rate = namedtuple('Rate', ['time', 'open', 'high', 'low', 'close', 'tick_volume'
 
 
 class FakeMT5:
-    def __init__(self, initialize_results, account_info_results=None):
+    def __init__(self, initialize_results, account_info_results=None, *, connected=False):
         self.initialize_results = list(initialize_results)
         self.account_info_results = list(account_info_results or [])
         self.calls = []
         self.shutdown_calls = 0
+        self.connected = connected
 
     def initialize(self, **kwargs):
         self.calls.append(kwargs)
@@ -31,6 +32,12 @@ class FakeMT5:
         return object()
 
     def terminal_info(self):
+        # None means "no live terminal" and keeps the healthy-connection
+        # short-circuit out of the way for path-selection tests; tests that
+        # need a live terminal pass connected=True.
+        if not self.connected:
+            return None
+
         class TerminalInfo:
             def _asdict(self):
                 return {}
@@ -154,7 +161,7 @@ def test_init_mt5_account_always_uses_requested_terminal_and_credentials(monkeyp
 
 
 def test_verify_mt5_path_connection_uses_requested_terminal_and_shuts_down(monkeypatch):
-    fake_mt5 = FakeMT5([True])
+    fake_mt5 = FakeMT5([True], connected=True)
     monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
     monkeypatch.setattr(mt5_service.os.path, 'exists', lambda path: True)
     monkeypatch.setattr(mt5_service.os.path, 'isdir', lambda path: False)
@@ -166,6 +173,18 @@ def test_verify_mt5_path_connection_uses_requested_terminal_and_shuts_down(monke
     assert terminal_info == {}
     assert fake_mt5.shutdown_calls == 2
     assert fake_mt5.calls == [{'path': 'C:/MT5/terminal64.exe'}]
+
+
+def test_init_mt5_reuses_a_healthy_connection_without_switching(monkeypatch):
+    """The ~1Hz callers must not tear down a live terminal and reconnect."""
+    fake_mt5 = FakeMT5([], connected=True)
+    monkeypatch.setattr(mt5_service, 'mt5', fake_mt5)
+
+    result = mt5_service.init_mt5('C:/MT5/terminal64.exe', allow_launch=False)
+
+    assert result is True
+    assert fake_mt5.calls == []
+    assert fake_mt5.shutdown_calls == 0
 
 
 def test_get_recent_candles_returns_normalized_candle_dicts(monkeypatch):

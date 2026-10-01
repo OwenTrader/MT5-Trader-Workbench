@@ -3,15 +3,18 @@ import ReactDOM from 'react-dom/client'
 import './styles/globals.css'
 import { App } from './App'
 import { I18nProvider } from '@/i18n'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { useSettingsStore } from '@/stores/settings-store'
 
 function Root() {
   const language = useSettingsStore((state) => state.settings.language || 'zh-CN')
 
   return (
-    <I18nProvider language={language}>
-      <App />
-    </I18nProvider>
+    <ErrorBoundary>
+      <I18nProvider language={language}>
+        <App />
+      </I18nProvider>
+    </ErrorBoundary>
   )
 }
 

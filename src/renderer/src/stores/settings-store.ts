@@ -30,14 +30,11 @@ function registerLocalRootsForSettings(settings: Settings): void {
   const bridge = getElectronBridge()
   if (!bridge?.ipcRenderer) return
   const soundPath = settings.alert_sound_path
-  // Register the alert-sound directory so the local-file protocol can serve it.
-  // Only absolute paths (user-chosen files) need this; bundled/relative paths
-  // already live under an allowed root.
+  // Register the alert-sound file so the local-file protocol can serve it.
+  // The main process only accepts audio files and exposes their directory;
+  // bundled/relative paths already live under an allowed root.
   if (soundPath && /^[a-zA-Z]:[\\/]/.test(soundPath)) {
-    const dir = soundPath.replace(/[\\/][^\\/]+$/, '')
-    if (dir) {
-      void bridge.ipcRenderer.invoke('app:register-local-root', dir)
-    }
+    void bridge.ipcRenderer.invoke('app:register-local-root', soundPath)
   }
 }
 
