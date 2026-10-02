@@ -1,5 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from '@/App'
 import { I18nProvider } from '@/i18n'
 import { useAlertsStore } from '@/stores/alerts-store'
@@ -214,11 +213,10 @@ describe('Dashboard Page', () => {
   })
 
   it('renders shadcn sidebar navigation labels after expanding the menu', async () => {
-    const user = userEvent.setup()
     render(<TestRoot />)
 
     const trigger = await getSidebarTrigger()
-    await user.click(trigger)
+    fireEvent.click(trigger)
 
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
@@ -233,11 +231,10 @@ describe('Dashboard Page', () => {
   })
 
   it('renders support me before settings in the sidebar order', async () => {
-    const user = userEvent.setup()
     render(<TestRoot />)
 
     const trigger = await getSidebarTrigger()
-    await user.click(trigger)
+    fireEvent.click(trigger)
 
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
@@ -249,64 +246,60 @@ describe('Dashboard Page', () => {
   })
 
   it('switches to the support me page from the sidebar menu', async () => {
-    const user = userEvent.setup()
     render(<TestRoot />)
 
     const trigger = await getSidebarTrigger()
-    await user.click(trigger)
+    fireEvent.click(trigger)
 
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
-    await user.click(await within(nav).findByRole('button', { name: 'Support Me' }))
+    fireEvent.click(await within(nav).findByRole('button', { name: 'Support Me' }))
 
     expect(await screen.findByRole('heading', { name: 'Support Me' })).toBeInTheDocument()
     expect(screen.getByText('Sponsorship or Custom Features')).toBeInTheDocument()
   })
 
   it('switches modules from the shadcn sidebar menu', async () => {
-    const user = userEvent.setup()
     render(<TestRoot />)
 
     const trigger = await getSidebarTrigger()
-    await user.click(trigger)
+    fireEvent.click(trigger)
 
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
-    await user.click(await within(nav).findByRole('button', { name: 'Alerts Hub' }))
+    fireEvent.click(await within(nav).findByRole('button', { name: 'Alerts Hub' }))
 
     expect(window.location.hash).toContain('/alerts')
     expect(await screen.findByRole('heading', { name: 'Alerts Hub' })).toBeInTheDocument()
   })
 
   it('navigates to and renders the automation page from the sidebar', async () => {
-    const user = userEvent.setup()
     render(<TestRoot />)
 
     const trigger = await getSidebarTrigger()
-    await user.click(trigger)
+    fireEvent.click(trigger)
 
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
-    await user.click(await within(nav).findByRole('button', { name: 'Automation & Copy' }))
+    fireEvent.click(await within(nav).findByRole('button', { name: 'Automation & Copy' }))
 
     expect(window.location.hash).toContain('/automation')
     expect(await screen.findByRole('heading', { name: 'Automation & Copy' })).toBeInTheDocument()
   })
 
   it('navigates to and renders available recent events from the sidebar', async () => {
-    const user = userEvent.setup()
     render(<TestRoot />)
 
     const trigger = await getSidebarTrigger()
-    await user.click(trigger)
+    fireEvent.click(trigger)
 
     const nav = getSidebarNav()
     expect(nav).not.toBeNull()
     if (!nav) throw new Error('Sidebar navigation not found')
-    await user.click(await within(nav).findByRole('button', { name: 'Event Log' }))
+    fireEvent.click(await within(nav).findByRole('button', { name: 'Event Log' }))
 
     expect(window.location.hash).toContain('/event-log')
     expect(await screen.findByRole('heading', { name: 'Event Log' })).toBeInTheDocument()

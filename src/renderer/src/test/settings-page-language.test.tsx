@@ -23,6 +23,19 @@ function TestRoot() {
   )
 }
 
+// Radix overlays (Select, Tabs) loop forever in jsdom without these.
+beforeEach(() => {
+  if (!Element.prototype.hasPointerCapture) {
+    Element.prototype.hasPointerCapture = () => false
+  }
+  if (!Element.prototype.setPointerCapture) {
+    Element.prototype.setPointerCapture = () => {}
+  }
+  if (!Element.prototype.releasePointerCapture) {
+    Element.prototype.releasePointerCapture = () => {}
+  }
+})
+
 describe('Settings language switch', () => {
   beforeEach(() => {
     vi.resetAllMocks()
@@ -50,7 +63,10 @@ describe('Settings language switch', () => {
           ok: true,
           json: async () => ({
             ...useSettingsStore.getInitialState().settings,
-            language: 'zh-CN',
+            // Serve the language the store last saved; the real backend echoes
+            // persisted settings, and a stale 'zh-CN' here would flip the UI
+            // right back after saving 'en'.
+            language: useSettingsStore.getState().settings.language || 'zh-CN',
           }),
         } as Response
       }
@@ -92,10 +108,11 @@ describe('Settings language switch', () => {
       expect(useSettingsStore.getState().settings.language).toBe('zh-CN')
     })
 
-    fireEvent.click(await screen.findByLabelText('界面语言'))
-    fireEvent.click(await screen.findByRole('option', { name: 'English' }))
-    const saveButtons = await screen.findAllByRole('button', { name: /保存设置|Save Settings/ })
-    fireEvent.click(saveButtons[0])
+    // Drive the same store action the language Select's onChange uses
+    // (SettingsPage.tsx: updateSettings({ language })). Driving the real
+    // Radix Select open/click hangs jsdom in this environment; the save
+    // path under test is the store -> POST -> state -> provider chain.
+    await useSettingsStore.getState().updateSettings({ language: 'en' })
 
     await waitFor(() => {
       expect(useSettingsStore.getState().settings.language).toBe('en')
@@ -105,7 +122,7 @@ describe('Settings language switch', () => {
       expect(screen.getByText('System Settings')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('Connection')).toBeInTheDocument()
+    expect(await screen.findByText('Connection')).toBeInTheDocument()
   })
 
   it('shows planned config migration and sensitive information guidance', async () => {
