@@ -301,7 +301,9 @@ if (!isSingleInstance) {
       updateTrayMenu()
     }
 
-    app.on('tray:toggle-overlay', () => {
+    // Custom app-level event (emitted from the tray); not in Electron's typed
+    // event map, hence the cast.
+    ;(app as unknown as NodeJS.EventEmitter).on('tray:toggle-overlay', () => {
       const isVisible = getOverlayWindow()?.isVisible() ?? false
       setOverlayVisible(!isVisible)
     })

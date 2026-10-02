@@ -23,7 +23,7 @@
     "test:frontend": "vitest run",
     "test:electron": "playwright test tests/e2e/app-launch.spec.ts",
     "test:python": "pytest tests/python",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.main.json",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "npm run test:frontend && npm run test:electron && npm run test:python"
   },
@@ -146,5 +146,6 @@
         "to": "storage/settings.json"
       }
     ]
-  }
+  },
+  "packageManager": "pnpm@11.21.0"
 }

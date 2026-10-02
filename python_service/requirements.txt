@@ -1,10 +1,13 @@
-fastapi
-uvicorn
-pydantic
-MetaTrader5
-pytest
-httpx
-pandas
-numpy
-pyinstaller
-backtrader
+# Versions are pinned to the set the test suite and packaging pipeline run
+# against (verified 2026-10-01). Bump deliberately, then re-run:
+#   uv run --python 3.14 --with-requirements python_service/requirements.txt -- python -m pytest tests/python -q
+fastapi==0.142.2
+uvicorn==0.54.0
+pydantic==2.13.5
+MetaTrader5==5.0.6231
+pytest==9.1.1
+httpx==0.28.1
+pandas==3.0.6
+numpy==2.5.3
+pyinstaller==6.22.3
+backtrader==1.9.78.123

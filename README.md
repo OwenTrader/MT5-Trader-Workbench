@@ -88,7 +88,7 @@ MT5 Trader Workbench is a Windows-focused desktop trading assistant built with E
 Install Node.js dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 Install Python backend dependencies, including `PyInstaller` for Windows packaging:
@@ -113,7 +113,7 @@ The project also includes a Python backend in `python_service/`. The Electron ma
 - `npm run verify:packaging`: verify the backend directory, `mt5_service.exe`, bundled `_internal` runtime files, and the Electron resource path before Windows packaging
 - `npm run package:win`: rebuild Electron, rebuild the Python backend, verify packaging inputs, auto-increment the local build number, then create a Windows interactive installer wizard like `MT5 Trader Workbench Setup 1.0.0.1.exe`. The installer allows users to customize the installation directory, automatically creates desktop and start menu shortcuts, protects user data from being wiped during uninstall/upgrade, and includes process conflict watchdogs (`resources/installer.nsh`). The packaging script uses a repo-local `electron-builder` cache under `.cache/electron-builder`, and pre-seeds `winCodeSign` and `nsis` from `C:\Users\Administrator\AppData\Local\electron-builder\Cache` when available so packaging tools are reused locally instead of being downloaded again.
 - `npm run test:frontend`: run frontend tests
-- `npm run test:electron`: run Electron smoke tests
+- `npm run test:electron`: run Electron smoke tests (requires `npm run build` first — it launches the compiled `out/main/index.js`)
 - `npm run test`: run all configured tests
 
 Run Python backend tests directly with:
@@ -122,7 +122,7 @@ Run Python backend tests directly with:
 pytest tests/python
 ```
 
-Use only `python_service/mt5_service.spec` for backend packaging. Do not build from the deprecated root `mt5_service.spec`.
+Use only `python_service/mt5_service.spec` for backend packaging.
 The local packaging counter is stored in `.build-version.json` and is ignored by git.
 
 ## Backend Endpoints

@@ -12,7 +12,10 @@ async function flushMicrotasks(iterations = 4): Promise<void> {
 
 describe('shutdown coordinator', () => {
   it('reuses one in-flight cleanup across repeated quit hooks', async () => {
-    let resolveCleanup: (() => void) | null = null
+    // Initialised with a no-op so TS can prove callability: the real resolve
+    // is assigned inside the promise executor, which control-flow analysis
+    // cannot see.
+    let resolveCleanup: () => void = () => {}
     const cleanup = vi.fn(() => new Promise<void>((resolve) => {
       resolveCleanup = resolve
     }))
@@ -31,7 +34,7 @@ describe('shutdown coordinator', () => {
     expect(cleanup).toHaveBeenCalledTimes(1)
     expect(cleanup).toHaveBeenCalledWith('before-quit-first')
 
-    resolveCleanup?.()
+    resolveCleanup()
     await flushMicrotasks()
 
     expect(resumeQuit).toHaveBeenCalledTimes(1)

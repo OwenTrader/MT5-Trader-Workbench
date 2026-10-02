@@ -88,7 +88,7 @@ MT5 Trader Workbench 是一个面向 Windows 的桌面交易辅助工具，基�
 安装 Node.js 依赖：
 
 ```bash
-npm install
+pnpm install
 ```
 
 安装 Python 后端依赖，Windows 打包所需的 `PyInstaller` 也包含在内：
@@ -113,7 +113,7 @@ npm run dev
 - `npm run verify:packaging`：在 Windows 打包前校验后端目录、`mt5_service.exe`、`_internal` 运行时文件以及 Electron 资源路径
 - `npm run package:win`：先重建 Electron，再重建 Python 后端，校验打包输入，自动递增本地 build 号，最后生成类似 `MT5 Trader Workbench Setup 1.0.0.1.exe` 的 Windows 交互式安装向导包。安装程序支持用户自主选择安装盘符与目录、自动创建桌面与开始菜单快捷方式、卸载或覆盖安装时保护用户配置数据，并包含防多开与后台进程冲突检测（`resources/installer.nsh`）。打包脚本会使用仓库内的 `.cache/electron-builder` 作为本地缓存目录，并在可用时优先从 `C:\Users\Administrator\AppData\Local\electron-builder\Cache` 预热 `winCodeSign` 和 `nsis`，避免再次下载这些打包工具。
 - `npm run test:frontend`：运行前端测试
-- `npm run test:electron`：运行 Electron 冒烟测试
+- `npm run test:electron`：运行 Electron 冒烟测试（需先 `npm run build`，它会启动编译产物 `out/main/index.js`）
 - `npm run test`：运行全部已配置测试
 
 后端打包只使用 `python_service/mt5_service.spec`。不要再从已废弃的根目录 `mt5_service.spec` 发起构建。

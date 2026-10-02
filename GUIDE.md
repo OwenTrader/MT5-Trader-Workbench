@@ -440,13 +440,13 @@ workbench-gemini/
 │       ├── test_trading_review.py                          # Tests for trading review replay lifecycle, contract math, and SL/TP triggers
 │       └── test_volatility_alerts.py                       # Tests for rapid price movement volatility alerts
 ├── AGENTS.md                                       # AI coding agent guidelines, architecture quirks, and command specifications
-├── build-hardened.bat                              # One-click Windows batch script for hardened Pyarmor build
+├── build-hardened.bat                              # One-click Windows batch script for hardened build
 ├── build-standard.bat                              # One-click Windows batch script for standard packaging build
 ├── components.json                                 # shadcn/ui CLI component library configuration
 ├── electron.vite.config.ts                         # electron-vite multi-bundle build configuration
 ├── GUIDE.md                                        # System architecture & directory guide (this file)
 ├── LICENSE                                         # License terms and legal agreement
-├── package-lock.json                               # npm dependency lockfile
+├── pnpm-lock.yaml                                  # pnpm dependency lockfile (package manager pinned via packageManager)
 ├── package.json                                    # Node.js dependencies and script manifests
 ├── postcss.config.js                               # PostCSS configuration for Tailwind CSS processing
 ├── README.md                                       # Primary product documentation & user guide
@@ -526,7 +526,7 @@ workbench-gemini/
 
 1. **Install Node.js Dependencies**:
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Install Python Backend Dependencies**:
@@ -548,7 +548,7 @@ npm run dev
 
 - **Run Frontend & Main Process Vitest Tests**:
   ```bash
-  npm run test:frontend
+  pnpm run test:frontend
   ```
 
 - **Run Python Backend Pytest Suite**:
@@ -559,7 +559,7 @@ npm run dev
 - **Run Electron Desktop E2E Smoke Tests** *(requires building frontend first)*:
   ```bash
   npm run build
-  npm run test:electron
+  pnpm run test:electron
   ```
 
 - **Verify Architecture Guide Tree Alignment**:
@@ -587,4 +587,4 @@ npm run dev
    # Or execute the one-click batch script:
    build-hardened.bat
    ```
-   *Uses Pyarmor to obfuscate Python source code prior to PyInstaller compilation.*
+   *Hardened build = PyInstaller with `optimize=2` and UPX; it does NOT obfuscate Python source.*

@@ -92,12 +92,12 @@ type MockResponse = EventEmitter & {
 }
 
 type MockChildProcess = EventEmitter & ChildProcess & {
-  kill: ReturnType<typeof vi.fn>
+  kill: (signal?: NodeJS.Signals | number) => boolean
   pid: number
   killed: boolean
   exitCode: number | null
-  stdout: EventEmitter
-  stderr: EventEmitter
+  stdout: ChildProcess['stdout']
+  stderr: ChildProcess['stderr']
 }
 
 function createRequest(
@@ -138,11 +138,11 @@ function createChildProcess(pid = 1234): MockChildProcess {
   childProcess.pid = pid
   childProcess.killed = false
   childProcess.exitCode = null
-  childProcess.stdout = new EventEmitter()
-  childProcess.stderr = new EventEmitter()
+  childProcess.stdout = new EventEmitter() as unknown as ChildProcess['stdout']
+  childProcess.stderr = new EventEmitter() as unknown as ChildProcess['stderr']
   ;(childProcess.stdout as EventEmitter & { setEncoding: (encoding: string) => void }).setEncoding = vi.fn()
   ;(childProcess.stderr as EventEmitter & { setEncoding: (encoding: string) => void }).setEncoding = vi.fn()
-  childProcess.kill = vi.fn(() => {
+  childProcess.kill = vi.fn((_signal?: NodeJS.Signals | number) => {
     childProcess.killed = true
     return true
   })

@@ -2,6 +2,8 @@
 
 ## Use These Commands
 
+- **Package manager is pnpm** (pinned via `packageManager` in `package.json`; lockfile `pnpm-lock.yaml`). There is no `package-lock.json` — do not run `npm install` in this repo. `npm run <script>` still works for running scripts, but dependency changes go through `pnpm add/remove` + commit the lockfile.
+
 - `npm run dev` is the real full-app dev entrypoint. It runs the Electron app through `electron-vite` and is the command to use for normal development.
 - `npm run build` is the real app build. It produces `out/main`, `out/preload`, and `out/renderer` via `electron-vite`.
 - `npm run test:frontend` runs all Vitest tests matched under `src/**/*.{test,spec}.*`. This includes renderer tests and Node-environment tests in `src/main`.
@@ -46,5 +48,4 @@
 
 ## Existing Test Coverage Gaps
 
-- `npm run typecheck` covers only `src/renderer/src` today; `src/main` and `src/preload` are not typechecked (see `tsconfig.node.json`).
 - `tests/e2e` (Playwright, launched by `npm run test:electron`) requires `npm run build` first and is not part of PR CI.
