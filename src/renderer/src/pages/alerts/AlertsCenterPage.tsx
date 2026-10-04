@@ -38,19 +38,19 @@ export const AlertsCenterPage: React.FC<AlertsCenterPageProps> = ({ defaultTab =
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
-            <span className="text-foreground font-semibold">活跃规则:</span>
-            <span>{activePriceCount + activeVolCount + activeIndCount} 个</span>
+            <span className="text-foreground font-semibold">{t('alertsCenter.activeRules')}</span>
+            <span>{t('alertsCenter.ruleCount', { count: activePriceCount + activeVolCount + activeIndCount })}</span>
           </div>
 
           <div className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
-            <span>推送通道:</span>
+            <span>{t('alertsCenter.pushChannels')}</span>
             {hasBotEnabled ? (
               <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" /> 已就绪
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t('alertsCenter.ready')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                <AlertCircle className="h-3.5 w-3.5" /> 仅声音/弹窗
+                <AlertCircle className="h-3.5 w-3.5" /> {t('alertsCenter.soundOnly')}
               </span>
             )}
           </div>

@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react'
+import { useI18n } from '@/i18n'
 import { HashRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { WorkbenchShell } from '@/layouts/workbench-shell'
 import { OverlayDisplayPage } from '@/pages/overlay-display-page'
@@ -63,9 +64,10 @@ const VALID_MODULES = new Set([
 ])
 
 function PageFallback() {
+  const { t } = useI18n()
   return (
     <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
-      加载中…
+      {t('common.loading')}
     </div>
   )
 }

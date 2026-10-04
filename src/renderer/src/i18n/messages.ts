@@ -95,6 +95,17 @@ const zhCN = {
       passwordKeepHint: '留空保持已存密码不变',
     },
     pythonQuant: {
+      runningJobs: '{count} 运行中',
+      modeLive: '实盘真实下单',
+      modePaper: '模拟信号验证',
+      modeLibrary: 'Backtrader 策略库',
+      libraryHint: '内置与用户自定义的标准化 Backtrader 策略',
+      stepNowTitle: '即时单步评估',
+      strategySourceTitle: 'Backtrader 策略 Python 实现源文件 ({id}.py)',
+      copyCode: '复制代码',
+      close: '关闭',
+      strategyDescPlaceholder: '简要说明策略的交易逻辑和入场出场条件',
+      saveAndLoad: '保存策略并载入',
       title: 'Python 量化',
       description: '在选定的 MT5 账户上分派实盘量化策略、监控运行状态并手动回填行情数据。',
       createJob: '创建任务',
@@ -312,6 +323,10 @@ const zhCN = {
       },
     },
     settings: {
+      gotIt: '知道了',
+      sponsorTitle: '打赏与定制功能支持',
+      sponsorDesc: '如果您觉得本交易工作台对您的交易有所帮助，欢迎打赏支持作者持续迭代！',
+      goSponsor: '前往赞助页面',
       title: '系统设置',
       tabs: {
         general: '连接',
@@ -443,6 +458,14 @@ const zhCN = {
       },
     },
     dashboard: {
+      watchlist: {
+        title: '自选行情与桌面悬浮',
+        hideOverlay: '隐藏悬浮窗',
+        showOverlay: '开启桌面悬浮',
+        active: '活跃',
+        syncHint: '点击品种可同步联动右侧行情与图表',
+        count: '共 6 个监控品种',
+      },
       title: '工作台总览',
       position: {
         title: '实时持仓明细',
@@ -698,6 +721,7 @@ const zhCN = {
       blocked: '已阻止',
     },
     eventLog: {
+      searchPlaceholder: '搜索事件与详情...',
       title: '事件日志',
       recentTitle: '当前可用的近期事件',
       description: '轻量事件日志仅汇总前端当前可读取的本地跟单事件、订单同步记录和最近错误，不是完整审计历史。',
@@ -821,6 +845,14 @@ const zhCN = {
       tableRange: '时间范围',
     },
     tradingReview: {
+      noClosedTrades: '暂无平仓记录',
+      winLoss: '{win} 胜 / {loss} 负',
+      totalTrades: '总交易 {count} 笔',
+      avgProfit: '平均盈利:',
+      avgLoss: '平均亏损:',
+      noStats: '无战绩数据',
+      barCount: '{count} 根',
+      loadingSessions: '加载复盘记录中...',
       title: '复盘系统',
       description: '使用本地保存的 K 线数据进行历史行情的手动交易复盘，锻炼盘感和交易策略。',
       newSession: '新建复盘',
@@ -922,6 +954,27 @@ const zhCN = {
       size: '{size} 手',
       blocked: '已阻止',
     },
+    common: {
+      loading: '加载中…',
+    },
+    statusBar: {
+      connected: '已连接',
+      readyNoLogin: '就绪未登录',
+      disconnected: '未连接',
+      streaming: '推流服务',
+      activeAlerts: '{count} 活跃告警',
+      quickCommand: 'Ctrl + K 快捷指令',
+    },
+    workbenchShell: {
+      searchHint: '快速搜索与指令...',
+    },
+    alertsCenter: {
+      activeRules: '活跃规则:',
+      ruleCount: '{count} 个',
+      pushChannels: '推送通道:',
+      ready: '已就绪',
+      soundOnly: '仅声音/弹窗',
+    },
 } as const
 
 // Widens the as-const tree back to plain strings so the English table is
@@ -1018,6 +1071,17 @@ const en = {
       passwordKeepHint: 'Leave blank to keep the stored password',
     },
     pythonQuant: {
+      runningJobs: '{count} running',
+      modeLive: 'Real orders',
+      modePaper: 'Paper signals',
+      modeLibrary: 'Backtrader library',
+      libraryHint: 'Built-in and user-defined standardized Backtrader strategies',
+      stepNowTitle: 'Instant step evaluation',
+      strategySourceTitle: 'Backtrader strategy Python source ({id}.py)',
+      copyCode: 'Copy code',
+      close: 'Close',
+      strategyDescPlaceholder: 'Briefly describe the trading logic and entry/exit conditions',
+      saveAndLoad: 'Save & load',
       title: 'Python Quant',
       description: 'Assign live strategies to accounts from Account List, monitor runtime status, and backfill market data manually.',
       createJob: 'Create Job',
@@ -1235,6 +1299,10 @@ const en = {
       },
     },
     settings: {
+      gotIt: 'Got it',
+      sponsorTitle: 'Sponsorship & Custom Features',
+      sponsorDesc: 'If this trading workbench helps your trading, consider sponsoring the author to keep it improving!',
+      goSponsor: 'Go to Sponsor Page',
       title: 'System Settings',
       tabs: {
         general: 'Connection',
@@ -1366,6 +1434,14 @@ const en = {
       },
     },
     dashboard: {
+      watchlist: {
+        title: 'Watchlist & Desktop Overlay',
+        hideOverlay: 'Hide overlay',
+        showOverlay: 'Show desktop overlay',
+        active: 'Active',
+        syncHint: 'Click a symbol to sync the quote and chart on the right',
+        count: '6 watched symbols',
+      },
       title: 'Dashboard',
       position: {
         title: 'Live Positions',
@@ -1621,6 +1697,7 @@ const en = {
       blocked: 'Blocked',
     },
     eventLog: {
+      searchPlaceholder: 'Search events and details...',
       title: 'Event Log',
       recentTitle: 'Currently Available Recent Events',
       description: 'This lightweight event log only aggregates local copy trading events, order sync records, and the latest errors currently available to the renderer. It is not a complete audit history.',
@@ -1744,6 +1821,14 @@ const en = {
       tableRange: 'Range',
     },
     tradingReview: {
+      noClosedTrades: 'No closed trades yet',
+      winLoss: '{win} W / {loss} L',
+      totalTrades: '{count} trades total',
+      avgProfit: 'Avg win:',
+      avgLoss: 'Avg loss:',
+      noStats: 'No performance data',
+      barCount: '{count} bars',
+      loadingSessions: 'Loading review sessions...',
       title: 'Trading Review',
       description: 'Manually review and paper trade on historical K-line data to improve trading skills.',
       newSession: 'New Session',
@@ -1844,6 +1929,27 @@ const en = {
       blocked: 'Blocked',
       cachedDataSelect: 'Quick Fill from Cached Data',
       cachedDataHint: 'Select downloaded historical dataset to review',
+    },
+    common: {
+      loading: 'Loading…',
+    },
+    statusBar: {
+      connected: 'Connected',
+      readyNoLogin: 'Ready (not logged in)',
+      disconnected: 'Disconnected',
+      streaming: 'Streaming',
+      activeAlerts: '{count} active alerts',
+      quickCommand: 'Ctrl + K commands',
+    },
+    workbenchShell: {
+      searchHint: 'Quick search & commands...',
+    },
+    alertsCenter: {
+      activeRules: 'Active rules:',
+      ruleCount: '{count}',
+      pushChannels: 'Push channels:',
+      ready: 'Ready',
+      soundOnly: 'Sound/popup only',
     },
 } satisfies Widen<typeof zhCN>
 

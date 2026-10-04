@@ -136,7 +136,7 @@ export function EventLogPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="搜索事件与详情..."
+                  placeholder={t('eventLog.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 text-xs h-9"

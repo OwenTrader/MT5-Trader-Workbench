@@ -46,7 +46,7 @@ export function WorkbenchShell({ activeModule, onModuleChange, children }: Workb
                 className="hidden md:flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground transition-all hover:bg-muted/70 hover:text-foreground"
               >
                 <Search className="h-3.5 w-3.5" />
-                <span>快速搜索与指令...</span>
+                <span>{t('workbenchShell.searchHint')}</span>
                 <kbd className="rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono">Ctrl+K</kbd>
               </button>
 

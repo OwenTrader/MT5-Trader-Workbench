@@ -315,7 +315,7 @@ export const SettingsPage: React.FC = () => {
             <DialogDescription>{botDialog.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setBotDialog((current) => ({ ...current, open: false }))}>知道了</Button>
+            <Button onClick={() => setBotDialog((current) => ({ ...current, open: false }))}>{t('settings.gotIt')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -974,11 +974,11 @@ export const SettingsPage: React.FC = () => {
             <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-primary">打赏与定制功能支持</p>
-                  <p className="text-xs text-muted-foreground mt-1">如果您觉得本交易工作台对您的交易有所帮助，欢迎打赏支持作者持续迭代！</p>
+                  <p className="text-sm font-semibold text-primary">{t('settings.sponsorTitle')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('settings.sponsorDesc')}</p>
                 </div>
                 <Button variant="default" size="sm" onClick={() => window.location.hash = '#/sponsor'}>
-                  前往赞助页面
+                  {t('settings.goSponsor')}
                 </Button>
               </div>
             </div>

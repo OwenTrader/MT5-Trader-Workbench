@@ -699,7 +699,7 @@ export function PythonQuantPage() {
             <span>{t('pythonQuant.jobsTitle')}</span>
           </div>
           <div className="text-2xl font-bold font-mono mt-1">{totalJobs}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{runningJobs} 运行中</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{t('pythonQuant.runningJobs', { count: runningJobs })}</div>
         </Card>
 
         <Card className="p-4 border bg-card/60">
@@ -708,7 +708,7 @@ export function PythonQuantPage() {
             <span>{t('pythonQuant.cockpitLive')}</span>
           </div>
           <div className="text-2xl font-bold font-mono mt-1 text-emerald-500">{liveJobs}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">实盘真实下单</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{t('pythonQuant.modeLive')}</div>
         </Card>
 
         <Card className="p-4 border bg-card/60">
@@ -717,7 +717,7 @@ export function PythonQuantPage() {
             <span>{t('pythonQuant.cockpitPaper')}</span>
           </div>
           <div className="text-2xl font-bold font-mono mt-1 text-amber-500">{paperJobs}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">模拟信号验证</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{t('pythonQuant.modePaper')}</div>
         </Card>
 
         <Card className="p-4 border bg-card/60">
@@ -726,7 +726,7 @@ export function PythonQuantPage() {
             <span>{t('pythonQuant.cockpitStrategies')}</span>
           </div>
           <div className="text-2xl font-bold font-mono mt-1 text-sky-500">{availableStrategiesCount}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">Backtrader 策略库</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{t('pythonQuant.modeLibrary')}</div>
         </Card>
       </div>
 
@@ -735,7 +735,7 @@ export function PythonQuantPage() {
         <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b bg-muted/10">
           <div>
             <CardTitle className="text-base">{t('pythonQuant.cockpitStrategies')}</CardTitle>
-            <p className="text-xs text-muted-foreground">内置与用户自定义的标准化 Backtrader 策略</p>
+            <p className="text-xs text-muted-foreground">{t('pythonQuant.libraryHint')}</p>
           </div>
         </CardHeader>
         <CardContent className="p-4">
@@ -983,7 +983,7 @@ export function PythonQuantPage() {
                             size="sm"
                             onClick={() => handleEvaluateNow(job)}
                             disabled={isLoading}
-                            title="即时单步评估"
+                            title={t('pythonQuant.stepNowTitle')}
                             aria-label={`Evaluate ${job.name}`}
                           >
                             <Zap className="w-3.5 h-3.5 mr-1 text-primary" />
@@ -1100,7 +1100,7 @@ export function PythonQuantPage() {
               {t('pythonQuant.codeViewerTitle', { name: viewingStrategy?.name || '' })}
             </DialogTitle>
             <DialogDescription>
-              Backtrader 策略 Python 实现源文件 ({viewingStrategy?.id}.py)
+              {t('pythonQuant.strategySourceTitle', { id: viewingStrategy?.id ?? '' })}
             </DialogDescription>
           </DialogHeader>
 
@@ -1120,10 +1120,10 @@ export function PythonQuantPage() {
               }}
             >
               <Copy className="w-4 h-4 mr-1.5" />
-              复制代码
+              {t('pythonQuant.copyCode')}
             </Button>
             <Button variant="secondary" onClick={() => setViewingStrategy(null)}>
-              关闭
+              {t('pythonQuant.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1166,7 +1166,7 @@ export function PythonQuantPage() {
               <Label className="text-xs">{t('pythonQuant.strategyDescription')}</Label>
               <Input
                 className="h-8 text-xs"
-                placeholder="简要说明策略的交易逻辑和入场出场条件"
+                placeholder={t('pythonQuant.strategyDescPlaceholder')}
                 value={customStratDesc}
                 onChange={(e) => setCustomStratDesc(e.target.value)}
               />
@@ -1193,7 +1193,7 @@ export function PythonQuantPage() {
               {t('pythonQuant.cancel')}
             </Button>
             <Button onClick={handleSaveCustomStrategy} disabled={isLoading}>
-              保存策略并载入
+              {t('pythonQuant.saveAndLoad')}
             </Button>
           </DialogFooter>
         </DialogContent>

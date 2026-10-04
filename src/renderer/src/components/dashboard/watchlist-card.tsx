@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Eye, TrendingUp, Sparkles } from 'lucide-react'
+import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 
 interface WatchlistCardProps {
@@ -34,12 +35,13 @@ export const WatchlistCard: React.FC<WatchlistCardProps> = ({
   isOverlayVisible,
   onToggleOverlay,
 }) => {
+  const { t } = useI18n()
   return (
     <Card className="shadow-sm border h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between py-3.5 px-5 border-b bg-card/50">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
-          <CardTitle className="text-sm font-semibold">自选行情与桌面悬浮</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('dashboard.watchlist.title')}</CardTitle>
         </div>
 
         <Button
@@ -49,7 +51,7 @@ export const WatchlistCard: React.FC<WatchlistCardProps> = ({
           className="h-8 gap-1.5 text-xs font-medium"
         >
           <Eye className="h-3.5 w-3.5" />
-          <span>{isOverlayVisible ? '隐藏悬浮窗' : '开启桌面悬浮'}</span>
+          <span>{isOverlayVisible ? t('dashboard.watchlist.hideOverlay') : t('dashboard.watchlist.showOverlay')}</span>
         </Button>
       </CardHeader>
 
@@ -86,7 +88,7 @@ export const WatchlistCard: React.FC<WatchlistCardProps> = ({
                   </Badge>
                   {isSelected && (
                     <Badge variant="default" className="text-[11px] px-1.5 py-0.5 bg-primary text-primary-foreground">
-                      活跃
+                      {t('dashboard.watchlist.active')}
                     </Badge>
                   )}
                 </div>
@@ -98,9 +100,9 @@ export const WatchlistCard: React.FC<WatchlistCardProps> = ({
         <div className="mt-3 pt-2.5 border-t text-xs text-muted-foreground flex items-center justify-between px-1">
           <span className="flex items-center gap-1">
             <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-            <span>点击品种可同步联动右侧行情与图表</span>
+            <span>{t('dashboard.watchlist.syncHint')}</span>
           </span>
-          <span className="font-mono text-[11px]">共 6 个监控品种</span>
+          <span className="font-mono text-[11px]">{t('dashboard.watchlist.count')}</span>
         </div>
       </CardContent>
     </Card>

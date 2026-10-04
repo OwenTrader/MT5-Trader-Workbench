@@ -10,7 +10,7 @@ interface StatusBarProps {
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({ onOpenCommandPalette }) => {
-  const { locale } = useI18n()
+  const { t, locale } = useI18n()
   const { status } = useDashboardStore()
   const { priceAlerts, volatilityAlerts, indicatorAlerts } = useAlertsStore()
   const [timeStr, setTimeStr] = useState<string>('')
@@ -51,19 +51,19 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onOpenCommandPalette }) =>
             )}
           />
           <span className="text-foreground">
-            MT5: {isConnected ? '已连接' : isRunning ? '就绪未登录' : '未连接'}
+            MT5: {isConnected ? t('statusBar.connected') : isRunning ? t('statusBar.readyNoLogin') : t('statusBar.disconnected')}
           </span>
         </div>
 
         <div className="hidden sm:flex items-center gap-1">
           <Radio className="h-3 w-3 text-muted-foreground/70" />
-          <span>推流服务: 127.0.0.1:8765</span>
+          <span>{t('statusBar.streaming')}: 127.0.0.1:8765</span>
         </div>
 
         {totalActiveAlerts > 0 && (
           <div className="hidden md:flex items-center gap-1 text-primary">
             <Bell className="h-3 w-3" />
-            <span>{totalActiveAlerts} 活跃告警</span>
+            <span>{t('statusBar.activeAlerts', { count: totalActiveAlerts })}</span>
           </div>
         )}
       </div>
@@ -77,7 +77,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onOpenCommandPalette }) =>
             className="hidden sm:flex items-center gap-1 hover:text-foreground transition-colors px-1 py-0.5 rounded border bg-background/60 text-[10px]"
           >
             <Command className="h-2.5 w-2.5" />
-            <span>Ctrl + K 快捷指令</span>
+            <span>{t('statusBar.quickCommand')}</span>
           </button>
         )}
 

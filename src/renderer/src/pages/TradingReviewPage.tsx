@@ -612,7 +612,7 @@ export function TradingReviewPage() {
                 <TabsContent value="closed" className="flex-1 overflow-auto p-3 m-0">
                   {closedTrades.length === 0 ? (
                     <div className="text-center py-8 text-xs text-muted-foreground">
-                      暂无平仓记录
+                      {t('tradingReview.noClosedTrades')}
                     </div>
                   ) : (
                     <div className="space-y-1.5">
@@ -658,7 +658,7 @@ export function TradingReviewPage() {
                             {metrics.winRate.toFixed(1)}%
                           </div>
                           <div className="text-[10px] text-muted-foreground">
-                            {metrics.winTrades} 胜 / {metrics.lossTrades} 负
+                            {t('tradingReview.winLoss', { win: metrics.winTrades, loss: metrics.lossTrades })}
                           </div>
                         </div>
 
@@ -671,7 +671,7 @@ export function TradingReviewPage() {
                             {metrics.profitFactor.toFixed(2)}
                           </div>
                           <div className="text-[10px] text-muted-foreground">
-                            总交易 {metrics.totalTrades} 笔
+                            {t('tradingReview.totalTrades', { count: metrics.totalTrades })}
                           </div>
                         </div>
                       </div>
@@ -697,17 +697,17 @@ export function TradingReviewPage() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">平均盈利:</span>
+                          <span className="text-muted-foreground">{t('tradingReview.avgProfit')}</span>
                           <span className="text-emerald-500">${metrics.avgWin.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">平均亏损:</span>
+                          <span className="text-muted-foreground">{t('tradingReview.avgLoss')}</span>
                           <span className="text-rose-500">${metrics.avgLoss.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-xs text-muted-foreground">无战绩数据</div>
+                    <div className="text-center py-8 text-xs text-muted-foreground">{t('tradingReview.noStats')}</div>
                   )}
                 </TabsContent>
               </Tabs>
@@ -747,7 +747,7 @@ export function TradingReviewPage() {
                   <SelectContent>
                     {cachedDatasets.map((ds) => (
                       <SelectItem key={`${ds.symbol}__${ds.timeframe}`} value={`${ds.symbol}__${ds.timeframe}`}>
-                        {ds.symbol} · {ds.timeframe} ({ds.count} 根)
+                        {ds.symbol} · {ds.timeframe} ({t('tradingReview.barCount', { count: ds.count })})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -792,7 +792,7 @@ export function TradingReviewPage() {
           </CardHeader>
           <CardContent>
             {store.loading && !store.sessions.length ? (
-              <div className="text-center py-8 text-muted-foreground">加载复盘记录中...</div>
+              <div className="text-center py-8 text-muted-foreground">{t('tradingReview.loadingSessions')}</div>
             ) : store.sessions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">{t('tradingReview.emptySessions')}</div>
             ) : (
