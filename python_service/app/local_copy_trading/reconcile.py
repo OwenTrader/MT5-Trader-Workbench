@@ -44,7 +44,7 @@ def read_follower_positions(follower) -> list[dict]:
         return [_as_dict(position) for position in (client.positions_get() or [])]
 
 
-def _event(record: dict, status: str, message: str, symbol: str = '') -> SyncEvent:
+def _event(record: dict, status: str, message: str, symbol: str = '', code: str = '') -> SyncEvent:
     return SyncEvent(
         relationship_id=record['relationship_id'],
         source_account_id=record['source_account_id'],
@@ -55,6 +55,7 @@ def _event(record: dict, status: str, message: str, symbol: str = '') -> SyncEve
         symbol=symbol,
         status=status,
         message=message,
+        code=code,
         created_at=utc_now_iso(),
     )
 
@@ -108,7 +109,7 @@ def _reconcile_follower(
             )
             updated = dict(record)
             updated['follower_position_ticket'] = str(owned.get('ticket') or '')
-            add_event(state, _event(updated, 'copied', 'Reconciled: order had already been placed', str(owned.get('symbol') or '')))
+            add_event(state, _event(updated, 'copied', 'Reconciled: order had already been placed', str(owned.get('symbol') or ''), code='reconcile_confirmed'))
             events.append(state.events[-1])
             continue
 
@@ -119,7 +120,7 @@ def _reconcile_follower(
                 updated_at=utc_now_iso(),
                 db_path=db_path,
             )
-            add_event(state, _event(record, 'failed', 'Drift: follower position is missing'))
+            add_event(state, _event(record, 'failed', 'Drift: follower position is missing', code='reconcile_drift'))
             events.append(state.events[-1])
 
     for payload in positions:
@@ -139,6 +140,7 @@ def _reconcile_follower(
                 symbol=str(payload.get('symbol') or ''),
                 status='skipped',
                 message=f"Orphan follower position {payload.get('ticket')} was not opened by any active record",
+                code='orphan',
                 created_at=utc_now_iso(),
             ),
         )
@@ -150,7 +152,7 @@ def _reconcile_follower(
 def reconcile(
     state: LocalCopyTradingState,
     *,
-    db_path: Path | str = copy_trading_db.DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
     positions_reader: PositionsReader | None = None,
     include_orphans: bool = False,
 ) -> list[SyncEvent]:

@@ -34,14 +34,15 @@ def _copy_result_parts(result: CopyResult | tuple) -> tuple[bool, str, str, str,
     so a custom executor can stay a two-line lambda.
     """
     if isinstance(result, CopyResult):
-        return result.success, result.message, result.follower_position_id, result.follower_order_id, result.status
+        return result.success, result.message, result.follower_position_id, result.follower_order_id, result.status, result.code
 
     is_success = bool(result[0])
     message = str(result[1] if len(result) > 1 else '')
     follower_position_id = str(result[2] if len(result) > 2 else '')
     follower_order_id = str(result[3] if len(result) > 3 else '')
     status = str(result[4]) if len(result) > 4 else ('copied' if is_success else 'failed')
-    return is_success, message, follower_position_id, follower_order_id, status
+    code = str(result[5]) if len(result) > 5 else ''
+    return is_success, message, follower_position_id, follower_order_id, status, code
 
 
 def _needs_volume_sync(
@@ -174,7 +175,7 @@ def process_tick(
     for _, relationship, position in sorted(pending_copies, key=lambda item: item[0]):
         follower = active_accounts[relationship.follower_account_id]
         position_id = str(position.get('position_id') or position.get('ticket') or '')
-        is_copied, message, follower_position_id, follower_order_id, status = _copy_result_parts(
+        is_copied, message, follower_position_id, follower_order_id, status, code = _copy_result_parts(
             copy_executor(follower, relationship, position)
         )
         event = SyncEvent(
@@ -187,6 +188,7 @@ def process_tick(
             symbol=relationship.follower_symbol,
             status=status if status in {'copied', 'failed', 'skipped'} else ('copied' if is_copied else 'failed'),
             message=message,
+            code=code,
             created_at=utc_now_iso(),
         )
         add_event(state, event)
@@ -206,6 +208,7 @@ def process_tick(
             symbol=copied_event.symbol,
             status='closed' if is_closed else 'failed',
             message=close_message,
+            code='close_ok' if is_closed else 'close_failed',
             created_at=utc_now_iso(),
         )
         add_event(state, close_event)

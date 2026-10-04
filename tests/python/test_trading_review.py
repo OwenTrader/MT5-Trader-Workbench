@@ -9,7 +9,7 @@ from python_service.app.routes.trading_review import router as trading_review_ro
 @pytest.fixture
 def review_client(tmp_path, monkeypatch):
     db_file = str(tmp_path / 'kline_test.db')
-    monkeypatch.setattr(kline_db, 'DB_PATH', db_file)
+    monkeypatch.setattr(kline_db, '_db_path', lambda: db_file)
     kline_db.init_db()
 
     app = FastAPI()

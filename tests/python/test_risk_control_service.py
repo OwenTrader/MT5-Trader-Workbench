@@ -4,8 +4,8 @@ from python_service.app.services.risk_control_service import evaluate_risk_thres
 
 def test_load_risk_control_settings_returns_defaults_when_file_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        'python_service.app.services.risk_control_service.RISK_CONTROL_FILE',
-        tmp_path / 'risk-control.json',
+        'python_service.app.services.risk_control_service.risk_control_file',
+        lambda: tmp_path / 'risk-control.json',
     )
 
     settings = load_risk_control_settings()

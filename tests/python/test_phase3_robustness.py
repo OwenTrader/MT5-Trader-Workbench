@@ -2,6 +2,7 @@
 resilience, settings cache, volatility point units, loop heartbeats."""
 
 import asyncio
+import json
 
 import pytest
 from fastapi import FastAPI
@@ -208,3 +209,130 @@ def test_overlay_import_round_trips_a_valid_payload(tmp_path, monkeypatch):
     exported = client.get('/overlay/export').json()
     assert exported['name'] == 'P3'
     assert exported['alerts'][0]['symbol'] == 'EURUSD'
+
+
+def test_backtest_pnl_scales_with_contract_size():
+    from python_service.app.quant import backtest_service as bt
+
+    bars = [
+        {'time': '2026-01-01T00:00:00Z', 'close': 2000.0},
+        {'time': '2026-01-01T00:01:00Z', 'close': 2001.0},
+    ]
+    trades_small, _ = bt._simulate_trades(bars, ['buy', 'close'], contract_size=1.0)
+    trades_gold, _ = bt._simulate_trades(bars, ['buy', 'close'], contract_size=100.0)
+
+    assert trades_small[0]['pnl'] == pytest.approx(1.0)
+    # XAUUSD-style sizing: the same $1 move is $100 of PnL per lot.
+    assert trades_gold[0]['pnl'] == pytest.approx(100.0)
+
+
+def test_contract_multiplier_prefers_terminal_symbol_info(monkeypatch):
+    from python_service.app.routes import trading_review
+    from python_service.app.services import mt5_service
+
+    class FakeInfo:
+        trade_contract_size = 10.0
+
+    monkeypatch.setattr(
+        mt5_service, 'mt5',
+        type('M', (), {'symbol_info': staticmethod(lambda symbol: FakeInfo())}),
+    )
+    assert trading_review.get_contract_multiplier('EURUSD') == 10.0
+
+
+# --- phase 5: DPAPI credential sealing ----------------------------------------
+
+def test_secret_box_roundtrip_and_plaintext_passthrough():
+    from python_service.app.services import secret_box
+
+    sealed = secret_box.encrypt('s3cret-p@ss')
+    assert sealed != 's3cret-p@ss'
+    assert secret_box.is_sealed(sealed)
+    assert secret_box.decrypt(sealed) == 's3cret-p@ss'
+
+    # Legacy plaintext values load unchanged; empty stays empty.
+    assert secret_box.decrypt('legacy-plaintext') == 'legacy-plaintext'
+    assert secret_box.encrypt('') == ''
+    assert secret_box.decrypt(None) is None
+
+
+def test_copy_trading_state_seals_passwords_at_rest(tmp_path):
+    from python_service.app.local_copy_trading.models import Account, LocalCopyTradingState
+    from python_service.app.local_copy_trading import storage as lct_storage
+    from python_service.app.services import secret_box
+
+    state = LocalCopyTradingState(accounts=[Account(name='A', password='plain-pw')])
+    path = tmp_path / 'state.json'
+
+    lct_storage.save_state(state, path)
+
+    raw = json.loads(path.read_text(encoding='utf-8'))
+    assert secret_box.is_sealed(raw['accounts'][0]['password'])
+    assert raw['accounts'][0]['password'] != 'plain-pw'
+
+    loaded = lct_storage.load_state(path)
+    assert loaded.accounts[0].password == 'plain-pw'
+
+
+def test_order_sync_seals_api_keys_at_rest(tmp_path, monkeypatch):
+    import importlib
+
+    from python_service.app.models.order_sync import OrderSyncState, TopStepAccountCredential
+    from python_service.app.services import order_sync_service, secret_box
+
+    monkeypatch.setattr(order_sync_service, 'order_sync_file', lambda: tmp_path / 'os.json')
+    monkeypatch.setattr(order_sync_service, '_loaded', False)
+    monkeypatch.setattr(order_sync_service, '_state', OrderSyncState(
+        credentials=[TopStepAccountCredential(
+            user_name='u', api_key='topsecret', account_id=123, name='c1', is_active=True,
+        )],
+    ))
+    importlib.reload.__doc__  # noqa: B018 - keep import visible
+    order_sync_service._save()
+
+    raw = json.loads((tmp_path / 'os.json').read_text(encoding='utf-8'))
+    assert secret_box.is_sealed(raw['credentials'][0]['api_key'])
+
+    monkeypatch.setattr(order_sync_service, '_loaded', False)
+    state = order_sync_service.get_order_sync_state()
+    assert state.credentials[0].api_key == 'topsecret'
+
+
+# --- phase 5: event message codes ----------------------------------------------
+
+def test_copy_events_carry_stable_codes():
+    from python_service.app.local_copy_trading.engine import process_tick
+    from python_service.app.local_copy_trading.models import Account, CopyResult, LocalCopyTradingState
+
+    state = LocalCopyTradingState(
+        enabled=True,
+        accounts=[Account(id='src-1', name='S'), Account(id='fol-1', name='F')],
+        relationships=[__import__('python_service.app.local_copy_trading.models', fromlist=['CopyRelationship']).CopyRelationship(
+            id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD'
+        )],
+    )
+    positions = [{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD'}]
+
+    events = process_tick(
+        state, positions,
+        execute_copy=lambda f, r, p: CopyResult(False, 'skipped', 'limit reached', code='guard.max_positions_per_symbol'),
+    )
+
+    assert events[0].code == 'guard.max_positions_per_symbol'
+
+
+def test_close_events_carry_stable_codes():
+    from python_service.app.local_copy_trading.engine import process_tick
+    from python_service.app.local_copy_trading.models import Account, CopyRelationship, LocalCopyTradingState
+
+    state = LocalCopyTradingState(
+        enabled=True,
+        accounts=[Account(id='src-1', name='S'), Account(id='fol-1', name='F')],
+        relationships=[CopyRelationship(id='rel-1', source_account_id='src-1', follower_account_id='fol-1', symbol='XAUUSD')],
+    )
+    process_tick(state, [{'position_id': 'pos-1', 'source_account_id': 'src-1', 'symbol': 'XAUUSD'}],
+                 execute_copy=lambda f, r, p: (True, 'ok', 'fp', 'fo'))
+
+    close_events = process_tick(state, [], execute_close=lambda f, r, e: (False, 'Retcode: 10006'))
+
+    assert close_events[0].code == 'close_failed'

@@ -4,11 +4,15 @@ import os
 import time
 from typing import List, Dict, Any, Optional
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'storage', 'kline_data.db')
+from python_service.app.services.storage_paths import kline_db_path
+
+
+def _db_path() -> str:
+    return str(kline_db_path())
 
 def get_connection():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    kline_db_path().parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     return conn
 

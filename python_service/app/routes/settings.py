@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter
 
 from python_service.app.models.settings import Settings
+from python_service.app.services import secret_box
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,11 @@ def get_settings() -> Settings:
         with SETTINGS_FILE.open('r', encoding='utf-8') as f:
             data = json.load(f)
         parsed = Settings(**data)
+        # Unseal DPAPI-protected secrets; legacy plaintext passes through.
+        parsed = parsed.model_copy(update={
+            'ai_api_key': secret_box.decrypt(parsed.ai_api_key) or '',
+            'dingtalk_secret': secret_box.decrypt(parsed.dingtalk_secret) or '',
+        })
     except (OSError, json.JSONDecodeError, ValueError) as error:
         logger.warning('Failed to load settings from %s (%s); falling back to defaults', SETTINGS_FILE, error)
         return Settings()
@@ -84,9 +90,14 @@ def get_settings() -> Settings:
 @router.post('/settings')
 def save_settings(settings: Settings) -> dict[str, str]:
     ensure_storage()
+    # Seal secrets with DPAPI before they hit the disk.
+    sealed = settings.model_copy(update={
+        'ai_api_key': secret_box.encrypt(settings.ai_api_key) or '',
+        'dingtalk_secret': secret_box.encrypt(settings.dingtalk_secret) or '',
+    })
     # Atomic write so a crash mid-save cannot leave a truncated settings file.
     temp_path = SETTINGS_FILE.with_suffix('.tmp')
-    temp_path.write_text(json.dumps(settings.model_dump(), ensure_ascii=False, indent=2), encoding='utf-8')
+    temp_path.write_text(json.dumps(sealed.model_dump(), ensure_ascii=False, indent=2), encoding='utf-8')
     temp_path.replace(SETTINGS_FILE)
     invalidate_settings_cache()
     return {'status': 'ok'}

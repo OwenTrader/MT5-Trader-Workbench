@@ -47,6 +47,7 @@ export interface LocalCopyTradingEvent {
   symbol: string
   status: string
   message: string
+  code?: string
   created_at: string
 }
 

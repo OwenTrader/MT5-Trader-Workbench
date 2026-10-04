@@ -12,7 +12,7 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-ALERTS_FILE = 'storage/alerts.json'
+from python_service.app.services.storage_paths import alerts_file
 
 # Mutated by the API routes (worker threads) and iterated by the streaming
 # poll thread. The lock guards cross-thread access; the list itself is NEVER
@@ -34,7 +34,7 @@ def ensure_unique_order_broadcast_symbol(symbol: str, exclude_id: str | None = N
 
 def save_alerts():
     with _alerts_lock:
-        os.makedirs('storage', exist_ok=True)
+        alerts_file().parent.mkdir(parents=True, exist_ok=True)
         serialized = []
         for a in active_alerts:
             data = a.model_dump()
@@ -48,16 +48,16 @@ def save_alerts():
                 data['type'] = 'order-broadcast'
             serialized.append(data)
 
-        with open(ALERTS_FILE, 'w', encoding='utf-8') as f:
+        with open(alerts_file(), 'w', encoding='utf-8') as f:
             json.dump(serialized, f, ensure_ascii=False, indent=2)
 
 
 def load_alerts():
-    if not os.path.exists(ALERTS_FILE):
+    if not alerts_file().exists():
         return
 
     try:
-        with open(ALERTS_FILE, 'r', encoding='utf-8') as f:
+        with open(alerts_file(), 'r', encoding='utf-8') as f:
             data = json.load(f)
         new_alerts = []
         for item in data:
@@ -78,7 +78,7 @@ def load_alerts():
             # In-place swap: other modules hold this exact list reference.
             active_alerts[:] = new_alerts
     except Exception:
-        logger.exception('Failed to load alerts from %s', ALERTS_FILE)
+        logger.exception('Failed to load alerts from %s', alerts_file())
 
 
 # Initial load on startup

@@ -7,7 +7,7 @@ from python_service.app.routes import alerts as alerts_routes
 
 @pytest.fixture(autouse=True)
 def reset_order_broadcast_state(tmp_path, monkeypatch):
-    monkeypatch.setattr(alerts_routes, 'ALERTS_FILE', str(tmp_path / 'alerts.json'))
+    monkeypatch.setattr(alerts_routes, 'alerts_file', lambda: __import__('pathlib').Path(tmp_path) / 'alerts.json')
     alerts_routes.active_alerts = []
     yield
     alerts_routes.active_alerts = []

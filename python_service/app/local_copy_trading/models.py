@@ -92,6 +92,7 @@ class CopyResult:
     message: str = ''
     follower_position_id: str = ''
     follower_order_id: str = ''
+    code: str = ''
 
 
 class SyncEvent(BaseModel):
@@ -105,6 +106,7 @@ class SyncEvent(BaseModel):
     symbol: str
     status: Literal['queued', 'copied', 'closed', 'failed', 'skipped'] = 'queued'
     message: str = ''
+    code: str = ''
     created_at: str
 
 

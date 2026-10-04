@@ -6,12 +6,12 @@ import uuid
 from datetime import datetime, timezone
 
 from python_service.app.models.order_sync import OrderSyncConfigUpdate, OrderSyncState, OrderSymbolMapping, SyncedOrder
-from python_service.app.services import loop_heartbeat as heartbeat
+from python_service.app.services import loop_heartbeat as heartbeat, secret_box
 from python_service.app.services.mt5_service import get_positions
 from python_service.app.services.topstep_service import TopStepApiError, TopStepClient
 
 
-ORDER_SYNC_FILE = 'storage/order_sync.json'
+from python_service.app.services.storage_paths import order_sync_file
 _state = OrderSyncState()
 _loaded = False
 _clients: dict[str, TopStepClient] = {}
@@ -26,19 +26,30 @@ def _ensure_loaded() -> None:
     if _loaded:
         return
     _loaded = True
-    if not os.path.exists(ORDER_SYNC_FILE):
+    if not order_sync_file().exists():
         return
     try:
-        with open(ORDER_SYNC_FILE, 'r', encoding='utf-8') as file:
+        with open(order_sync_file(), 'r', encoding='utf-8') as file:
             _state = OrderSyncState(**json.load(file))
+        # DPAPI-unseal TopStep keys (plaintext entries from older installs
+        # pass through untouched).
+        _state.credentials = [
+            credential.model_copy(update={'api_key': secret_box.decrypt(credential.api_key) or ''})
+            for credential in _state.credentials
+        ]
     except Exception as exc:
         _state.last_error = f'Failed to load order sync config: {exc}'
 
 
 def _save() -> None:
-    os.makedirs('storage', exist_ok=True)
-    with open(ORDER_SYNC_FILE, 'w', encoding='utf-8') as file:
-        json.dump(_state.model_dump(), file, ensure_ascii=False, indent=2)
+    order_sync_file().parent.mkdir(parents=True, exist_ok=True)
+    sealed = _state.model_copy(deep=True)
+    sealed.credentials = [
+        credential.model_copy(update={'api_key': secret_box.encrypt(credential.api_key) or ''})
+        for credential in sealed.credentials
+    ]
+    with open(order_sync_file(), 'w', encoding='utf-8') as file:
+        json.dump(sealed.model_dump(), file, ensure_ascii=False, indent=2)
 
 
 def get_order_sync_state() -> OrderSyncState:

@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException
+
+from python_service.app.services.storage_paths import overlay_config_file
 from pydantic import BaseModel, Field
 import json
 import os
@@ -42,16 +44,16 @@ def update_coordinates(coords: OverlayCoordinates):
 
 @router.get('/overlay/export')
 def export_overlay():
-    if os.path.exists('storage/overlay_config.json'):
-        with open('storage/overlay_config.json', 'r', encoding='utf-8') as f:
+    if overlay_config_file().exists():
+        with open(overlay_config_file(), 'r', encoding='utf-8') as f:
             return json.load(f)
     return {'name': 'Default', 'alerts': []}
 
 @router.post('/overlay/import')
 def import_overlay(payload: OverlayImportPayload):
-    os.makedirs('storage', exist_ok=True)
+    overlay_config_file().parent.mkdir(parents=True, exist_ok=True)
     if len(json.dumps(payload.model_dump(), ensure_ascii=False)) > 100_000:
         raise HTTPException(status_code=413, detail='Overlay config too large')
-    with open('storage/overlay_config.json', 'w', encoding='utf-8') as f:
+    with open(overlay_config_file(), 'w', encoding='utf-8') as f:
         json.dump(payload.model_dump(), f, ensure_ascii=False, indent=2)
     return {'status': 'ok'}

@@ -5,8 +5,8 @@ from python_service.app.main import app
 
 def test_risk_control_load_save(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        'python_service.app.services.risk_control_service.RISK_CONTROL_FILE',
-        tmp_path / 'risk-control.json',
+        'python_service.app.services.risk_control_service.risk_control_file',
+        lambda: tmp_path / 'risk-control.json',
     )
     client = TestClient(app)
 

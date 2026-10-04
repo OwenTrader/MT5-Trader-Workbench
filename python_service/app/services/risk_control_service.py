@@ -4,20 +4,20 @@ from pathlib import Path
 from python_service.app.models.risk_control import RiskControlSettings
 
 
-RISK_CONTROL_FILE = Path('storage/risk-control.json')
+from python_service.app.services.storage_paths import risk_control_file
 
 
 def load_risk_control_settings() -> RiskControlSettings:
-    if not RISK_CONTROL_FILE.exists():
+    if not risk_control_file().exists():
         return RiskControlSettings()
 
-    with RISK_CONTROL_FILE.open('r', encoding='utf-8') as file:
+    with risk_control_file().open('r', encoding='utf-8') as file:
         return RiskControlSettings(**json.load(file))
 
 
 def persist_risk_control_settings(settings: RiskControlSettings) -> None:
-    RISK_CONTROL_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with RISK_CONTROL_FILE.open('w', encoding='utf-8') as file:
+    risk_control_file().parent.mkdir(parents=True, exist_ok=True)
+    with risk_control_file().open('w', encoding='utf-8') as file:
         json.dump(settings.model_dump(), file, ensure_ascii=False, indent=2)
 
 

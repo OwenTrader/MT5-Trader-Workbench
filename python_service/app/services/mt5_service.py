@@ -171,8 +171,24 @@ def _connect_running_mt5_terminals_unlocked(preferred_path: str | None = None) -
 
 
 def init_mt5(path: str | None = None, *, allow_launch: bool = True, prefer_existing: bool = True) -> bool:
-    with _mt5_lock:
-        return _init_mt5_unlocked(path, allow_launch=allow_launch, prefer_existing=prefer_existing)
+    return _init_mt5_with_retries(path, allow_launch=allow_launch, prefer_existing=prefer_existing)
+
+
+def _init_mt5_with_retries(path: str | None = None, *, allow_launch: bool = True, prefer_existing: bool = True) -> bool:
+    """Retry loop for terminal launch; the 1s backoff sleeps happen OUTSIDE
+    the global lock so streaming/order-sync are not frozen for up to ~3s
+    while a terminal boots."""
+    max_retries = 4
+    for attempt in range(max_retries):
+        with _mt5_lock:
+            if _init_mt5_unlocked(path, allow_launch=allow_launch, prefer_existing=prefer_existing):
+                return True
+        if not allow_launch:
+            return False
+        if attempt < max_retries - 1:
+            time.sleep(1)
+    logger.info('MT5 initialization failed after %s attempts.', max_retries)
+    return False
 
 
 def _init_mt5_unlocked(path: str | None = None, *, allow_launch: bool = True, prefer_existing: bool = True) -> bool:
@@ -194,29 +210,21 @@ def _init_mt5_unlocked(path: str | None = None, *, allow_launch: bool = True, pr
     if not allow_launch:
         return False
 
-    # 2. 如果未找到已运行的，尝试从指定路径拉起 (最多尝试4次)
-    max_retries = 4
+    # 2. Single launch attempt; retries and backoff live in
+    # _init_mt5_with_retries so the lock is not held across sleeps.
     actual_path = _resolve_mt5_executable_path(path)
+    if not (actual_path and os.path.exists(actual_path)):
+        return False
 
-    for i in range(max_retries):
-        if actual_path and os.path.exists(actual_path):
-            logger.info(f"Attempting to initialize MT5 at: {actual_path} (Attempt {i+1}/{max_retries})")
-            try:
-                if mt5.initialize(path=actual_path):
-                    _invalidate_session_tracking()
-                    return True
-                else:
-                    logger.warning(f"Attempt {i+1}/{max_retries} failed, error code = {mt5.last_error()}")
-            except Exception as e:
-                logger.warning(f"MT5 initialization crashed: {e}")
-
-        if i < max_retries - 1:
-            time.sleep(1) # 在重试之间等待 1 秒
-
-    logger.warning(f"MT5 initialization failed after {max_retries} attempts.")
-    _invalidate_session_tracking()
+    logger.info('Attempting to initialize MT5 at: %s', actual_path)
+    try:
+        if mt5.initialize(path=actual_path):
+            _invalidate_session_tracking()
+            return True
+        logger.warning('MT5 initialize failed, error code = %s', mt5.last_error())
+    except Exception as e:
+        logger.warning('MT5 initialization crashed: %s', e)
     return False
-
 
 def verify_mt5_credentials(path: str, login: str, password: str, server: str) -> tuple[bool, str | None]:
     with _mt5_lock:
@@ -355,31 +363,26 @@ def get_settings_path():
         return None
 
 def get_mt5_client(*, allow_launch: bool = True):
-    with _mt5_lock:
-        if _init_mt5_unlocked(get_settings_path(), allow_launch=allow_launch):
-            return mt5
-        return None
+    if _init_mt5_with_retries(get_settings_path(), allow_launch=allow_launch):
+        return mt5
+    return None
 
 def get_account_info(*, allow_launch: bool = True) -> dict:
+    if not _init_mt5_with_retries(get_settings_path(), allow_launch=allow_launch):
+        return {}
     with _mt5_lock:
-        if not _init_mt5_unlocked(get_settings_path(), allow_launch=allow_launch):
-            return {}
-        
         info = mt5.account_info()
         if info is None:
             return {}
-        
         return info._asdict()
 
 def get_positions(*, allow_launch: bool = True) -> list[dict]:
+    if not _init_mt5_with_retries(get_settings_path(), allow_launch=allow_launch):
+        return []
     with _mt5_lock:
-        if not _init_mt5_unlocked(get_settings_path(), allow_launch=allow_launch):
-            return []
-        
         positions = mt5.positions_get()
         if positions is None:
             return []
-        
         return [p._asdict() for p in positions]
 
 
@@ -390,10 +393,9 @@ def get_recent_candles(
     count: int = 100,
     allow_launch: bool = False,
 ) -> list[dict]:
+    if not _init_mt5_with_retries(get_settings_path(), allow_launch=allow_launch):
+        return []
     with _mt5_lock:
-        if not _init_mt5_unlocked(get_settings_path(), allow_launch=allow_launch):
-            return []
-
         resolved_timeframe = timeframe if timeframe is not None else mt5.TIMEFRAME_M15
         rates = mt5.copy_rates_from_pos(symbol, resolved_timeframe, 0, count)
         if rates is None:

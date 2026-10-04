@@ -157,7 +157,7 @@ def test_load_alerts_preserves_order_broadcast_active_state(tmp_path, monkeypatc
         }
     ]), encoding='utf-8')
 
-    monkeypatch.setattr(alerts, 'ALERTS_FILE', str(alerts_file))
+    monkeypatch.setattr(alerts, 'alerts_file', lambda: alerts_file)
     alerts.active_alerts = []
 
     alerts.load_alerts()

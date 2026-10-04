@@ -17,7 +17,7 @@ from pathlib import Path
 from python_service.app.local_copy_trading.models import CopyRelationship, CopyTradingRiskSettings
 
 
-RISK_SETTINGS_PATH = Path('storage/copy-trading-risk.json')
+from python_service.app.services.storage_paths import copy_trading_risk_file
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,9 @@ class GuardDecision:
     message: str = ''
 
 
-def load_risk_settings(path: Path | str = RISK_SETTINGS_PATH) -> CopyTradingRiskSettings:
+def load_risk_settings(path: Path | str | None = None) -> CopyTradingRiskSettings:
+    if path is None:
+        path = copy_trading_risk_file()
     settings_path = Path(path)
     if not settings_path.exists():
         return CopyTradingRiskSettings()
@@ -43,7 +45,9 @@ def load_risk_settings(path: Path | str = RISK_SETTINGS_PATH) -> CopyTradingRisk
     return CopyTradingRiskSettings(**json.loads(raw))
 
 
-def save_risk_settings(settings: CopyTradingRiskSettings, path: Path | str = RISK_SETTINGS_PATH) -> None:
+def save_risk_settings(settings: CopyTradingRiskSettings, path: Path | str | None = None) -> None:
+    if path is None:
+        path = copy_trading_risk_file()
     settings_path = Path(path)
     settings_path.parent.mkdir(parents=True, exist_ok=True)
     settings_path.write_text(

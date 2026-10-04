@@ -20,6 +20,9 @@ from python_service.app.quant.strategy_registry import get_strategy_module, list
 
 
 INITIAL_EQUITY = 10_000.0
+# The simulator trades one lot per position; PnL is in price units until
+# scaled by the symbol's contract size, so equity is in account currency.
+LOTS_PER_POSITION = 1.0
 
 
 @dataclass
@@ -52,7 +55,9 @@ def run_backtest(
 
     descriptor = _get_strategy_descriptor(strategy_id)
     signals = _evaluate_strategy_signals(strategy_id, bars)
-    trades, equity_curve = _simulate_trades(bars, signals)
+    from python_service.app.routes.trading_review import get_contract_multiplier
+    contract_size = get_contract_multiplier(symbol)
+    trades, equity_curve = _simulate_trades(bars, signals, contract_size=contract_size)
     summary = _build_summary(equity_curve, trades)
 
     result = BacktestResult(
@@ -106,7 +111,7 @@ def _wrap_strategy_for_signal_history(strategy_class: type[bt.Strategy]) -> type
     return WrappedStrategy
 
 
-def _simulate_trades(bars: list[dict], signals: list[str]) -> tuple[list[dict], list[dict]]:
+def _simulate_trades(bars: list[dict], signals: list[str], *, contract_size: float = 1.0) -> tuple[list[dict], list[dict]]:
     cash = INITIAL_EQUITY
     position: _OpenPosition | None = None
     trades: list[dict] = []
@@ -117,16 +122,16 @@ def _simulate_trades(bars: list[dict], signals: list[str]) -> tuple[list[dict], 
         close_price = float(bar['close'])
 
         if signal == 'buy':
-            cash, position = _reverse_or_open_position(cash, position, trades, bar['time'], close_price, 'buy')
+            cash, position = _reverse_or_open_position(cash, position, trades, bar['time'], close_price, 'buy', contract_size=contract_size)
         elif signal == 'sell':
-            cash, position = _reverse_or_open_position(cash, position, trades, bar['time'], close_price, 'sell')
+            cash, position = _reverse_or_open_position(cash, position, trades, bar['time'], close_price, 'sell', contract_size=contract_size)
         elif signal == 'close' and position is not None:
-            cash = _close_position(cash, position, trades, bar['time'], close_price)
+            cash = _close_position(cash, position, trades, bar['time'], close_price, contract_size=contract_size)
             position = None
 
         equity_curve.append({
             'time': bar['time'],
-            'equity': round(_equity_value(cash, position, close_price), 4),
+            'equity': round(_equity_value(cash, position, close_price, contract_size=contract_size), 4),
         })
 
     return trades, equity_curve
@@ -139,9 +144,11 @@ def _reverse_or_open_position(
     exit_or_entry_time: str,
     price: float,
     next_side: str,
+    *,
+    contract_size: float = 1.0,
 ) -> tuple[float, _OpenPosition]:
     if position is not None and position.side != next_side:
-        cash = _close_position(cash, position, trades, exit_or_entry_time, price)
+        cash = _close_position(cash, position, trades, exit_or_entry_time, price, contract_size=contract_size)
         position = None
 
     if position is None:
@@ -150,8 +157,8 @@ def _reverse_or_open_position(
     return cash, position
 
 
-def _close_position(cash: float, position: _OpenPosition, trades: list[dict], exit_time: str, exit_price: float) -> float:
-    pnl = _calculate_pnl(position.side, position.entry_price, exit_price)
+def _close_position(cash: float, position: _OpenPosition, trades: list[dict], exit_time: str, exit_price: float, *, contract_size: float = 1.0) -> float:
+    pnl = _calculate_pnl(position.side, position.entry_price, exit_price) * LOTS_PER_POSITION * contract_size
     trades.append({
         'entry_time': position.entry_time,
         'exit_time': exit_time,
@@ -161,10 +168,10 @@ def _close_position(cash: float, position: _OpenPosition, trades: list[dict], ex
     return cash + pnl
 
 
-def _equity_value(cash: float, position: _OpenPosition | None, current_price: float) -> float:
+def _equity_value(cash: float, position: _OpenPosition | None, current_price: float, *, contract_size: float = 1.0) -> float:
     if position is None:
         return cash
-    return cash + _calculate_pnl(position.side, position.entry_price, current_price)
+    return cash + _calculate_pnl(position.side, position.entry_price, current_price) * LOTS_PER_POSITION * contract_size
 
 
 def _calculate_pnl(side: str, entry_price: float, exit_price: float) -> float:

@@ -186,7 +186,7 @@ def _sync_existing_position(
                 existing['source_position_id'],
                 message,
             )
-            return CopyResult(False, 'failed', message, follower_position_id, follower_order_id)
+            return CopyResult(False, 'failed', message, follower_position_id, follower_order_id, code='drift_missing')
 
         follower_equity = None
         if relationship.volume_mode == 'equity_ratio':
@@ -228,7 +228,7 @@ def _sync_existing_position(
             existing['source_position_id'],
             message,
         )
-        return CopyResult(False, 'failed', message, follower_position_id, follower_order_id)
+        return CopyResult(False, 'failed', message, follower_position_id, follower_order_id, code='volume_sync_failed')
 
     copy_trading_db.confirm_order(
         client_key,
@@ -250,7 +250,7 @@ def _sync_existing_position(
         existing['source_position_id'],
         message,
     )
-    return CopyResult(True, 'copied', message, follower_position_id, follower_order_id)
+    return CopyResult(True, 'copied', message, follower_position_id, follower_order_id, code='volume_synced')
 
 
 def execute_copy(
@@ -258,7 +258,7 @@ def execute_copy(
     relationship: CopyRelationship,
     source_position: dict,
     *,
-    db_path: Path | str = copy_trading_db.DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
     risk_settings: CopyTradingRiskSettings | None = None,
     daily_open_count: int = 0,
     daily_realized_profit: float = 0.0,
@@ -356,7 +356,7 @@ def execute_copy(
             db_path=db_path,
         )
         logger.error('Relationship %s source position %s: session error: %s', relationship.id, source_position_id, error)
-        return CopyResult(False, 'failed', str(error))
+        return CopyResult(False, 'failed', str(error), code='session_error')
 
 
 def _place_order(
@@ -409,7 +409,7 @@ def _place_order(
                 decision.rule,
                 decision.message,
             )
-            return CopyResult(False, 'skipped', decision.message)
+            return CopyResult(False, 'skipped', decision.message, code=f'guard.{decision.rule}')
 
     result = follower_executor.send_copy_order(client, follower, relationship, plan, source_position)
     return _settle(client_key, result, source_position, db_path)
@@ -455,6 +455,7 @@ def _settle(
         message,
         follower_position_id,
         follower_order_id,
+        code='copy_ok' if success else 'copy_failed',
     )
 
 
@@ -463,7 +464,7 @@ def execute_close(
     relationship: CopyRelationship,
     copied_event: SyncEvent,
     *,
-    db_path: Path | str = copy_trading_db.DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> tuple[bool, str]:
     """Close a copied follower position and settle its order-map row."""
     if follower.connection_type == 'mt5_terminal':

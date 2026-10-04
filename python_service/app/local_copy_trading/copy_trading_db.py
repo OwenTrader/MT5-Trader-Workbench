@@ -11,7 +11,11 @@ import sqlite3
 from pathlib import Path
 
 
-DEFAULT_DB_PATH = Path('storage/local_copy_trading.db')
+from python_service.app.services.storage_paths import copy_trading_db_path
+
+
+def _default_db_path() -> Path:
+    return copy_trading_db_path()
 
 OPEN_STATUSES = ('pending', 'confirmed')
 
@@ -45,7 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_copy_order_map_follower
 """
 
 
-def connect(db_path: Path | str = DEFAULT_DB_PATH) -> sqlite3.Connection:
+def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path)
@@ -53,8 +57,8 @@ def connect(db_path: Path | str = DEFAULT_DB_PATH) -> sqlite3.Connection:
     return connection
 
 
-def init_db(db_path: Path | str = DEFAULT_DB_PATH) -> None:
-    connection = connect(db_path)
+def init_db(db_path: Path | str | None = None) -> None:
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         connection.executescript(_SCHEMA)
         _ensure_column(connection, 'copy_order_map', 'source_volume', 'REAL NOT NULL DEFAULT 0')
@@ -89,14 +93,14 @@ def insert_pending(
     follower_account_id: str,
     source_position_id: str,
     created_at: str,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> bool:
     """Record an intended order.
 
     Returns True when a new row was created and False when the client key was
     already present, which is how a retry after a crash is recognised.
     """
-    connection = connect(db_path)
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         cursor = connection.execute(
             """
@@ -129,9 +133,9 @@ def _set_status(
     updated_at: str,
     follower_position_ticket: str = '',
     follower_order_id: str = '',
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> None:
-    connection = connect(db_path)
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         connection.execute(
             """
@@ -166,7 +170,7 @@ def confirm_order(
     follower_order_id: str = '',
     message: str = '',
     updated_at: str,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> None:
     _set_status(
         client_key,
@@ -184,7 +188,7 @@ def record_source_volume(
     *,
     source_volume: float,
     updated_at: str,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> None:
     """Remember the source size this copy last matched.
 
@@ -192,7 +196,7 @@ def record_source_volume(
     whether the follower needs a partial close or a scale in. Recording it after
     every action is what makes the comparison settle instead of firing forever.
     """
-    connection = connect(db_path)
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         connection.execute(
             """
@@ -211,7 +215,7 @@ def get_recorded_volume(
     relationship_id: str,
     source_position_id: str,
     *,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> float | None:
     """Return the source volume last matched for this pair, or None if unknown.
 
@@ -219,7 +223,7 @@ def get_recorded_volume(
     record must not trigger volume synchronisation again, because no follower
     position is expected to exist for it.
     """
-    connection = connect(db_path)
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         row = connection.execute(
             """
@@ -242,7 +246,7 @@ def mark_failed(
     *,
     message: str,
     updated_at: str,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> None:
     _set_status(client_key, 'failed', message=message, updated_at=updated_at, db_path=db_path)
 
@@ -252,7 +256,7 @@ def mark_closed(
     *,
     message: str,
     updated_at: str,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> None:
     _set_status(client_key, 'closed', message=message, updated_at=updated_at, db_path=db_path)
 
@@ -262,7 +266,7 @@ def mark_drifted(
     *,
     message: str,
     updated_at: str,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> None:
     _set_status(client_key, 'drifted', message=message, updated_at=updated_at, db_path=db_path)
 
@@ -272,14 +276,14 @@ def mark_skipped(
     *,
     message: str,
     updated_at: str,
-    db_path: Path | str = DEFAULT_DB_PATH,
+    db_path: Path | str | None = None,
 ) -> None:
     """Settle a record whose order a pre-trade guard refused to send."""
     _set_status(client_key, 'skipped', message=message, updated_at=updated_at, db_path=db_path)
 
 
-def find_by_client_key(client_key: str, *, db_path: Path | str = DEFAULT_DB_PATH) -> dict | None:
-    connection = connect(db_path)
+def find_by_client_key(client_key: str, *, db_path: Path | str | None = None) -> dict | None:
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         row = connection.execute(
             'SELECT * FROM copy_order_map WHERE client_key = ?',
@@ -290,9 +294,9 @@ def find_by_client_key(client_key: str, *, db_path: Path | str = DEFAULT_DB_PATH
         connection.close()
 
 
-def list_open_records(*, db_path: Path | str = DEFAULT_DB_PATH) -> list[dict]:
+def list_open_records(*, db_path: Path | str | None = None) -> list[dict]:
     """Return every record that claims a follower position should exist."""
-    connection = connect(db_path)
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         rows = connection.execute(
             """
@@ -307,11 +311,11 @@ def list_open_records(*, db_path: Path | str = DEFAULT_DB_PATH) -> list[dict]:
         connection.close()
 
 
-def delete_by_relationship(relationship_id: str, *, db_path: Path | str = DEFAULT_DB_PATH) -> None:
+def delete_by_relationship(relationship_id: str, *, db_path: Path | str | None = None) -> None:
     # Routes can remove a relationship before the trading loop has ever
     # initialised the database, so the schema is ensured here.
     init_db(db_path)
-    connection = connect(db_path)
+    connection = connect(db_path if db_path is not None else _default_db_path())
     try:
         connection.execute(
             'DELETE FROM copy_order_map WHERE relationship_id = ?',

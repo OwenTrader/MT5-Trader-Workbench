@@ -519,7 +519,12 @@ export function LocalCopyTradingPage() {
                          <TableCell>{getAccountLabelById(overview.accounts, event.source_account_id)}</TableCell>
                          <TableCell>{getAccountLabelById(overview.accounts, event.follower_account_id)}</TableCell>
                         <TableCell>{event.position_id || '-'}</TableCell>
-                        <TableCell>{event.message || '-'}</TableCell>
+                        <TableCell className='max-w-[20rem] break-words'>
+                          {event.code ? (
+                            <Badge variant='outline' className='mr-1.5 font-mono text-[10px] align-middle'>{event.code}</Badge>
+                          ) : null}
+                          {event.message || '-'}
+                        </TableCell>
                         <TableCell>{formatDateTime(event.created_at)}</TableCell>
                       </TableRow>
                     ))

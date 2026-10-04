@@ -14,6 +14,22 @@ router = APIRouter(prefix="/trading-review", tags=["Trading Review"])
 
 
 def get_contract_multiplier(symbol: str) -> float:
+    """Contract size for the symbol, straight from the terminal when live.
+
+    The heuristic table below is only the offline fallback; real symbols
+    (broker suffixes, indices, CFDs) routinely differ from the guesses.
+    """
+    try:
+        from python_service.app.services.mt5_service import mt5
+
+        info = mt5.symbol_info(symbol)
+        if info is not None:
+            size = float(getattr(info, 'trade_contract_size', 0) or 0)
+            if size > 0:
+                return size
+    except Exception:
+        pass
+
     s = (symbol or "").upper()
     if "XAU" in s or "GOLD" in s:
         return 100.0
