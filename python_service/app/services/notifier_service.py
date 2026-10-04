@@ -1,4 +1,6 @@
+import asyncio
 import httpx
+import logging
 import time
 import hmac
 import hashlib
@@ -6,6 +8,8 @@ import base64
 import urllib.parse
 
 # from plyer import notification  # Removed to avoid residual Python tray icons
+
+logger = logging.getLogger(__name__)
 
 
 def _mask_webhook_url(webhook_url: str) -> str:
@@ -246,6 +250,15 @@ async def notify_all(title: str, message: str):
         return
 
     # send_windows_notification(title, message)  # Moved to frontend for silent/custom sound support
-    await send_dingtalk_notification(message)
-    await send_wecom_notification(message)
-    await send_feishu_notification(message)
+    # Fire the webhooks concurrently with a hard cap: serial sends with
+    # default timeouts could stall the streaming loop for ~15s when a
+    # webhook endpoint is slow or down.
+    results = await asyncio.gather(
+        asyncio.wait_for(send_dingtalk_notification(message), timeout=8.0),
+        asyncio.wait_for(send_wecom_notification(message), timeout=8.0),
+        asyncio.wait_for(send_feishu_notification(message), timeout=8.0),
+        return_exceptions=True,
+    )
+    for result in results:
+        if isinstance(result, Exception):
+            logger.warning('Notification webhook failed: %s', result)

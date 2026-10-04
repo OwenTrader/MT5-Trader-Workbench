@@ -5,14 +5,14 @@ from python_service.app.services.history_service import get_performance_overview
 router = APIRouter()
 
 @router.get("/overview")
-async def overview():
+def overview():
     try:
         return get_performance_overview()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/daily")
-async def daily_stats(from_date: str = None, to_date: str = None):
+def daily_stats(from_date: str = None, to_date: str = None):
     try:
         # Default to last 30 days if not provided
         if from_date:

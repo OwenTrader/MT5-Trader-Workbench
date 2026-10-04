@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 
 from python_service.app.models.order_sync import OrderSyncConfigUpdate, OrderSyncState, OrderSymbolMapping, SyncedOrder
+from python_service.app.services import loop_heartbeat as heartbeat
 from python_service.app.services.mt5_service import get_positions
 from python_service.app.services.topstep_service import TopStepApiError, TopStepClient
 
@@ -251,6 +252,7 @@ async def process_order_sync_tick() -> None:
 
 async def order_sync_loop() -> None:
     while True:
+        heartbeat.record('order_sync')
         try:
             await process_order_sync_tick()
         except asyncio.CancelledError:

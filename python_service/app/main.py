@@ -2,9 +2,17 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 import uvicorn
 import asyncio
+import logging
 import os
 import subprocess
 import ctypes
+
+# One logging config for the whole backend: modules use getLogger(__name__)
+# and their records actually go somewhere instead of being print()s.
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s: %(message)s',
+)
 from contextlib import asynccontextmanager, suppress
 
 from python_service.app.routes.health import router as health_router
@@ -134,19 +142,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-# CORS: strict origin allowlist. The local trading API must not be reachable from
-# arbitrary web pages (a malicious site could read accounts/positions or place
-# orders). The Electron renderer is either a file:// origin (packaged, Origin:
-# "null") or http://localhost/127.0.0.1 (dev). Anything else is rejected.
-_DEV_CORS_ORIGIN = os.environ.get('ALLOWED_CORS_ORIGIN')
-
-
-def _is_allowed_origin(origin: str | None) -> bool:
-    if origin is None or origin == 'null':
-        return True
-    if _DEV_CORS_ORIGIN and origin == _DEV_CORS_ORIGIN:
-        return True
-    return origin.startswith(('http://localhost:', 'http://127.0.0.1:'))
+# CORS: strict origin allowlist shared with the WebSocket endpoint (see
+# services/origin.py). Anything not allowed is rejected with 403 for HTTP.
+from python_service.app.services.origin import is_allowed_origin as _is_allowed_origin
 
 
 @app.middleware('http')

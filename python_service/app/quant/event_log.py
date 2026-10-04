@@ -9,6 +9,12 @@ from python_service.app.quant.paths import get_events_path
 
 DEFAULT_EVENTS_PATH = get_events_path()
 
+# The runtime records a signal_generated event per job every ~2s, which is
+# ~43k events/day/job. Unbounded, that turns every append into a full-file
+# rewrite of an ever-growing list. The cap keeps the persisted tail bounded;
+# list_events consumers only ever read the latest events anyway.
+MAX_PERSISTED_EVENTS = 1000
+
 
 def _resolve_storage_path(storage_path: Path | str | None) -> Path:
     return Path(DEFAULT_EVENTS_PATH if storage_path is None else storage_path)
@@ -36,6 +42,8 @@ def save_events(events: list[QuantJobEvent], storage_path: Path | str | None = N
 def append_event(event: QuantJobEvent, storage_path: Path | str | None = None) -> QuantJobEvent:
     events = load_events(storage_path)
     events.append(event)
+    if len(events) > MAX_PERSISTED_EVENTS:
+        events = events[-MAX_PERSISTED_EVENTS:]
     save_events(events, storage_path)
     return event
 

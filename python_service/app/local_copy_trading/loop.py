@@ -8,6 +8,7 @@ from python_service.app.local_copy_trading.models import LocalCopyTradingState
 from python_service.app.local_copy_trading.runtime import get_state, set_state, update_last_error, utc_now_iso
 from python_service.app.local_copy_trading.source_adapter import get_source_positions, should_process_tick
 from python_service.app.local_copy_trading.storage import load_state, save_state
+from python_service.app.services import loop_heartbeat as heartbeat
 
 
 logger = logging.getLogger(__name__)
@@ -115,6 +116,7 @@ async def local_copy_trading_loop() -> None:
         update_last_error(get_state(), str(error))
 
     while True:
+        heartbeat.record('local_copy_trading')
         state = get_state()
         try:
             last_signature = await asyncio.to_thread(_run_tick, state, last_signature)

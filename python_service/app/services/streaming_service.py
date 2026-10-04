@@ -7,6 +7,7 @@ from python_service.app.services.quote_snapshot_service import append_quote_to_h
 from python_service.app.models.alerts import PriceAlert, VolatilityAlert, IndicatorAlert, OrderBroadcastRule
 from python_service.app.routes.settings import get_settings
 import MetaTrader5 as mt5
+from python_service.app.services.loop_heartbeat import record
 
 class WebSocketManager:
     def __init__(self):
@@ -330,6 +331,7 @@ async def streaming_loop():
     stays responsive for health checks, HTTP requests, and WebSocket I/O.
     """
     while True:
+        record('streaming')
         try:
             if not should_poll_mt5():
                 await asyncio.sleep(1.0)
