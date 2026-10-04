@@ -1,5 +1,5 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 import json
 import os
 
@@ -11,6 +11,12 @@ class OverlayToggle(BaseModel):
 class OverlayCoordinates(BaseModel):
     x: int
     y: int
+
+class OverlayImportPayload(BaseModel):
+    """Imported overlay configs are user files; keep them bounded and typed
+    instead of writing an arbitrary dict straight to disk."""
+    name: str = Field(default='Default', max_length=100)
+    alerts: list[dict] = Field(default_factory=list, max_length=200)
 
 # Simple global state for now
 _overlay_state = {
@@ -42,8 +48,10 @@ def export_overlay():
     return {'name': 'Default', 'alerts': []}
 
 @router.post('/overlay/import')
-def import_overlay(config: dict):
+def import_overlay(payload: OverlayImportPayload):
     os.makedirs('storage', exist_ok=True)
+    if len(json.dumps(payload.model_dump(), ensure_ascii=False)) > 100_000:
+        raise HTTPException(status_code=413, detail='Overlay config too large')
     with open('storage/overlay_config.json', 'w', encoding='utf-8') as f:
-        json.dump(config, f, ensure_ascii=False, indent=2)
+        json.dump(payload.model_dump(), f, ensure_ascii=False, indent=2)
     return {'status': 'ok'}

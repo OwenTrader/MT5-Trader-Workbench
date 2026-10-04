@@ -8,6 +8,9 @@ from python_service.app.models.alerts import PriceAlert, VolatilityAlert, Indica
 from python_service.app.routes.settings import get_settings
 import MetaTrader5 as mt5
 from python_service.app.services.loop_heartbeat import record
+import logging
+
+logger = logging.getLogger(__name__)
 
 class WebSocketManager:
     def __init__(self):
@@ -18,15 +21,18 @@ class WebSocketManager:
         self.active_connections.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
 
     async def broadcast(self, message: dict):
-        for connection in self.active_connections:
+        for connection in list(self.active_connections):
             try:
                 await connection.send_json(message)
             except Exception:
-                # Handle broken connections gracefully
-                pass
+                # Dead sockets (closed without WebSocketDisconnect, crashed
+                # peers) must be dropped, or they linger forever and every
+                # broadcast pays a failed send for each of them.
+                self.disconnect(connection)
 
 manager = WebSocketManager()
 
@@ -118,11 +124,11 @@ def get_current_order_broadcast_items() -> list[dict] | None:
         positions = _as_dicts(mt5.positions_get())
         pending_orders = _as_dicts(mt5.orders_get())
     except Exception as exc:
-        print(f"Order broadcast skipped: failed to read MT5 orders, error={exc}")
+        logger.warning(f"Order broadcast skipped: failed to read MT5 orders, error={exc}")
         return None
 
     if positions is None or pending_orders is None:
-        print(f"Order broadcast skipped: MT5 returned no order data, error={mt5.last_error()}")
+        logger.warning(f"Order broadcast skipped: MT5 returned no order data, error={mt5.last_error()}")
         return None
 
     return [
@@ -181,13 +187,13 @@ def collect_order_broadcast_messages(orders: list[dict], watched_symbols: set[st
 
 def _read_symbol_quote(symbol: str) -> dict | None:
     if not mt5.symbol_select(symbol, True):
-        print(f"Quote skipped: failed to select symbol {symbol}, error={mt5.last_error()}")
+        logger.warning(f"Quote skipped: failed to select symbol {symbol}, error={mt5.last_error()}")
         return None
 
     tick = mt5.symbol_info_tick(symbol)
     info = mt5.symbol_info(symbol)
     if not tick or not info:
-        print(f"Quote skipped: missing tick/info for {symbol}, error={mt5.last_error()}")
+        logger.warning(f"Quote skipped: missing tick/info for {symbol}, error={mt5.last_error()}")
         return None
 
     rates = mt5.copy_rates_from_pos(symbol, mt5.TIMEFRAME_D1, 0, 1)
@@ -208,7 +214,7 @@ def _find_matching_symbol(symbol: str) -> str | None:
     try:
         matches = mt5.symbols_get(f"{symbol}*") or []
     except Exception as exc:
-        print(f"Quote skipped: failed to search symbols for {symbol}, error={exc}")
+        logger.warning(f"Quote skipped: failed to search symbols for {symbol}, error={exc}")
         return None
 
     for match in matches:
@@ -356,5 +362,5 @@ async def streaming_loop():
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            print(f"Streaming loop error: {e}")
+            logger.warning(f"Streaming loop error: {e}")
             await asyncio.sleep(5)

@@ -7,6 +7,9 @@ from types import ModuleType
 
 from python_service.app.quant import strategies as builtin_strategies
 from python_service.app.quant.paths import get_user_strategies_dir
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -46,7 +49,7 @@ def load_user_strategies(strategies_dir: Path) -> list[StrategyDescriptor]:
             items.append(_build_descriptor(imported, str(strategy_path.resolve())))
         except Exception as error:
             # Invalid user strategies should be skipped rather than breaking all quant menus.
-            print(f'Skipping invalid user strategy {strategy_path}: {error}')
+            logger.warning(f'Skipping invalid user strategy {strategy_path}: {error}')
 
     return items
 

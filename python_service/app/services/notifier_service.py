@@ -23,7 +23,7 @@ def _mask_webhook_url(webhook_url: str) -> str:
 
 def send_windows_notification(title: str, message: str):
     # This is now handled by the frontend (Electron) to avoid Python tray icon issues.
-    print(f"Windows notification skipped in backend (moved to frontend): {title} - {message}")
+    logger.warning(f"Windows notification skipped in backend (moved to frontend): {title} - {message}")
 
 async def send_dingtalk_notification(message: str, token: str = None, secret: str = None):
     """
@@ -87,7 +87,7 @@ async def send_dingtalk_notification(message: str, token: str = None, secret: st
         }
             
     except Exception as e:
-        print(f"DingTalk notification error: {e}")
+        logger.warning(f"DingTalk notification error: {e}")
         return {
             "ok": False,
             "status_code": 502,
@@ -141,7 +141,7 @@ async def send_wecom_notification(message: str, webhook_url: str = None):
         }
 
     except Exception as e:
-        print(f"WeCom notification error: {e}")
+        logger.warning(f"WeCom notification error: {e}")
         return {
             "ok": False,
             "status_code": 502,
@@ -154,7 +154,7 @@ async def send_feishu_notification(message: str, webhook_url: str = None):
         from python_service.app.routes.settings import get_settings
         settings = get_settings()
         if not settings.feishu_enabled:
-            print("Feishu notification skipped: feishu bot is disabled")
+            logger.warning("Feishu notification skipped: feishu bot is disabled")
             return {
                 "ok": False,
                 "status_code": 400,
@@ -163,7 +163,7 @@ async def send_feishu_notification(message: str, webhook_url: str = None):
         webhook_url = settings.feishu_webhook_url
 
     if not webhook_url:
-        print("Feishu notification skipped: webhook url is missing")
+        logger.warning("Feishu notification skipped: webhook url is missing")
         return {
             "ok": False,
             "status_code": 400,
@@ -180,18 +180,18 @@ async def send_feishu_notification(message: str, webhook_url: str = None):
         }
 
         masked_webhook_url = _mask_webhook_url(webhook_url)
-        print(f"Feishu notification: sending message to webhook {masked_webhook_url}")
+        logger.info(f"Feishu notification: sending message to webhook {masked_webhook_url}")
 
         async with httpx.AsyncClient() as client:
             response = await client.post(webhook_url, json=payload, headers=headers)
 
         response_body = response.text
 
-        print(f"Feishu notification: HTTP {response.status_code}")
-        print(f"Feishu notification: response body {response_body}")
+        logger.info(f"Feishu notification: HTTP {response.status_code}")
+        logger.info(f"Feishu notification: response body {response_body}")
 
         if response.status_code != 200:
-            print("Feishu notification: send failed due to non-200 HTTP status")
+            logger.warning("Feishu notification: send failed due to non-200 HTTP status")
             return {
                 "ok": False,
                 "status_code": response.status_code,
@@ -201,7 +201,7 @@ async def send_feishu_notification(message: str, webhook_url: str = None):
         try:
             response_json = response.json()
         except ValueError:
-            print("Feishu notification: send failed because response body is not valid JSON")
+            logger.warning("Feishu notification: send failed because response body is not valid JSON")
             return {
                 "ok": False,
                 "status_code": response.status_code,
@@ -210,17 +210,17 @@ async def send_feishu_notification(message: str, webhook_url: str = None):
 
         response_code = response_json.get("code")
         response_msg = response_json.get("msg")
-        print(f"Feishu notification: parsed response code={response_code}, msg={response_msg}")
+        logger.info(f"Feishu notification: parsed response code={response_code}, msg={response_msg}")
 
         if response_code == 0:
-            print("Feishu notification: send success")
+            logger.info("Feishu notification: send success")
             return {
                 "ok": True,
                 "status_code": response.status_code,
                 "response_body": response_body,
             }
 
-        print("Feishu notification: send failed")
+        logger.warning("Feishu notification: send failed")
         return {
             "ok": False,
             "status_code": response.status_code,
@@ -228,7 +228,7 @@ async def send_feishu_notification(message: str, webhook_url: str = None):
         }
 
     except Exception as e:
-        print(f"Feishu notification error: {e}")
+        logger.warning(f"Feishu notification error: {e}")
         return {
             "ok": False,
             "status_code": 502,

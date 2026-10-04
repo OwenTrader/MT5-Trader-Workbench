@@ -143,3 +143,68 @@ def test_health_reports_loop_heartbeats():
 
     assert 'quant' in snapshot
     assert snapshot['quant']['age_seconds'] is not None
+
+
+# --- batch 2: alerts thread-safety, overlay import validation ----------------
+
+def test_alert_deletion_keeps_the_shared_list_reference_in_sync():
+    """Streaming holds the module-level list object; rebinding it on delete
+    used to leave the streaming thread reading a stale list forever."""
+    from python_service.app.routes import alerts as alerts_routes
+
+    original = alerts_routes.active_alerts
+    alert = VolatilityAlert(id='vol-del', symbol='XAUUSD', threshold_points=100, timeframe_seconds=60)
+    alerts_routes.active_alerts[:] = [alert]
+
+    # simulate the delete route body
+    with alerts_routes._alerts_lock:
+        alerts_routes.active_alerts[:] = [a for a in alerts_routes.active_alerts if a.id != 'vol-del']
+
+    assert alerts_routes.active_alerts is original
+    assert alerts_routes.active_alerts == []
+
+    # restore module state for other tests
+    alerts_routes.active_alerts[:] = []
+
+
+def test_alert_update_re_arms_and_pins_the_id():
+    from python_service.app.routes import alerts as alerts_routes
+
+    original = alerts_routes.active_alerts
+    stored = VolatilityAlert(id='vol-upd', symbol='XAUUSD', threshold_points=100, timeframe_seconds=60, is_triggered=True)
+    incoming = VolatilityAlert(id='wrong-id', symbol='EURUSD', threshold_points=200, timeframe_seconds=60, is_triggered=True)
+    alerts_routes.active_alerts[:] = [stored]
+    try:
+        alerts_routes.update_volatility_rule('vol-upd', incoming)
+        updated = alerts_routes.active_alerts[0]
+        assert updated is incoming
+        assert updated.id == 'vol-upd'
+        assert updated.is_triggered is False
+        assert updated.threshold_points == 200
+    finally:
+        alerts_routes.active_alerts[:] = original[:]
+
+
+def test_overlay_import_rejects_unbounded_payloads():
+    from python_service.app.main import app as backend_app
+
+    client = TestClient(backend_app)
+    huge = {'name': 'x', 'alerts': [{'symbol': f'SYM{i}', 'data': 'x' * 50} for i in range(300)]}
+
+    response = client.post('/overlay/import', json=huge)
+
+    assert response.status_code == 422
+
+
+def test_overlay_import_round_trips_a_valid_payload(tmp_path, monkeypatch):
+    from python_service.app.main import app as backend_app
+
+    monkeypatch.chdir(tmp_path)
+    client = TestClient(backend_app)
+
+    response = client.post('/overlay/import', json={'name': 'P3', 'alerts': [{'symbol': 'EURUSD', 'target_price': 1.1}]})
+
+    assert response.status_code == 200
+    exported = client.get('/overlay/export').json()
+    assert exported['name'] == 'P3'
+    assert exported['alerts'][0]['symbol'] == 'EURUSD'

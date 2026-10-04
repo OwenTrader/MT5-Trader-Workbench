@@ -5,6 +5,9 @@ import time
 import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 _mt5_lock = threading.RLock()
@@ -159,7 +162,7 @@ def _connect_running_mt5_terminals_unlocked(preferred_path: str | None = None) -
                 continue
             return True
         except Exception as error:
-            print(f"Error connecting running MT5 terminal {candidate}: {error}")
+            logger.warning(f"Error connecting running MT5 terminal {candidate}: {error}")
             try:
                 mt5.shutdown()
             except Exception:
@@ -197,20 +200,20 @@ def _init_mt5_unlocked(path: str | None = None, *, allow_launch: bool = True, pr
 
     for i in range(max_retries):
         if actual_path and os.path.exists(actual_path):
-            print(f"Attempting to initialize MT5 at: {actual_path} (Attempt {i+1}/{max_retries})")
+            logger.info(f"Attempting to initialize MT5 at: {actual_path} (Attempt {i+1}/{max_retries})")
             try:
                 if mt5.initialize(path=actual_path):
                     _invalidate_session_tracking()
                     return True
                 else:
-                    print(f"Attempt {i+1}/{max_retries} failed, error code = {mt5.last_error()}")
+                    logger.warning(f"Attempt {i+1}/{max_retries} failed, error code = {mt5.last_error()}")
             except Exception as e:
-                print(f"MT5 initialization crashed: {e}")
+                logger.warning(f"MT5 initialization crashed: {e}")
 
         if i < max_retries - 1:
             time.sleep(1) # 在重试之间等待 1 秒
 
-    print(f"MT5 initialization failed after {max_retries} attempts.")
+    logger.warning(f"MT5 initialization failed after {max_retries} attempts.")
     _invalidate_session_tracking()
     return False
 

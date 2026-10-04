@@ -20,4 +20,6 @@ async def websocket_endpoint(websocket: WebSocket):
             # We mostly broadcast, but can receive pings
             await websocket.receive_text()
     except WebSocketDisconnect:
+        pass
+    finally:
         manager.disconnect(websocket)
