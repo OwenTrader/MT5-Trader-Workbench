@@ -1,9 +1,16 @@
 import React, { createContext, useContext, useMemo } from 'react'
-import { Locale, messages } from './messages'
+import { Locale, MessageKey, messages } from './messages'
 
 type I18nContextValue = {
   locale: Locale
-  t: (key: string, params?: Record<string, string | number>) => string
+  /**
+   * Literal keys are compile-checked against the message tree (typos fail
+   * typecheck). The `string & Record<never, never>` escape hatch keeps
+   * dynamically built keys usable; those fall back to the key text at
+   * runtime when unknown.
+   */
+  // eslint-disable-next-line @typescript-eslint/ban-types -- string & {} is the documented idiom for keeping literal autocomplete
+  t: (key: MessageKey | (string & Record<never, never>), params?: Record<string, string | number>) => string
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null)
@@ -32,7 +39,7 @@ function formatMessage(template: string, params?: Record<string, string | number
 export function I18nProvider({ language, children }: { language: Locale; children: React.ReactNode }) {
   const value = useMemo<I18nContextValue>(() => ({
     locale: language,
-    t: (key: string, params?: Record<string, string | number>) => {
+    t: (key: MessageKey | (string & Record<never, never>), params?: Record<string, string | number>) => {
       const template = getMessage(messages[language], key) ?? getMessage(messages['zh-CN'], key) ?? key
       return formatMessage(template, params)
     },

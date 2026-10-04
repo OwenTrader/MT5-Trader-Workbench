@@ -1,5 +1,6 @@
-import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, protocol } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, protocol, net } from 'electron'
 import { join, isAbsolute, resolve, dirname } from 'path'
+import { pathToFileURL } from 'url'
 import { mkdir, readFile, access, copyFile, writeFile } from 'fs/promises'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { MainLocale, tMain } from './i18n'
@@ -485,7 +486,10 @@ if (!isSingleInstance) {
   })
 
   app.whenReady().then(() => {
-    protocol.registerFileProtocol('local-file', (request, callback) => {
+    // protocol.handle replaces the deprecated registerFileProtocol (removed
+    // in Electron 30). Serving through net.fetch keeps the path checks below
+    // the single trust boundary for local files.
+    protocol.handle('local-file', (request) => {
       try {
         const decoded = decodeURIComponent(request.url.replace(/^local-file:\/\//, ''))
         const resolved = isAbsolute(decoded) ? resolve(decoded) : join(app.getPath('userData'), decoded)
@@ -499,12 +503,12 @@ if (!isSingleInstance) {
         })
         if (!allowed) {
           console.error(`local-file protocol blocked untrusted path: ${decoded}`)
-          return callback('')
+          return new Response(null, { status: 403 })
         }
-        return callback(resolved)
+        return net.fetch(pathToFileURL(resolved).toString())
       } catch (error) {
         console.error(error)
-        return callback('')
+        return new Response(null, { status: 400 })
       }
     })
   })

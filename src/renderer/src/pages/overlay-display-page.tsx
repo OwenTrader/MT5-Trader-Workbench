@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n'
 import { useSettingsStore } from '@/stores/settings-store'
+import { API_BASE_URL } from '@/lib/api'
 import { Pin, X } from 'lucide-react'
 
 export const OverlayDisplayPage: React.FC = () => {
@@ -61,28 +62,42 @@ export const OverlayDisplayPage: React.FC = () => {
 
   useEffect(() => {
     let ws: WebSocket | null = null
-    let reconnectTimer: NodeJS.Timeout
+    let reconnectTimer: NodeJS.Timeout | null = null
+    let disposed = false
 
     const connect = () => {
-      ws = new WebSocket('ws://127.0.0.1:8765/ws/overlay')
-      
+      if (disposed) return
+      ws = new WebSocket(`${API_BASE_URL.replace('http', 'ws')}/ws/overlay`)
+
       ws.onopen = () => setStatus('connected')
       ws.onclose = () => {
         setStatus('disconnected')
-        reconnectTimer = setTimeout(connect, 3000)
+        // Only schedule a reconnect while mounted; without the flag, a close
+        // triggered by the cleanup below would spawn a fresh socket after
+        // unmount.
+        if (!disposed) {
+          reconnectTimer = setTimeout(connect, 3000)
+        }
       }
       ws.onmessage = (event) => {
-        const data = JSON.parse(event.data)
-        if (data.type === 'quotes') {
-          setQuotes(data.data)
+        try {
+          const data = JSON.parse(event.data)
+          if (data.type === 'quotes') {
+            setQuotes(data.data)
+          }
+        } catch {
+          // A malformed frame must not take the overlay down.
         }
       }
     }
 
     connect()
     return () => {
+      disposed = true
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer)
+      }
       ws?.close()
-      clearTimeout(reconnectTimer)
     }
   }, [])
 

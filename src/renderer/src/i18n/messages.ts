@@ -2,8 +2,14 @@ export const locales = ['zh-CN', 'en'] as const
 
 export type Locale = (typeof locales)[number]
 
-export const messages = {
-  'zh-CN': {
+/** Collapses a nested message tree into dotted-path literal keys. */
+type Flatten<T> = T extends string
+  ? never
+  : {
+      [K in keyof T]: T[K] extends string ? K : `${K & string}.${Extract<keyof Flatten<T[K]>, string>}`
+    }[keyof T]
+
+const zhCN = {
     app: {
       title: 'Trader Workbench',
       comingSoon: '功能开发中，敬请期待...',
@@ -12,6 +18,30 @@ export const messages = {
       userGuide: '使用教程',
       userGuideHint: '查看本软件的首次使用说明',
       openFailed: '无法打开使用教程，请检查安装目录是否完整。',
+    },
+    commandPalette: {
+      title: '快捷指令面板',
+      placeholder: '输入工作区名称、功能或指令进行搜索...',
+      empty: '未找到匹配的指令或工作区',
+      hint: '提示: 使用方向键导航，Enter 确认选择',
+      esc: 'ESC 退出',
+      commands: {
+        dashboard: '交易工作台 (Trading Cockpit)',
+        alerts: '智能告警中心 (Alerts Hub)',
+        automation: '自动化与跟单中心 (Automation & Copy)',
+        quant: '量化与复盘实验室 (Quant Lab)',
+        settings: '系统设置与日志 (Settings & Logs)',
+        eventLog: '全景事件日志 (Event Log)',
+        sponsor: '关于与赞助开发者 (Support Me)',
+        overlay: '切换桌面悬浮窗 (Toggle Overlay)',
+        switchLanguage: '切换系统语言 → {target}',
+      },
+      categories: {
+        workspace: '工作区导航',
+        tools: '快捷工具',
+        actions: '快捷操作',
+        preferences: '偏好设置',
+      },
     },
     nav: {
       dashboard: '交易工作台',
@@ -624,6 +654,10 @@ export const messages = {
       title: '订单同步',
       refresh: '刷新',
       syncNow: '立即同步',
+      activate: '启用',
+      deactivate: '停用',
+      edit: '编辑',
+      delete: '删除',
       boundaryNotice: '订单同步是高风险实验功能：启用后会尝试按凭证和映射把 MT5 即时市价开平仓同步到 TopStep。请先小规模验证，确认账户、合约和手数映射无误。',
       runtimeTitle: '同步开关',
       enabled: '启用订单同步',
@@ -699,6 +733,9 @@ export const messages = {
       standby: '待命中',
       footer: '报告将在浏览器中打开，不再在应用内预览。',
       generateFailed: '技术分析生成失败',
+      missingAiConfig: '请先在设置中填写 AI Base URL 和 AI API Key。',
+      empty: '暂无 AI 分析。请先配置 AI 访问，再生成报告。',
+      resultTitle: '分析结果',
       missingPath: '后端没有返回可打开的报告路径',
       opening: '报告已生成，正在为你打开浏览器...',
       networkError: '网络错误，请稍后重试',
@@ -822,6 +859,13 @@ export const messages = {
       chartView: '图表视图',
       activeTrades: '当前持仓',
       closedTrades: '历史交易',
+      autoPlay: '自动播放',
+      pause: '暂停',
+      stepForward: '步进',
+      speed1x: '1 倍速',
+      speed5x: '5 倍速',
+      speed10x: '10 倍速',
+      speed20x: '20 倍速',
       sl: '止损价 (SL)',
       tp: '止盈价 (TP)',
       rrRatio: '风险回报比 (R:R)',
@@ -837,6 +881,9 @@ export const messages = {
       analytics: '战绩统计',
       showEMA: 'EMA 20/50',
       showVolume: '成交量',
+      tableStartTime: '开始时间',
+      tableBalance: '余额',
+      tableActions: '操作',
       cachedDataSelect: '从本地已存历史数据选择填入',
       cachedDataHint: '选择已下载的 K 线数据直接复盘',
       enabledHint: '仅复制 MT5 即时市价持仓的开仓和平仓',
@@ -875,9 +922,18 @@ export const messages = {
       size: '{size} 手',
       blocked: '已阻止',
     },
-  },
-  en: {
-    app: {
+} as const
+
+// Widens the as-const tree back to plain strings so the English table is
+// checked for KEY parity (missing/extra keys fail typecheck) without being
+// forced to carry identical Chinese literals.
+type Widen<T> = { [K in keyof T]: T[K] extends string ? string : Widen<T[K]> }
+
+// Compile-time parity: the English tree must carry exactly the Chinese
+// tree's keys, so a missing translation fails typecheck instead of silently
+// falling back at runtime.
+const en = {
+  app: {
       title: 'Trader Workbench',
       comingSoon: 'Feature in progress',
     },
@@ -885,6 +941,30 @@ export const messages = {
       userGuide: 'User Guide',
       userGuideHint: 'Open the quick start guide for this app',
       openFailed: 'Unable to open the user guide. Please verify the installation is complete.',
+    },
+    commandPalette: {
+      title: 'Command Palette',
+      placeholder: 'Search workspaces, features, or commands...',
+      empty: 'No matching command or workspace',
+      hint: 'Tip: navigate with arrow keys, Enter to confirm',
+      esc: 'ESC to close',
+      commands: {
+        dashboard: 'Trading Cockpit (Dashboard)',
+        alerts: 'Alerts Hub',
+        automation: 'Automation & Copy',
+        quant: 'Quant Lab',
+        settings: 'Settings & Logs',
+        eventLog: 'Event Log',
+        sponsor: 'Support Me',
+        overlay: 'Toggle Desktop Overlay',
+        switchLanguage: 'Switch language → {target}',
+      },
+      categories: {
+        workspace: 'Workspace',
+        tools: 'Tools',
+        actions: 'Actions',
+        preferences: 'Preferences',
+      },
     },
     nav: {
       dashboard: 'Dashboard',
@@ -1497,6 +1577,10 @@ export const messages = {
       title: 'Order Sync',
       refresh: 'Refresh',
       syncNow: 'Sync Now',
+      activate: 'Activate',
+      deactivate: 'Deactivate',
+      edit: 'Edit',
+      delete: 'Delete',
       boundaryNotice: 'Order Sync is a high-risk experimental feature: when enabled, it attempts to mirror MT5 instant market opens and closes to TopStep using the configured credentials and mappings. Validate with small scope first.',
       runtimeTitle: 'Sync Runtime',
       enabled: 'Enable order sync',
@@ -1568,6 +1652,15 @@ export const messages = {
       missingAiConfig: 'Fill AI Base URL and AI API Key in Settings first.',
       empty: 'No AI analysis yet. Configure AI access, then generate a report.',
       resultTitle: 'Analysis Result',
+      footer: 'The report opens in your browser; it is no longer previewed in the app.',
+      missingPath: 'Backend did not return a report path to open',
+      opening: 'Report generated, opening your browser...',
+      phaseCompose: 'Compose six analysis engines',
+      phaseOpen: 'Hand off to the system browser',
+      phaseSync: 'Sync multi-timeframe market context',
+      phaseWrap: 'Wrap up the composite report',
+      portal: 'Technical Analysis Portal',
+      standby: 'Standing by',
       networkError: 'Network error. Please try again later.',
     },
     orderCenter: {
@@ -1714,8 +1807,49 @@ export const messages = {
       analytics: 'Performance Analytics',
       showEMA: 'EMA 20/50',
       showVolume: 'Volume',
+      enabledHint: 'Only mirror instant-market opens and closes of MT5 positions',
+      pollInterval: 'Poll interval (seconds)',
+      blockHighFrequency: 'Block high-frequency orders',
+      blockHighFrequencyHint: 'When on, identical MT5 orders (same symbol, side, lots) sync at most once every 5 seconds',
+      highFrequencyWindow: 'High-frequency guard window (seconds)',
+      confirmEnableTitle: 'Enable Order Sync?',
+      confirmEnableDescription: 'Once enabled, the system polls MT5 orders and submits them to TopStep. Wrong mappings, duplicate orders, or bad credentials can cause real trading losses.',
+      confirmEnable: 'Enable',
+      addCredential: 'Add Credential',
+      editCredential: 'Edit Credential',
+      credentialName: 'Credential name',
+      userName: 'TopStep username',
+      apiKey: 'API Key',
+      accountId: 'TopStep Account ID',
+      addMapping: 'Add Mapping',
+      editMapping: 'Edit Mapping',
+      mt5Symbol: 'MT5 symbol',
+      topstepContract: 'TopStep contract ID',
+      topstepName: 'TopStep display name',
+      multiplier: 'Quantity multiplier',
+      mt5Lots: 'MT5 lots',
+      topstepContracts: 'TopStep contracts',
+      mappingRatioHint: 'e.g. 0.1 MT5 lots = 1 TopStep contract',
+      create: 'Add',
+      update: 'Save Changes',
+      credentialRequired: 'TopStep username, API Key, and Account ID are required',
+      mappingRequired: 'MT5 symbol and TopStep contract ID are required',
+      listTitle: 'Sync configuration & history',
+      credentialsTitle: 'Credentials',
+      mappingsTitle: 'Mappings',
+      syncedTitle: 'Synced orders',
+      count: '{count} synced orders',
+      empty: 'No synced orders yet; opens and closes will appear here once enabled',
+      size: '{size} lots',
+      blocked: 'Blocked',
       cachedDataSelect: 'Quick Fill from Cached Data',
       cachedDataHint: 'Select downloaded historical dataset to review',
     },
-  },
-} as const
+} satisfies Widen<typeof zhCN>
+
+export type MessageKey = Flatten<typeof zhCN>
+
+export const messages: Record<Locale, Widen<typeof zhCN>> = {
+  'zh-CN': zhCN,
+  en,
+}

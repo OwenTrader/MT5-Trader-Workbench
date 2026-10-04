@@ -312,10 +312,10 @@ export const OrderSyncPage: React.FC = () => {
                         <div className="text-sm text-muted-foreground">{credential.user_name} / #{credential.account_id} / {maskSecret(credential.api_key)}</div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => persist({ credentials: config.credentials.map((item) => item.id === credential.id ? { ...item, is_active: true } : item) })}><Play className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => persist({ credentials: config.credentials.map((item) => item.id === credential.id ? { ...item, is_active: false } : item) })}><Pause className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => startEditCredential(credential)}><Edit3 className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => persist({ credentials: config.credentials.filter((item) => item.id !== credential.id) })}><Trash2 className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label={t('orderSync.activate')} onClick={() => persist({ credentials: config.credentials.map((item) => item.id === credential.id ? { ...item, is_active: true } : item) })}><Play className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label={t('orderSync.deactivate')} onClick={() => persist({ credentials: config.credentials.map((item) => item.id === credential.id ? { ...item, is_active: false } : item) })}><Pause className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label={t('orderSync.edit')} onClick={() => startEditCredential(credential)}><Edit3 className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" aria-label={t('orderSync.delete')} onClick={() => persist({ credentials: config.credentials.filter((item) => item.id !== credential.id) })}><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </div>
                   ))}
@@ -331,10 +331,10 @@ export const OrderSyncPage: React.FC = () => {
                         <div className="text-sm text-muted-foreground">{t('orderSync.mappingRatioHint')}: {mapping.mt5_lots} → {mapping.topstep_contracts}</div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => persist({ mappings: config.mappings.map((item) => item.id === mapping.id ? { ...item, is_active: true } : item) })}><Play className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => persist({ mappings: config.mappings.map((item) => item.id === mapping.id ? { ...item, is_active: false } : item) })}><Pause className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => startEditMapping(mapping)}><Edit3 className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => persist({ mappings: config.mappings.filter((item) => item.id !== mapping.id) })}><Trash2 className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label={t('orderSync.activate')} onClick={() => persist({ mappings: config.mappings.map((item) => item.id === mapping.id ? { ...item, is_active: true } : item) })}><Play className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label={t('orderSync.deactivate')} onClick={() => persist({ mappings: config.mappings.map((item) => item.id === mapping.id ? { ...item, is_active: false } : item) })}><Pause className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label={t('orderSync.edit')} onClick={() => startEditMapping(mapping)}><Edit3 className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" aria-label={t('orderSync.delete')} onClick={() => persist({ mappings: config.mappings.filter((item) => item.id !== mapping.id) })}><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </div>
                   ))}

@@ -29,15 +29,15 @@ interface CommandPaletteProps {
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
   const navigate = useNavigate()
-  const { locale } = useI18n()
+  const { t, locale } = useI18n()
   const { updateSettings } = useSettingsStore()
   const [search, setSearch] = useState('')
 
   const commands = [
     {
       id: 'nav-dashboard',
-      title: '交易工作台 (Trading Cockpit)',
-      category: '工作区导航',
+      title: t('commandPalette.commands.dashboard'),
+      category: t('commandPalette.categories.workspace'),
       icon: LayoutDashboard,
       action: () => {
         navigate('/dashboard')
@@ -46,8 +46,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'nav-alerts',
-      title: '智能告警中心 (Alerts Hub)',
-      category: '工作区导航',
+      title: t('commandPalette.commands.alerts'),
+      category: t('commandPalette.categories.workspace'),
       icon: Bell,
       action: () => {
         navigate('/alerts')
@@ -56,8 +56,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'nav-automation',
-      title: '自动化与跟单中心 (Automation & Copy)',
-      category: '工作区导航',
+      title: t('commandPalette.commands.automation'),
+      category: t('commandPalette.categories.workspace'),
       icon: Link2,
       action: () => {
         navigate('/automation')
@@ -66,8 +66,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'nav-quant',
-      title: '量化与复盘实验室 (Quant Lab)',
-      category: '工作区导航',
+      title: t('commandPalette.commands.quant'),
+      category: t('commandPalette.categories.workspace'),
       icon: LineChart,
       action: () => {
         navigate('/quant')
@@ -76,8 +76,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'nav-settings',
-      title: '系统设置与日志 (Settings & Logs)',
-      category: '工作区导航',
+      title: t('commandPalette.commands.settings'),
+      category: t('commandPalette.categories.workspace'),
       icon: Settings,
       action: () => {
         navigate('/settings')
@@ -86,8 +86,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'nav-event-log',
-      title: '全景事件日志 (Event Log)',
-      category: '快捷工具',
+      title: t('commandPalette.commands.eventLog'),
+      category: t('commandPalette.categories.tools'),
       icon: Activity,
       action: () => {
         navigate('/event-log')
@@ -96,8 +96,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'nav-sponsor',
-      title: '关于与赞助开发者 (Support Me)',
-      category: '快捷工具',
+      title: t('commandPalette.commands.sponsor'),
+      category: t('commandPalette.categories.tools'),
       icon: HeartHandshake,
       action: () => {
         navigate('/sponsor')
@@ -106,8 +106,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'action-overlay',
-      title: '切换桌面悬浮窗 (Toggle Overlay)',
-      category: '快捷操作',
+      title: t('commandPalette.commands.overlay'),
+      category: t('commandPalette.categories.actions'),
       icon: Eye,
       action: async () => {
         if ((window as any).electron?.ipcRenderer) {
@@ -119,8 +119,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     },
     {
       id: 'action-lang',
-      title: `切换系统语言 (${locale === 'zh-CN' ? 'Switch to English' : '切换至简体中文'})`,
-      category: '偏好设置',
+      title: t('commandPalette.commands.switchLanguage', { target: locale === 'zh-CN' ? 'English' : '简体中文' }),
+      category: t('commandPalette.categories.preferences'),
       icon: Languages,
       action: () => {
         void updateSettings({ language: locale === 'zh-CN' ? 'en' : 'zh-CN' })
@@ -149,13 +149,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-0 max-w-xl overflow-hidden border shadow-2xl">
         <DialogHeader className="p-4 pb-0">
-          <DialogTitle className="sr-only">快捷指令面板</DialogTitle>
+          <DialogTitle className="sr-only">{t('commandPalette.title')}</DialogTitle>
           <div className="flex items-center gap-2 border-b pb-3">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="输入工作区名称、功能或指令进行搜索..."
+              placeholder={t('commandPalette.placeholder')}
               className="border-0 focus-visible:ring-0 px-0 text-sm shadow-none"
               autoFocus
             />
@@ -165,7 +165,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
         <div className="max-h-[350px] overflow-y-auto p-2 space-y-1">
           {filteredCommands.length === 0 ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              未找到匹配的指令或工作区
+              {t('commandPalette.empty')}
             </div>
           ) : (
             filteredCommands.map((cmd) => {
@@ -191,8 +191,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
         </div>
 
         <div className="flex items-center justify-between border-t bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-          <span>提示: 使用方向键导航，Enter 确认选择</span>
-          <kbd className="rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono">ESC 退出</kbd>
+          <span>{t('commandPalette.hint')}</span>
+          <kbd className="rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono">{t('commandPalette.esc')}</kbd>
         </div>
       </DialogContent>
     </Dialog>
