@@ -2,6 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Content-Security-Policy: the renderer only talks to the local backend
+      (8765) plus the vite dev server during development. Remote origins are
+      denied so injected script cannot exfiltrate to or load code from the
+      network. local-file: serves bundled/user audio via the registered
+      protocol; data:/blob: cover chart images and inline assets.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' http://localhost:5173; style-src 'self' 'unsafe-inline' http://localhost:5173; connect-src 'self' http://127.0.0.1:8765 ws://127.0.0.1:8765 http://localhost:5173 ws://localhost:5173; img-src 'self' data: blob: local-file:; media-src 'self' data: blob: local-file:; font-src 'self' data: http://localhost:5173"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trader Workbench</title>
   </head>

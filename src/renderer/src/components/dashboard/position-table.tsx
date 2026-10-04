@@ -1,4 +1,5 @@
 import React from 'react'
+import { useI18n } from '@/i18n'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ interface PositionTableProps {
 }
 
 export const PositionTable: React.FC<PositionTableProps> = ({ positions, onRefresh }) => {
+  const { t } = useI18n()
   const totalProfit = positions.reduce((acc, pos) => acc + (pos.profit || 0), 0)
   const totalVolume = positions.reduce((acc, pos) => acc + (pos.volume || 0), 0)
 
@@ -22,18 +24,18 @@ export const PositionTable: React.FC<PositionTableProps> = ({ positions, onRefre
         <div className="flex items-center gap-3">
           <Briefcase className="h-5 w-5 text-primary" />
           <CardTitle className="text-base font-semibold">
-            实时持仓明细 ({positions.length})
+            {t('dashboard.position.title')} ({positions.length})
           </CardTitle>
           {positions.length > 0 && (
             <Badge variant="outline" className="text-xs font-mono">
-              总手数: {totalVolume.toFixed(2)}
+              {t('dashboard.position.totalVolume')}: {totalVolume.toFixed(2)}
             </Badge>
           )}
         </div>
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">持仓浮盈:</span>
+            <span className="text-muted-foreground">{t('dashboard.position.floatingPnl')}:</span>
             <span
               className={cn(
                 "font-bold font-mono text-base",
@@ -49,7 +51,7 @@ export const PositionTable: React.FC<PositionTableProps> = ({ positions, onRefre
           </div>
 
           {onRefresh && (
-            <Button variant="ghost" size="icon" onClick={onRefresh} title="刷新持仓" className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={onRefresh} title={t('dashboard.position.refresh')} className="h-8 w-8">
               <RefreshCw className="h-4 w-4" />
             </Button>
           )}
@@ -60,22 +62,22 @@ export const PositionTable: React.FC<PositionTableProps> = ({ positions, onRefre
         {positions.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-2">
             <Briefcase className="h-8 w-8 text-muted-foreground/40 stroke-1" />
-            <span>当前账户暂无任何持仓订单</span>
+            <span>{t('dashboard.position.empty')}</span>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 text-xs">
-                  <TableHead className="font-semibold">订单号 (Ticket)</TableHead>
-                  <TableHead className="font-semibold">交易品种</TableHead>
-                  <TableHead className="font-semibold">方向</TableHead>
-                  <TableHead className="font-semibold text-right">手数</TableHead>
-                  <TableHead className="font-semibold text-right">开仓价</TableHead>
-                  <TableHead className="font-semibold text-right">当前市价</TableHead>
-                  <TableHead className="font-semibold text-right">止损 (SL)</TableHead>
-                  <TableHead className="font-semibold text-right">止盈 (TP)</TableHead>
-                  <TableHead className="font-semibold text-right">浮动盈亏 ($)</TableHead>
+                  <TableHead className="font-semibold">{t('dashboard.position.ticket')}</TableHead>
+                  <TableHead className="font-semibold">{t('dashboard.position.symbol')}</TableHead>
+                  <TableHead className="font-semibold">{t('dashboard.position.direction')}</TableHead>
+                  <TableHead className="font-semibold text-right">{t('dashboard.position.volume')}</TableHead>
+                  <TableHead className="font-semibold text-right">{t('dashboard.position.openPrice')}</TableHead>
+                  <TableHead className="font-semibold text-right">{t('dashboard.position.currentPrice')}</TableHead>
+                  <TableHead className="font-semibold text-right">{t('dashboard.position.sl')}</TableHead>
+                  <TableHead className="font-semibold text-right">{t('dashboard.position.tp')}</TableHead>
+                  <TableHead className="font-semibold text-right">{t('dashboard.position.profit')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -87,12 +87,20 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
 
   startPolling: (interval: number = 2000) => {
+    // Skip a round while the previous one is still running: with a 10s
+    // apiFetch timeout and a stalled backend, unguarded rounds pile up and
+    // the slowest (oldest) response would land last.
+    let inFlight = false
     registerPollingJob(
       'dashboard',
-      () => {
-        get().fetchStatus()
-        get().fetchAccount()
-        get().fetchPositions()
+      async () => {
+        if (inFlight) return
+        inFlight = true
+        try {
+          await Promise.all([get().fetchStatus(), get().fetchAccount(), get().fetchPositions()])
+        } finally {
+          inFlight = false
+        }
       },
       interval,
     )

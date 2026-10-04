@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { RefreshCw, Megaphone, Edit3, Trash2, Play, Pause } from 'lucide-react'
 import { cn, debounce } from '@/lib/utils'
 import { usePolling } from '@/lib/polling'
+import { AlertRowActions } from '@/components/alerts/alert-row-actions'
 
 const DEFAULT_SYMBOL = 'XAUUSD'
 
@@ -196,48 +197,22 @@ export const OrderBroadcastPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            'w-9 h-9 rounded-full transition-all',
-                            rule.is_active ? 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/20' : 'text-muted-foreground/40 hover:text-muted-foreground'
-                          )}
-                          onClick={() => toggleStatus(rule, true)}
-                          title={t('orderBroadcast.actionStart')}
-                        >
-                          <Play className={cn('w-4 h-4 fill-current', !rule.is_active && 'fill-none')} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            'w-9 h-9 rounded-full transition-all',
-                            !rule.is_active ? 'bg-gray-500 text-white hover:bg-gray-600 shadow-md' : 'text-muted-foreground/40 hover:text-muted-foreground'
-                          )}
-                          onClick={() => toggleStatus(rule, false)}
-                          title={t('orderBroadcast.actionPause')}
-                        >
-                          <Pause className={cn('w-4 h-4 fill-current', rule.is_active && 'fill-none')} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-9 h-9 rounded-full text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                          onClick={() => startEdit(rule)}
-                          title={t('orderBroadcast.actionEdit')}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-9 h-9 rounded-full text-destructive hover:bg-destructive/10"
-                          onClick={() => deleteOrderBroadcastRule(rule.id)}
-                          title={t('orderBroadcast.actionDelete')}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+<AlertRowActions
+                      isTriggered={false}
+                      isActive={rule.is_active}
+                      triggerColor="bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/30"
+                      labels={{
+                        reset: t('orderBroadcast.actionResetPlay'),
+                        start: t('orderBroadcast.actionStart'),
+                        pause: t('orderBroadcast.actionPause'),
+                        edit: t('orderBroadcast.actionEdit'),
+                        delete: t('orderBroadcast.actionDelete'),
+                      }}
+                      onPrimary={() => toggleStatus(rule, true)}
+                      onPause={() => toggleStatus(rule, false)}
+                      onEdit={() => startEdit(rule)}
+                      onDelete={() => deleteOrderBroadcastRule(rule.id)}
+                    />
                       </div>
                     </div>
                   ))

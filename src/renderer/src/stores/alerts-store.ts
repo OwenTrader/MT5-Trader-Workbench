@@ -1,5 +1,13 @@
 import { apiFetch } from '@/lib/api'
 import { create } from 'zustand'
+import { toast } from 'sonner'
+
+/** Mutations used to fail silently (console only); users never learned
+ * their alert was not saved. */
+function reportMutationFailure(action: string, res?: Response) {
+  console.error(`Failed to ${action}${res ? ` (${res.status})` : ''}`)
+  toast.error(`操作失败，请重试 / Failed to ${action}, please retry`)
+}
 
 export interface PriceAlert {
   id: string
@@ -97,9 +105,11 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       if (res.ok) {
         const data = await res.json()
         set({ priceAlerts: data })
+      } else {
+        reportMutationFailure('fetch alerts', res)
       }
     } catch (error) {
-      console.error('Failed to fetch alerts:', error)
+      reportMutationFailure('fetch alerts')
     } finally {
       if (!options?.silent) {
         set({ isLoading: false })
@@ -116,9 +126,11 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       })
       if (res.ok) {
         get().fetchAlerts()
+      } else {
+        reportMutationFailure('add alert', res)
       }
     } catch (error) {
-      console.error('Failed to add alert:', error)
+      reportMutationFailure('add alert')
     }
   },
 
@@ -131,15 +143,21 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       })
       if (res.ok) {
         get().fetchAlerts()
+      } else {
+        reportMutationFailure('update alert', res)
       }
     } catch (error) {
-      console.error('Failed to update alert:', error)
+      reportMutationFailure('update alert')
     }
   },
 
   deletePriceAlert: async (id) => {
     try {
-      await apiFetch(`/alerts/price/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/alerts/price/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        reportMutationFailure('delete alert', res)
+        return
+      }
       set((state) => ({
         priceAlerts: state.priceAlerts.filter((a) => a.id !== id)
       }))
@@ -157,9 +175,11 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       if (res.ok) {
         const data = await res.json()
         set({ volatilityAlerts: data })
+      } else {
+        reportMutationFailure('fetch volatility alerts', res)
       }
     } catch (error) {
-      console.error('Failed to fetch volatility alerts:', error)
+      reportMutationFailure('fetch volatility alerts')
     } finally {
       if (!options?.silent) {
         set({ isLoading: false })
@@ -176,9 +196,11 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       })
       if (res.ok) {
         get().fetchVolatilityAlerts()
+      } else {
+        reportMutationFailure('add volatility alert', res)
       }
     } catch (error) {
-      console.error('Failed to add volatility alert:', error)
+      reportMutationFailure('add volatility alert')
     }
   },
 
@@ -191,15 +213,21 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       })
       if (res.ok) {
         get().fetchVolatilityAlerts()
+      } else {
+        reportMutationFailure('update volatility alert', res)
       }
     } catch (error) {
-      console.error('Failed to update volatility alert:', error)
+      reportMutationFailure('update volatility alert')
     }
   },
 
   deleteVolatilityAlert: async (id) => {
     try {
-      await apiFetch(`/alerts/volatility/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/alerts/volatility/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        reportMutationFailure('delete alert', res)
+        return
+      }
       set((state) => ({
         volatilityAlerts: state.volatilityAlerts.filter((a) => a.id !== id)
       }))
@@ -217,9 +245,11 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       if (res.ok) {
         const data = await res.json()
         set({ indicatorAlerts: data })
+      } else {
+        reportMutationFailure('fetch indicator alerts', res)
       }
     } catch (error) {
-      console.error('Failed to fetch indicator alerts:', error)
+      reportMutationFailure('fetch indicator alerts')
     } finally {
       if (!options?.silent) {
         set({ isLoading: false })
@@ -236,9 +266,11 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       })
       if (res.ok) {
         get().fetchIndicatorAlerts()
+      } else {
+        reportMutationFailure('add indicator alert', res)
       }
     } catch (error) {
-      console.error('Failed to add indicator alert:', error)
+      reportMutationFailure('add indicator alert')
     }
   },
 
@@ -251,15 +283,21 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       })
       if (res.ok) {
         get().fetchIndicatorAlerts()
+      } else {
+        reportMutationFailure('update indicator alert', res)
       }
     } catch (error) {
-      console.error('Failed to update indicator alert:', error)
+      reportMutationFailure('update indicator alert')
     }
   },
 
   deleteIndicatorAlert: async (id) => {
     try {
-      await apiFetch(`/alerts/indicator/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/alerts/indicator/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        reportMutationFailure('delete alert', res)
+        return
+      }
       set((state) => ({
         indicatorAlerts: state.indicatorAlerts.filter((a) => a.id !== id)
       }))
@@ -277,9 +315,11 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       if (res.ok) {
         const data = await res.json()
         set({ orderBroadcastRules: data })
+      } else {
+        reportMutationFailure('fetch order broadcast rules', res)
       }
     } catch (error) {
-      console.error('Failed to fetch order broadcast rules:', error)
+      reportMutationFailure('fetch order broadcast rules')
     } finally {
       if (!options?.silent) {
         set({ isLoading: false })
@@ -331,12 +371,16 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 
   deleteOrderBroadcastRule: async (id) => {
     try {
-      await apiFetch(`/alerts/order-broadcast/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/alerts/order-broadcast/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        reportMutationFailure('delete alert', res)
+        return
+      }
       set((state) => ({
         orderBroadcastRules: state.orderBroadcastRules.filter((rule) => rule.id !== id)
       }))
     } catch (error) {
-      console.error('Failed to delete order broadcast rule:', error)
+      reportMutationFailure('delete alert')
     }
   }
 }))

@@ -19,6 +19,7 @@ import { RefreshCw, Play, Pause, Trash2, Edit3, Plus, LineChart } from 'lucide-r
 import { cn, debounce } from '@/lib/utils'
 import { usePolling } from '@/lib/polling'
 import { useAlertTriggerEffects } from '@/hooks/use-alert-trigger-effects'
+import { AlertRowActions } from '@/components/alerts/alert-row-actions'
 
 export const IndicatorAlertsPage: React.FC = () => {
   const { t } = useI18n()
@@ -333,61 +334,22 @@ export const IndicatorAlertsPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-1">
-                        {/* 播放按钮 */}
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className={cn(
-                            "w-9 h-9 rounded-full transition-all",
-                            alert.is_triggered 
-                              ? "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/30" 
-                              : alert.is_active 
-                                ? "bg-blue-600/10 text-blue-600 hover:bg-blue-600/20" 
-                                : "text-muted-foreground/40 hover:text-muted-foreground"
-                          )}
-                          onClick={() => alert.is_triggered ? resetTrigger(alert) : toggleStatus(alert, true)}
-                          title={alert.is_triggered ? t('indicatorAlerts.actionResetPlay') : t('indicatorAlerts.actionStart')}
-                        >
-                          <Play className={cn("w-4 h-4 fill-current", !alert.is_active && !alert.is_triggered && "fill-none")} />
-                        </Button>
-
-                        {/* 暂停按钮 */}
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className={cn(
-                            "w-9 h-9 rounded-full transition-all",
-                            (!alert.is_active && !alert.is_triggered) 
-                              ? "bg-gray-500 text-white hover:bg-gray-600 shadow-md" 
-                              : "text-muted-foreground/40 hover:text-muted-foreground"
-                          )}
-                          onClick={() => toggleStatus(alert, false)}
-                          title={t('indicatorAlerts.actionPause')}
-                        >
-                          <Pause className={cn("w-4 h-4 fill-current", (alert.is_active || alert.is_triggered) && "fill-none")} />
-                        </Button>
-
-                        {/* 编辑按钮 */}
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="w-9 h-9 rounded-full text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                          onClick={() => startEdit(alert)}
-                          title={t('indicatorAlerts.actionEdit')}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-
-                        {/* 删除按钮 */}
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="w-9 h-9 rounded-full text-destructive hover:bg-destructive/10"
-                          onClick={() => deleteIndicatorAlert(alert.id)}
-                          title={t('indicatorAlerts.actionDelete')}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+<AlertRowActions
+                      isTriggered={alert.is_triggered}
+                      isActive={alert.is_active}
+                      triggerColor="bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/30"
+                      labels={{
+                        reset: t('indicatorAlerts.actionResetPlay'),
+                        start: t('indicatorAlerts.actionStart'),
+                        pause: t('indicatorAlerts.actionPause'),
+                        edit: t('indicatorAlerts.actionEdit'),
+                        delete: t('indicatorAlerts.actionDelete'),
+                      }}
+                      onPrimary={() => (alert.is_triggered ? resetTrigger(alert) : toggleStatus(alert, true))}
+                      onPause={() => toggleStatus(alert, false)}
+                      onEdit={() => startEdit(alert)}
+                      onDelete={() => deleteIndicatorAlert(alert.id)}
+                    />
                       </div>
                     </div>
                   ))
